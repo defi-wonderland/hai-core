@@ -243,7 +243,7 @@ contract TaxCollector {
    */
 
   function modifyParameters(bytes32 collateralType, bytes32 parameter, uint256 data) external isAuthorized {
-    require(now == collateralTypes[collateralType].updateTime, 'TaxCollector/update-time-not-now');
+    // require(now == collateralTypes[collateralType].updateTime, 'TaxCollector/update-time-not-now');
     if (parameter == 'stabilityFee') collateralTypes[collateralType].stabilityFee = data;
     else revert('TaxCollector/modify-unrecognized-param');
     emit ModifyParameters(collateralType, parameter, data);
