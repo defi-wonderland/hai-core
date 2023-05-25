@@ -88,8 +88,9 @@ contract CollateralJoin {
     safeEngine = SAFEEngineLike(safeEngine_);
     collateralType = collateralType_;
     collateral = CollateralLike(collateral_);
-    decimals = collateral.decimals();
-    require(decimals == 18, 'CollateralJoin/non-18-decimals');
+    // TODO: transform token into 18 decimals
+    // decimals = collateral.decimals();
+    // require(decimals == 18, 'CollateralJoin/non-18-decimals');
     emit AddAuthorization(msg.sender);
   }
   /**

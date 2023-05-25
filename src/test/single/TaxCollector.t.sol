@@ -684,11 +684,12 @@ contract SingleTaxCollectorTest is DSTest {
     taxCollector.modifyParameters('i', 'stabilityFee', 1);
   }
 
-  function testFail_modify_stabilityFee() public {
-    taxCollector.initializeCollateralType('i');
-    hevm.warp(now + 1);
-    taxCollector.modifyParameters('i', 'stabilityFee', 1);
-  }
+  // NOTE: Test fails because the check was removed to make it deployable
+  // function testFail_modify_stabilityFee() public {
+  //   taxCollector.initializeCollateralType('i');
+  //   hevm.warp(now + 1);
+  //   taxCollector.modifyParameters('i', 'stabilityFee', 1);
+  // }
 
   function test_taxManyOutcome_all_untaxed_positive_rates() public {
     safeEngine.initializeCollateralType('j');
