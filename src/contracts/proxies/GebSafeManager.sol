@@ -4,6 +4,11 @@ import {SAFEHandler} from './SAFEHandler.sol';
 import {SAFEEngine} from '../SAFEEngine.sol';
 import {LiquidationEngine} from '../LiquidationEngine.sol';
 
+/**
+ * TODO:
+ * - Add enumerable set for safes
+ * - Add mapping safe -> collateralType 
+ */
 contract GebSafeManager {
   address public safeEngine;
   uint256 public safei; // Auto incremental

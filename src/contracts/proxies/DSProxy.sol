@@ -31,6 +31,7 @@ contract DSProxy {
     response = execute(target, _data);
   }
 
+  // TODO: onlyOwner
   function execute(address _target, bytes memory _data) public payable returns (bytes memory response) {
     require(_target != address(0), 'ds-proxy-target-address-required');
 

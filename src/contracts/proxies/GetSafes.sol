@@ -2,6 +2,11 @@ pragma solidity 0.6.7;
 
 import {GebSafeManager} from './GebSafeManager.sol';
 
+/**
+ * TODO: 
+ * - replace contract for the enumerable set at GebSafeManager 
+ */
+
 contract GetSafes {
   function getSafesAsc(
     address manager,

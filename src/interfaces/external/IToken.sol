@@ -6,4 +6,5 @@ interface IToken {
   function balanceOf(address _account) external view returns (uint256 _balance);
   function move(address _source, address _destination, uint256 _amount) external;
   function burn(address _account, uint256 _amount) external;
+  function transferFrom(address _from, address _to, uint256 _amount) external;
 }

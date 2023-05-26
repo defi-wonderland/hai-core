@@ -17,6 +17,10 @@ abstract contract ProxyLike {
   function execute(address, bytes memory) public payable virtual;
 }
 
+/**
+ * TODO: 
+ * - internalize all methods via virtual functions to swap between proxy and direct actions
+ */
 contract E2EProxyTest is DSTest {
   bytes32 constant COLLATERAL_TYPE = bytes32('ETH-A');
 
