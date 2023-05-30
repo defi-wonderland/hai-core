@@ -29,7 +29,6 @@ import {Disableable} from '@contracts/utils/Disableable.sol';
 import {Math, RAY, WAD, MAX_RAD} from '@libraries/Math.sol';
 import {Encoding} from '@libraries/Encoding.sol';
 import {Assertions} from '@libraries/Assertions.sol';
-import {EnumerableSet} from '@openzeppelin/utils/structs/EnumerableSet.sol';
 import {ReentrancyGuard} from '@openzeppelin/security/ReentrancyGuard.sol';
 
 contract LiquidationEngine is Authorizable, Disableable, ReentrancyGuard, ILiquidationEngine {
