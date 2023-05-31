@@ -54,7 +54,7 @@ contract LinkedList is ILinkedList {
           // head should be the new node
           head = size;
         } else {
-          // updates the old tail
+          // updates the previous element of the index
           _nodes[_previousKey].next = size;
 
           if (i == size - 1) {
