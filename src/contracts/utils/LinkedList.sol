@@ -6,6 +6,7 @@ import {ILinkedList} from '@interfaces/utils/ILinkedList.sol';
 contract LinkedList is ILinkedList {
   // Valid keys will always start from 1, should never be confused with indexes which are the position in the list and are calculated
   uint256 public head;
+  uint256 public tail;
   uint256 public size;
 
   mapping(uint256 => Node) internal _nodes;
@@ -27,11 +28,46 @@ contract LinkedList is ILinkedList {
       // head should be the new node
       head = size;
     } else {
-      // the previous last element should point to the new node
-      _nodes[size - 1].next = size;
+      // updates the old tail
+      _nodes[tail].next = size;
     }
 
+    // updates the tail
+    tail = size;
+
     return size;
+  }
+
+  function push(address _contractAddress, uint256 _index) external returns (bool success) {
+    if (_index >= size) revert LinkedList_InvalidIndex(_index);
+    uint256 _key = head;
+    uint256 _previousKey = 0;
+    for (uint256 i = 0; i <= _index; i++) {
+      if (i == _index) {
+        // reusable block between push functions but letting it for clarity of the spike
+        // the element is the head
+        Node memory _node = Node({contractAddress: _contractAddress, next: _key});
+        ++size;
+        // adding element at the mapping
+        _nodes[size] = _node;
+        if (_previousKey == 0) {
+          // head should be the new node
+          head = size;
+        } else {
+          // updates the old tail
+          _nodes[_previousKey].next = size;
+
+          if (i == size - 1) {
+            // updates the tail
+            tail = size;
+          }
+        }
+
+        return true;
+      }
+      _previousKey = _key;
+      _key = _nodes[_key].next;
+    }
   }
 
   function remove(address _contractAddress) external returns (bool _success) {

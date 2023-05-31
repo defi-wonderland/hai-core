@@ -22,6 +22,12 @@ interface ILinkedList {
   function head() external view returns (uint256 _head);
 
   /**
+   * @dev Returns the key of last element of the list
+   * @return _tail The tail of the list
+   */
+  function tail() external view returns (uint256 _tail);
+
+  /**
    * @dev Returns the size of the list
    * @return _size The size of the list
    */
@@ -33,12 +39,18 @@ interface ILinkedList {
    * @return _node The node of the list
    */
   function nodes(uint256 _key) external view returns (Node memory _node);
+
   /**
    * @dev Adds a new element to the end of the list
    * @param _contractAddress The address of the contract to add
    * @return _index The position in the list of the new element (it will be always the last one)
    */
   function push(address _contractAddress) external returns (uint256 _index);
+
+  /**
+   * @dev Adds a new element to the list in the given index
+   */
+  function push(address _contractAddress, uint256 _index) external returns (bool success);
 
   /**
    * @dev Removes an element from the list given the contract address
