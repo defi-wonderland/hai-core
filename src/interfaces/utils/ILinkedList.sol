@@ -75,19 +75,17 @@ interface ILinkedList {
 
   /**
    * @dev Replaces an element from the list given the contract address, and an index position (this is not the key! it's the position in the list)
-   * @param _contractAddress The address of the contract to replace
    * @param _index The index of the element to replace
-   * @return _success If the element was replaced or not
+   * @param _contractAddress The address of the contract to replace
    * @return _removedAddress The address of the contract removed
    */
-  function replace(address _contractAddress, uint256 _index) external returns (bool _success, address _removedAddress);
+  function replace(uint256 _index, address _contractAddress) external returns (address _removedAddress);
 
   /**
    * @dev Replaces an element from the list given the contract address, and the address of the element to replace
-   * @param _contractAddress The address of the contract to replace
    * @param _replacedAddress The address of the contract to replace
+   * @param _contractAddress The address of the contract to replace
    * @return _success If the element was replaced or not
-   * @return _index The index of the element replaced
    */
-  function replace(address _contractAddress, address _replacedAddress) external returns (bool _success, uint256 _index);
+  function replace(address _replacedAddress, address _contractAddress) external returns (bool _success);
 }

@@ -96,7 +96,6 @@ contract LinkedList is ILinkedList {
       if (_nodes[_key].contractAddress == _contractAddress) {
         // The element to remove was found
         if (_key == tail) {
-          // reusable block
           // updates the tail
           tail = _previousKey;
         }
@@ -109,12 +108,11 @@ contract LinkedList is ILinkedList {
         }
         delete _nodes[_key];
         --size;
-        return true; // end reusable block
+        return true;
       }
       _previousKey = _key;
       _key = _nodes[_key].next;
     }
-    return false;
   }
 
   function remove(uint256 _index) external returns (bool _success, address _contractAddress) {
@@ -122,10 +120,9 @@ contract LinkedList is ILinkedList {
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
     uint256 _previousKey = 0;
-    for (uint256 i = 0; i < _index; i++) {
+    for (uint256 i = 0; i <= _index; i++) {
       if (i == _index) {
         if (_key == tail) {
-          // reusable block
           // updates the tail
           tail = _previousKey;
         }
@@ -139,7 +136,7 @@ contract LinkedList is ILinkedList {
         _contractAddress = _nodes[_key].contractAddress;
         delete _nodes[_key];
         --size;
-        return (true, _contractAddress); // end reusable block
+        return (true, _contractAddress);
       }
       _previousKey = _key;
       _key = _nodes[_key].next;
@@ -147,34 +144,31 @@ contract LinkedList is ILinkedList {
     return (false, address(0));
   }
 
-  function replace(address _contractAddress, uint256 _index) external returns (bool _success, address _removedAddress) {
+  function replace(uint256 _index, address _contractAddress) external returns (address _removedAddress) {
     if (size == 0) revert LinkedList_EmptyList();
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
-    for (uint256 i = 0; i < _index; i++) {
+    for (uint256 i = 0; i <= _index; i++) {
       if (i == _index) {
         _removedAddress = _nodes[_key].contractAddress;
         _nodes[_key].contractAddress = _contractAddress;
-        return (true, _removedAddress);
+        return (_removedAddress);
       }
       _key = _nodes[_key].next;
     }
-    return (false, address(0));
   }
 
-  function replace(address _contractAddress, address _replacedAddress) external returns (bool _success, uint256 _index) {
+  function replace(address _replacedAddress, address _contractAddress) external returns (bool _success) {
     if (size == 0) revert LinkedList_EmptyList();
     uint256 _key = head;
     uint256 _previousKey = 0;
     while (_key != 0) {
       if (_nodes[_key].contractAddress == _replacedAddress) {
         _nodes[_key].contractAddress = _contractAddress;
-        return (true, _index);
+        return true;
       }
       _previousKey = _key;
       _key = _nodes[_key].next;
-      ++_index;
     }
-    return (false, 0);
   }
 }

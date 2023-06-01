@@ -7,6 +7,7 @@ import {ILinkedList, LinkedList} from '@contracts/utils/LinkedList.sol';
 abstract contract Base is HaiTest {
   ILinkedList public linkedList;
   address newContractAddress = label('newContractAddress');
+  address placeHolderAddress = label('placeHolderAddress');
 
   function setUp() public virtual {
     linkedList = new LinkedList();
@@ -170,5 +171,164 @@ contract Unit_LinkedList_Pop is Base {
       assertEq(linkedList.head(), 0);
       assertEq(linkedList.tail(), 0);
     }
+  }
+}
+
+contract Unit_LinkedList_Remove_ContractAddress is Base {
+  function test_Revert_ListEmpty() public {
+    vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
+    linkedList.remove(newContractAddress);
+  }
+
+  function test_Remove_At_RandomPosition(uint8 _previousSize, uint8 _randomPosition) public {
+    vm.assume(_previousSize > 0 && _previousSize < 100);
+    vm.assume(_previousSize > _randomPosition);
+
+    for (uint256 i = 0; i < _previousSize; i++) {
+      if (i == _randomPosition) {
+        linkedList.push(newContractAddress);
+      } else {
+        linkedList.push(newAddress());
+      }
+    }
+    bool _success = linkedList.remove(newContractAddress);
+    assertTrue(_success);
+    assertEq(linkedList.size(), _previousSize - 1);
+
+    if (_previousSize == 1) {
+      assertEq(linkedList.head(), 0);
+      assertEq(linkedList.tail(), 0);
+    } else {
+      if (_randomPosition == 0) {
+        assertEq(linkedList.head(), 2);
+      } else if (_randomPosition == _previousSize - 1) {
+        assertEq(linkedList.tail(), _previousSize - 1);
+      } else {
+        assertEq(linkedList.nodes(_randomPosition).next, _randomPosition + 2);
+      }
+    }
+  }
+
+  function test_Return_False_ContractNotFound(uint8 _previousSize) public {
+    vm.assume(_previousSize > 0 && _previousSize < 100);
+    _loadList(_previousSize);
+    bool _success = linkedList.remove(newContractAddress);
+
+    assertFalse(_success);
+    assertEq(linkedList.size(), _previousSize);
+  }
+}
+
+contract Unit_LinkedList_Remove_Index is Base {
+  function test_Revert_ListEmpty() public {
+    vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
+    linkedList.remove(0);
+  }
+
+  function test_Revert_InvalidIndex(uint8 _size, uint8 _index) public {
+    vm.assume(_size > 0 && _size < 100);
+    vm.assume(_index >= _size);
+    _loadList(_size);
+
+    vm.expectRevert(abi.encodeWithSelector(ILinkedList.LinkedList_InvalidIndex.selector, _index));
+    linkedList.remove(_index);
+  }
+
+  function test_Remove_At_RandomPosition123(uint8 _previousSize, uint8 _randomPosition) public {
+    vm.assume(_previousSize > 0 && _previousSize < 100);
+    vm.assume(_previousSize > _randomPosition);
+
+    for (uint256 i = 0; i < _previousSize; i++) {
+      if (i == _randomPosition) {
+        linkedList.push(newContractAddress);
+      } else {
+        linkedList.push(newAddress());
+      }
+    }
+    (bool _success, address _removedAddress) = linkedList.remove(_randomPosition);
+    assertTrue(_success);
+    assertEq(_removedAddress, newContractAddress);
+    assertEq(linkedList.size(), _previousSize - 1);
+
+    if (_previousSize == 1) {
+      assertEq(linkedList.head(), 0);
+      assertEq(linkedList.tail(), 0);
+    } else {
+      if (_randomPosition == 0) {
+        assertEq(linkedList.head(), 2);
+      } else if (_randomPosition == _previousSize - 1) {
+        assertEq(linkedList.tail(), _previousSize - 1);
+      } else {
+        assertEq(linkedList.nodes(_randomPosition).next, _randomPosition + 2);
+      }
+    }
+  }
+}
+
+contract Unit_LinkedList_Replace_Index is Base {
+  function test_Revert_ListEmpty() public {
+    vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
+    linkedList.replace(0, newContractAddress);
+  }
+
+  function test_Revert_InvalidIndex(uint8 _size, uint8 _index) public {
+    vm.assume(_size > 0 && _size < 100);
+    vm.assume(_index >= _size);
+    _loadList(_size);
+
+    vm.expectRevert(abi.encodeWithSelector(ILinkedList.LinkedList_InvalidIndex.selector, _index));
+    linkedList.replace(_index, newContractAddress);
+  }
+
+  function test_Replace_At_RandomPosition(uint8 _previousSize, uint8 _randomPosition) public {
+    vm.assume(_previousSize > 0 && _previousSize < 100);
+    vm.assume(_previousSize > _randomPosition);
+
+    for (uint256 i = 0; i < _previousSize; i++) {
+      if (i == _randomPosition) {
+        linkedList.push(placeHolderAddress);
+      } else {
+        linkedList.push(newAddress());
+      }
+    }
+
+    address _removedAddress = linkedList.replace(_randomPosition, newContractAddress);
+    assertEq(_removedAddress, placeHolderAddress);
+    assertEq(linkedList.size(), _previousSize);
+    assertEq(linkedList.nodes(_randomPosition + 1).contractAddress, newContractAddress);
+  }
+}
+
+contract Unit_LinkedList_Replace_ContractAddress is Base {
+  function test_Revert_ListEmpty() public {
+    vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
+    linkedList.replace(placeHolderAddress, newContractAddress);
+  }
+
+  function test_Replace_At_RandomPosition(uint8 _previousSize, uint8 _randomPosition) public {
+    vm.assume(_previousSize > 0 && _previousSize < 100);
+    vm.assume(_previousSize > _randomPosition);
+
+    for (uint256 i = 0; i < _previousSize; i++) {
+      if (i == _randomPosition) {
+        linkedList.push(placeHolderAddress);
+      } else {
+        linkedList.push(newAddress());
+      }
+    }
+
+    bool _success = linkedList.replace(placeHolderAddress, newContractAddress);
+    assertTrue(_success);
+    assertEq(linkedList.size(), _previousSize);
+    assertEq(linkedList.nodes(_randomPosition + 1).contractAddress, newContractAddress);
+  }
+
+  function test_Return_False_ContractNotFound(uint8 _previousSize) public {
+    vm.assume(_previousSize > 0 && _previousSize < 100);
+    _loadList(_previousSize);
+    bool _success = linkedList.replace(placeHolderAddress, newContractAddress);
+
+    assertFalse(_success);
+    assertEq(linkedList.size(), _previousSize);
   }
 }
