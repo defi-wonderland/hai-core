@@ -6,7 +6,6 @@ import {ISAFEEngine} from '@interfaces/ISAFEEngine.sol';
 import {ILiquidationEngine} from '@interfaces/ILiquidationEngine.sol';
 import {IAccountingEngine} from '@interfaces/IAccountingEngine.sol';
 import {IOracleRelayer} from '@interfaces/IOracleRelayer.sol';
-import {IDisableable as ICoinSavingsAccount} from '@interfaces/utils/IDisableable.sol';
 import {IStabilityFeeTreasury} from '@interfaces/IStabilityFeeTreasury.sol';
 import {ICollateralAuctionHouse} from '@interfaces/ICollateralAuctionHouse.sol';
 import {IBaseOracle} from '@interfaces/oracles/IBaseOracle.sol';
@@ -27,7 +26,6 @@ abstract contract Base is HaiTest {
   ILiquidationEngine mockLiquidationEngine = ILiquidationEngine(mockContract('LiquidationEngine'));
   IAccountingEngine mockAccountingEngine = IAccountingEngine(mockContract('AccountingEngine'));
   IOracleRelayer mockOracleRelayer = IOracleRelayer(mockContract('OracleRelayer'));
-  ICoinSavingsAccount mockCoinSavingsAccount = ICoinSavingsAccount(mockContract('CoinSavingsAccount'));
   IStabilityFeeTreasury mockStabilityFeeTreasury = IStabilityFeeTreasury(mockContract('StabilityFeeTreasury'));
   ICollateralAuctionHouse mockCollateralAuctionHouse = ICollateralAuctionHouse(mockContract('CollateralAuctionHouse'));
   IBaseOracle mockOracle = IBaseOracle(mockContract('Oracle'));
@@ -228,12 +226,6 @@ abstract contract Base is HaiTest {
     );
   }
 
-  function _mockCoinSavingsAccount(address _coinSavingsAccount) internal {
-    stdstore.target(address(globalSettlement)).sig(IGlobalSettlement.coinSavingsAccount.selector).checked_write(
-      _coinSavingsAccount
-    );
-  }
-
   function _mockStabilityFeeTreasury(address _stabilityFeeTreasury) internal {
     stdstore.target(address(globalSettlement)).sig(IGlobalSettlement.stabilityFeeTreasury.selector).checked_write(
       _stabilityFeeTreasury
@@ -285,7 +277,6 @@ contract Unit_GlobalSettlement_ShutdownSystem is Base {
     _mockLiquidationEngine(address(mockLiquidationEngine));
     _mockAccountingEngine(address(mockAccountingEngine));
     _mockOracleRelayer(address(mockOracleRelayer));
-    _mockCoinSavingsAccount(address(mockCoinSavingsAccount));
     _mockStabilityFeeTreasury(address(mockStabilityFeeTreasury));
   }
 
@@ -356,20 +347,6 @@ contract Unit_GlobalSettlement_ShutdownSystem is Base {
     globalSettlement.shutdownSystem();
   }
 
-  function test_Call_CoinSavingsAccount_DisableContract() public happyPath {
-    vm.expectCall(address(mockCoinSavingsAccount), abi.encodeCall(mockCoinSavingsAccount.disableContract, ()));
-
-    globalSettlement.shutdownSystem();
-  }
-
-  function testFail_Call_CoinSavingsAccount_DisableContract() public happyPath {
-    _mockCoinSavingsAccount(address(0));
-
-    vm.expectCall(address(mockCoinSavingsAccount), abi.encodeCall(mockCoinSavingsAccount.disableContract, ()));
-
-    globalSettlement.shutdownSystem();
-  }
-
   function test_Emit_ShutdownSystem() public happyPath {
     expectEmitNoIndex();
     emit ShutdownSystem();
@@ -422,7 +399,7 @@ contract Unit_GlobalSettlement_FreezeCollateralType is Base {
 
     _mockValues(_cType, _finalCoinPerCollateralPrice, 0, 0, 0);
 
-    vm.expectRevert('GlobalSettlement/final-collateral-price-already-defined');
+    vm.expectRevert(IGlobalSettlement.GS_FinalCollateralPriceAlreadyDefined.selector);
 
     globalSettlement.freezeCollateralType(_cType);
   }
@@ -515,7 +492,7 @@ contract Unit_GlobalSettlement_FastTrackAuction is Base {
   }
 
   function test_Revert_FinalCollateralPriceNotDefined(FastTrackAuctionStruct memory _auction) public {
-    vm.expectRevert('GlobalSettlement/final-collateral-price-not-defined');
+    vm.expectRevert(IGlobalSettlement.GS_FinalCollateralPriceNotDefined.selector);
 
     globalSettlement.fastTrackAuction(_auction.collateralType, _auction.id);
   }
@@ -686,7 +663,7 @@ contract Unit_GlobalSettlement_ProcessSAFE is Base {
   }
 
   function test_Revert_FinalCollateralPriceNotDefined(ProcessSAFEStruct memory _safeData) public {
-    vm.expectRevert('GlobalSettlement/final-collateral-price-not-defined');
+    vm.expectRevert(IGlobalSettlement.GS_FinalCollateralPriceNotDefined.selector);
 
     globalSettlement.processSAFE(_safeData.collateralType, _safeData.safe);
   }
@@ -794,7 +771,7 @@ contract Unit_GlobalSettlement_FreeCollateral is Base {
 
     _mockValues(_cType, _lockedCollateral, _generatedDebt);
 
-    vm.expectRevert('GlobalSettlement/safe-debt-not-zero');
+    vm.expectRevert(IGlobalSettlement.GS_SafeDebtNotZero.selector);
 
     globalSettlement.freeCollateral(_cType);
   }
@@ -878,7 +855,7 @@ contract Unit_GlobalSettlement_SetOutstandingCoinSupply is Base {
 
     _mockValues(0, 0, _outstandingCoinSupply, 0, 0);
 
-    vm.expectRevert('GlobalSettlement/outstanding-coin-supply-not-zero');
+    vm.expectRevert(IGlobalSettlement.GS_OutstandingCoinSupplyNotZero.selector);
 
     globalSettlement.setOutstandingCoinSupply();
   }
@@ -888,7 +865,7 @@ contract Unit_GlobalSettlement_SetOutstandingCoinSupply is Base {
 
     _mockValues(0, 0, 0, _coinBalance, 0);
 
-    vm.expectRevert('GlobalSettlement/surplus-not-zero');
+    vm.expectRevert(IGlobalSettlement.GS_SurplusNotZero.selector);
 
     globalSettlement.setOutstandingCoinSupply();
   }
@@ -899,7 +876,7 @@ contract Unit_GlobalSettlement_SetOutstandingCoinSupply is Base {
 
     _mockValues(_shutdownTime, _shutdownCooldown, 0, 0, 0);
 
-    vm.expectRevert('GlobalSettlement/shutdown-cooldown-not-finished');
+    vm.expectRevert(IGlobalSettlement.GS_ShutdownCooldownNotFinished.selector);
 
     globalSettlement.setOutstandingCoinSupply();
   }
@@ -967,7 +944,7 @@ contract Unit_GlobalSettlement_CalculateCashPrice is Base {
   }
 
   function test_Revert_OutstandingCoinSupplyZero(bytes32 _cType) public {
-    vm.expectRevert('GlobalSettlement/outstanding-coin-supply-zero');
+    vm.expectRevert(IGlobalSettlement.GS_OutstandingCoinSupplyZero.selector);
 
     globalSettlement.calculateCashPrice(_cType);
   }
@@ -982,7 +959,7 @@ contract Unit_GlobalSettlement_CalculateCashPrice is Base {
 
     _mockValues(_cType, _outstandingCoinSupply, 0, 0, 0, _collateralCashPrice, 0);
 
-    vm.expectRevert('GlobalSettlement/collateral-cash-price-already-defined');
+    vm.expectRevert(IGlobalSettlement.GS_CollateralCashPriceAlreadyDefined.selector);
 
     globalSettlement.calculateCashPrice(_cType);
   }
@@ -1071,7 +1048,7 @@ contract Unit_GlobalSettlement_PrepareCoinsForRedeeming is Base {
   }
 
   function test_Revert_OutstandingCoinSupplyZero(uint256 _coinAmount) public {
-    vm.expectRevert('GlobalSettlement/outstanding-coin-supply-zero');
+    vm.expectRevert(IGlobalSettlement.GS_OutstandingCoinSupplyZero.selector);
 
     globalSettlement.prepareCoinsForRedeeming(_coinAmount);
   }
@@ -1149,7 +1126,7 @@ contract Unit_GlobalSettlement_RedeemCollateral is Base {
   }
 
   function test_Revert_CollateralCashPriceNotDefined(RedeemCollateralStruct memory _collateralData) public {
-    vm.expectRevert('GlobalSettlement/collateral-cash-price-not-defined');
+    vm.expectRevert(IGlobalSettlement.GS_CollateralCashPriceNotDefined.selector);
 
     globalSettlement.redeemCollateral(_collateralData.collateralType, _collateralData.coinsAmount);
   }
@@ -1163,7 +1140,7 @@ contract Unit_GlobalSettlement_RedeemCollateral is Base {
 
     _mockValues(_collateralData);
 
-    vm.expectRevert('GlobalSettlement/insufficient-bag-balance');
+    vm.expectRevert(IGlobalSettlement.GS_InsufficientBagBalance.selector);
 
     globalSettlement.redeemCollateral(_collateralData.collateralType, _collateralData.coinsAmount);
   }
@@ -1256,12 +1233,6 @@ contract Unit_GlobalSettlement_ModifyParameters is Base {
     globalSettlement.modifyParameters('oracleRelayer', abi.encode(_oracleRelayer));
 
     assertEq(address(globalSettlement.oracleRelayer()), _oracleRelayer);
-  }
-
-  function test_Set_CoinSavingsAccount(address _coinSavingsAccount) public happyPath {
-    globalSettlement.modifyParameters('coinSavingsAccount', abi.encode(_coinSavingsAccount));
-
-    assertEq(address(globalSettlement.coinSavingsAccount()), _coinSavingsAccount);
   }
 
   function test_Set_StabilityFeeTreasury(address _stabilityFeeTreasury) public happyPath {

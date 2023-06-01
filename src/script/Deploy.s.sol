@@ -163,7 +163,6 @@ abstract contract Deploy is Script, Contracts {
     debtAuctionHouse.modifyParameters('accountingEngine', abi.encode(accountingEngine));
     taxCollector.modifyParameters('primaryTaxReceiver', abi.encode(accountingEngine));
     liquidationEngine.modifyParameters('accountingEngine', abi.encode(accountingEngine));
-    accountingEngine.modifyParameters('protocolTokenAuthority', abi.encode(protocolToken));
 
     // auth
     safeEngine.addAuthorization(address(oracleRelayer)); // modifyParameters
@@ -264,7 +263,7 @@ abstract contract Deploy is Script, Contracts {
     });
 
     // setup registry
-    pidController.modifyParameters('seedProposer', address(pidRateSetter));
+    pidController.modifyParameters('seedProposer', abi.encode(pidRateSetter));
 
     // auth
     oracleRelayer.addAuthorization(address(pidRateSetter));

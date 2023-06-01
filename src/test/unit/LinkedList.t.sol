@@ -117,32 +117,14 @@ contract Unit_LinkedList_Push_Index is Base {
     uint256 _size = _previousSize + 1;
 
     linkedList.push(newContractAddress, _index);
+
     assertEq(linkedList.size(), _size);
     assertEq(linkedList.nodes(_newKey).contractAddress, newContractAddress);
-
-    _key = linkedList.head();
-    _previousKey = 0;
-    for (uint256 i = 0; i <= _index; i++) {
-      if (i == _index) {
-        assertEq(linkedList.nodes(_key).contractAddress, newContractAddress);
-
-        if (i == 0) {
-          assertEq(linkedList.head(), _newKey);
-          assertEq(
-            linkedList.nodes(linkedList.nodes(_newKey).next).contractAddress, _previousNodeAtIndex.contractAddress
-          );
-        } else {
-          assertEq(linkedList.nodes(_previousKey).next, _newKey);
-        }
-
-        if (i == _size - 1) {
-          assertEq(linkedList.tail(), _newKey);
-          assertEq(linkedList.nodes(_newKey).next, 0);
-        }
-      }
-
-      _previousKey = _key;
-      _key = linkedList.nodes(_key).next;
+    assertEq(linkedList.nodes(linkedList.nodes(_newKey).next).contractAddress, _previousNodeAtIndex.contractAddress);
+    if (_index == 0) {
+      assertEq(linkedList.head(), _newKey);
+    } else {
+      assertEq(linkedList.nodes(_index).next, _newKey);
     }
   }
 }
@@ -162,9 +144,12 @@ contract Unit_LinkedList_Pop is Base {
       address _expectedAddressRemoved = linkedList.nodes(linkedList.head()).contractAddress;
       uint256 _expectedNextHead = linkedList.nodes(linkedList.head()).next;
       address _removedAddress = linkedList.pop();
+
       assertEq(linkedList.size(), _previousSize - i);
       assertEq(_removedAddress, _expectedAddressRemoved);
       assertEq(linkedList.head(), _expectedNextHead);
+      assertEq(linkedList.nodes(i).contractAddress, address(0));
+      assertEq(linkedList.nodes(i).next, 0);
     }
 
     if (_previousSize == _itemsToPop) {
@@ -192,8 +177,11 @@ contract Unit_LinkedList_Remove_ContractAddress is Base {
       }
     }
     bool _success = linkedList.remove(newContractAddress);
+
     assertTrue(_success);
     assertEq(linkedList.size(), _previousSize - 1);
+    assertEq(linkedList.nodes(_randomPosition + 1).contractAddress, address(0));
+    assertEq(linkedList.nodes(_randomPosition + 1).next, 0);
 
     if (_previousSize == 1) {
       assertEq(linkedList.head(), 0);
@@ -246,9 +234,12 @@ contract Unit_LinkedList_Remove_Index is Base {
       }
     }
     (bool _success, address _removedAddress) = linkedList.remove(_randomPosition);
+
     assertTrue(_success);
     assertEq(_removedAddress, newContractAddress);
     assertEq(linkedList.size(), _previousSize - 1);
+    assertEq(linkedList.nodes(_randomPosition + 1).contractAddress, address(0));
+    assertEq(linkedList.nodes(_randomPosition + 1).next, 0);
 
     if (_previousSize == 1) {
       assertEq(linkedList.head(), 0);
@@ -293,6 +284,7 @@ contract Unit_LinkedList_Replace_Index is Base {
     }
 
     address _removedAddress = linkedList.replace(_randomPosition, newContractAddress);
+
     assertEq(_removedAddress, placeHolderAddress);
     assertEq(linkedList.size(), _previousSize);
     assertEq(linkedList.nodes(_randomPosition + 1).contractAddress, newContractAddress);
@@ -318,6 +310,7 @@ contract Unit_LinkedList_Replace_ContractAddress is Base {
     }
 
     bool _success = linkedList.replace(placeHolderAddress, newContractAddress);
+
     assertTrue(_success);
     assertEq(linkedList.size(), _previousSize);
     assertEq(linkedList.nodes(_randomPosition + 1).contractAddress, newContractAddress);

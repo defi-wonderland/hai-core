@@ -60,11 +60,6 @@ contract LinkedList is ILinkedList {
         } else {
           // updates the previous element of the index
           _nodes[_previousKey].next = _lastKeyGenerated;
-
-          if (i == size) {
-            // updates the tail
-            tail = _key;
-          }
         }
 
         ++size;
@@ -141,7 +136,6 @@ contract LinkedList is ILinkedList {
       _previousKey = _key;
       _key = _nodes[_key].next;
     }
-    return (false, address(0));
   }
 
   function replace(uint256 _index, address _contractAddress) external returns (address _removedAddress) {
