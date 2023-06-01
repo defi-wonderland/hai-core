@@ -8,6 +8,7 @@ contract LinkedList is ILinkedList {
   uint256 public tail;
   uint256 public size;
   // Valid keys will always start from 1, should never be confused with indexes which are the position in the list and are calculated
+  // a key will never be repeated in the LinkedList contract lifetime
   uint256 private _lastKeyGenerated;
 
   mapping(uint256 => Node) internal _nodes;
@@ -41,6 +42,7 @@ contract LinkedList is ILinkedList {
   }
 
   function push(address _contractAddress, uint256 _index) external returns (bool success) {
+    if (size == 0) revert LinkedList_EmptyList();
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
     uint256 _previousKey = 0;
@@ -93,9 +95,13 @@ contract LinkedList is ILinkedList {
     while (_key != 0) {
       if (_nodes[_key].contractAddress == _contractAddress) {
         // The element to remove was found
-        if (_previousKey == 0) {
-          // reusable block between remove functions but letting it for clarity of the spike
-          // the element to remove is the head
+        if (_key == tail) {
+          // reusable block
+          // updates the tail
+          tail = _previousKey;
+        }
+        if (_key == head) {
+          // updates the head
           head = _nodes[_key].next;
         } else {
           // the element to remove is not the head
@@ -103,7 +109,7 @@ contract LinkedList is ILinkedList {
         }
         delete _nodes[_key];
         --size;
-        return true;
+        return true; // end reusable block
       }
       _previousKey = _key;
       _key = _nodes[_key].next;
@@ -112,13 +118,19 @@ contract LinkedList is ILinkedList {
   }
 
   function remove(uint256 _index) external returns (bool _success, address _contractAddress) {
+    if (size == 0) revert LinkedList_EmptyList();
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
     uint256 _previousKey = 0;
     for (uint256 i = 0; i < _index; i++) {
       if (i == _index) {
-        if (_previousKey == 0) {
-          // the element to remove is the head
+        if (_key == tail) {
+          // reusable block
+          // updates the tail
+          tail = _previousKey;
+        }
+        if (_key == head) {
+          // updates the head
           head = _nodes[_key].next;
         } else {
           // the element to remove is not the head
@@ -127,7 +139,7 @@ contract LinkedList is ILinkedList {
         _contractAddress = _nodes[_key].contractAddress;
         delete _nodes[_key];
         --size;
-        return (true, _contractAddress);
+        return (true, _contractAddress); // end reusable block
       }
       _previousKey = _key;
       _key = _nodes[_key].next;
@@ -136,6 +148,7 @@ contract LinkedList is ILinkedList {
   }
 
   function replace(address _contractAddress, uint256 _index) external returns (bool _success, address _removedAddress) {
+    if (size == 0) revert LinkedList_EmptyList();
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
     for (uint256 i = 0; i < _index; i++) {
