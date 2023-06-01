@@ -4,10 +4,11 @@ pragma solidity 0.8.19;
 import {ILinkedList} from '@interfaces/utils/ILinkedList.sol';
 
 contract LinkedList is ILinkedList {
-  // Valid keys will always start from 1, should never be confused with indexes which are the position in the list and are calculated
   uint256 public head;
   uint256 public tail;
   uint256 public size;
+  // Valid keys will always start from 1, should never be confused with indexes which are the position in the list and are calculated
+  uint256 private _lastKeyGenerated;
 
   mapping(uint256 => Node) internal _nodes;
 
@@ -21,19 +22,20 @@ contract LinkedList is ILinkedList {
       contractAddress: _contractAddress,
       next: 0 // 0 means that there is no next element because it's the end of the list
     });
-    ++size;
+    ++_lastKeyGenerated;
     // adding element at the mapping
-    _nodes[size] = _node;
+    _nodes[_lastKeyGenerated] = _node;
     if (size == 0) {
       // head should be the new node
-      head = size;
+      head = _lastKeyGenerated;
     } else {
       // updates the old tail
-      _nodes[tail].next = size;
+      _nodes[tail].next = _lastKeyGenerated;
     }
 
+    ++size;
     // updates the tail
-    tail = size;
+    tail = _lastKeyGenerated;
 
     return size;
   }
@@ -47,27 +49,41 @@ contract LinkedList is ILinkedList {
         // reusable block between push functions but letting it for clarity of the spike
         // the element is the head
         Node memory _node = Node({contractAddress: _contractAddress, next: _key});
-        ++size;
+        ++_lastKeyGenerated;
         // adding element at the mapping
-        _nodes[size] = _node;
+        _nodes[_lastKeyGenerated] = _node;
         if (_previousKey == 0) {
           // head should be the new node
-          head = size;
+          head = _lastKeyGenerated;
         } else {
           // updates the previous element of the index
-          _nodes[_previousKey].next = size;
+          _nodes[_previousKey].next = _lastKeyGenerated;
 
-          if (i == size - 1) {
+          if (i == size) {
             // updates the tail
-            tail = size;
+            tail = _key;
           }
         }
 
+        ++size;
         return true;
       }
       _previousKey = _key;
       _key = _nodes[_key].next;
     }
+  }
+
+  function pop() external returns (address _contractAddress) {
+    if (size == 0) revert LinkedList_EmptyList();
+    Node memory _node = _nodes[head];
+    delete _nodes[head];
+    head = _node.next;
+    --size;
+    if (size == 0) {
+      // if the list is empty, the tail should be 0
+      tail = 0;
+    }
+    return _node.contractAddress;
   }
 
   function remove(address _contractAddress) external returns (bool _success) {

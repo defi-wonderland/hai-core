@@ -48,6 +48,12 @@ interface ILinkedList {
   function push(address _contractAddress) external returns (uint256 _index);
 
   /**
+   * @dev Removes the first element from a list
+   * @return _contractAddress The address of the contract removed
+   */
+  function pop() external returns (address _contractAddress);
+
+  /**
    * @dev Adds a new element to the list in the given index
    */
   function push(address _contractAddress, uint256 _index) external returns (bool success);
