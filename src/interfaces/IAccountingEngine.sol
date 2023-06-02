@@ -6,9 +6,21 @@ import {ISurplusAuctionHouse} from '@interfaces/ISurplusAuctionHouse.sol';
 import {IDebtAuctionHouse} from '@interfaces/IDebtAuctionHouse.sol';
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 import {IDisableable} from '@interfaces/utils/IDisableable.sol';
-import {IModifiable, GLOBAL_PARAM} from '@interfaces/utils/IModifiable.sol';
+import {IModifiable} from '@interfaces/utils/IModifiable.sol';
 
 interface IAccountingEngine is IAuthorizable, IDisableable, IModifiable {
+  // --- Events ---
+  event PushDebtToQueue(uint256 indexed _timestamp, uint256 _debtQueueBlock, uint256 _totalQueuedDebt);
+  event PopDebtFromQueue(uint256 indexed _timestamp, uint256 _debtQueueBlock, uint256 _totalQueuedDebt);
+  event SettleDebt(uint256 _rad, uint256 _coinBalance, uint256 _debtBalance);
+  event CancelAuctionedDebtWithSurplus(
+    uint256 _rad, uint256 _totalOnAuctionDebt, uint256 _coinBalance, uint256 _debtBalance
+  );
+  event AuctionDebt(uint256 indexed _id, uint256 _totalOnAuctionDebt, uint256 _debtBalance);
+  event AuctionSurplus(uint256 indexed _id, uint256 _lastSurplusTime, uint256 _coinBalance);
+  event TransferPostSettlementSurplus(address _postSettlementSurplusDrain, uint256 _coinBalance, uint256 _debtBalance);
+  event TransferExtraSurplus(address indexed _extraSurplusReceiver, uint256 _lastSurplusTime, uint256 _coinBalance);
+
   // --- Errors ---
   error AccEng_DebtAuctionDisabled();
   error AccEng_SurplusAuctionDisabled();
@@ -22,18 +34,6 @@ interface IAccountingEngine is IAuthorizable, IDisableable, IModifiable {
   error AccEng_SurplusCooldown();
   error AccEng_PopDebtCooldown();
   error AccEng_PostSettlementCooldown();
-
-  // --- Events ---
-  event PushDebtToQueue(uint256 indexed _timestamp, uint256 _debtQueueBlock, uint256 _totalQueuedDebt);
-  event PopDebtFromQueue(uint256 indexed _timestamp, uint256 _debtQueueBlock, uint256 _totalQueuedDebt);
-  event SettleDebt(uint256 _rad, uint256 _coinBalance, uint256 _debtBalance);
-  event CancelAuctionedDebtWithSurplus(
-    uint256 _rad, uint256 _totalOnAuctionDebt, uint256 _coinBalance, uint256 _debtBalance
-  );
-  event AuctionDebt(uint256 indexed _id, uint256 _totalOnAuctionDebt, uint256 _debtBalance);
-  event AuctionSurplus(uint256 indexed _id, uint256 _lastSurplusTime, uint256 _coinBalance);
-  event TransferPostSettlementSurplus(address _postSettlementSurplusDrain, uint256 _coinBalance, uint256 _debtBalance);
-  event TransferExtraSurplus(address indexed _extraSurplusReceiver, uint256 _lastSurplusTime, uint256 _coinBalance);
 
   // --- Structs ---
   struct AccountingEngineParams {

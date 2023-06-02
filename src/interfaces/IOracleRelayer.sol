@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.19;
 
-import {IBaseOracle as OracleLike} from '@interfaces/oracles/IBaseOracle.sol';
+import {IBaseOracle} from '@interfaces/oracles/IBaseOracle.sol';
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
-import {IModifiablePerCollateral, GLOBAL_PARAM} from '@interfaces/utils/IModifiablePerCollateral.sol';
+import {IModifiable} from '@interfaces/utils/IModifiable.sol';
 import {ISAFEEngine} from '@interfaces/ISAFEEngine.sol';
 import {IDisableable} from '@interfaces/utils/IDisableable.sol';
 
-interface IOracleRelayer is IAuthorizable, IDisableable, IModifiablePerCollateral {
-  // --- Errors ---
-  error RedemptionPriceNotUpdated();
-
+interface IOracleRelayer is IAuthorizable, IModifiable, IDisableable {
   // --- Events ---
   event UpdateRedemptionPrice(uint256 _redemptionPrice);
   event UpdateCollateralPrice(
     bytes32 indexed _collateralType, uint256 _priceFeedValue, uint256 _safetyPrice, uint256 _liquidationPrice
   );
 
-  // --- Data ---
+  // --- Errors ---
+  error RedemptionPriceNotUpdated();
+
+  // --- Structs ---
   struct OracleRelayerParams {
     // Upper bound for the per-second redemption rate
     uint256 redemptionRateUpperBound; // [ray]
@@ -27,7 +27,7 @@ interface IOracleRelayer is IAuthorizable, IDisableable, IModifiablePerCollatera
 
   struct OracleRelayerCollateralParams {
     // Usually an oracle security module that enforces delays to fresh price feeds
-    OracleLike oracle;
+    IBaseOracle oracle;
     // CRatio used to compute the 'safePrice' - the price used when generating debt in SAFEEngine
     uint256 safetyCRatio;
     // CRatio used to compute the 'liquidationPrice' - the price used when liquidating SAFEs

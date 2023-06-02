@@ -7,7 +7,7 @@ import {IAccountingEngine} from '@interfaces/IAccountingEngine.sol';
 
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 import {IDisableable} from '@interfaces/utils/IDisableable.sol';
-import {IModifiable, GLOBAL_PARAM} from '@interfaces/utils/IModifiable.sol';
+import {IModifiable} from '@interfaces/utils/IModifiable.sol';
 
 interface IDebtAuctionHouse is IAuthorizable, IDisableable, IModifiable {
   // --- Events ---
@@ -65,7 +65,8 @@ interface IDebtAuctionHouse is IAuthorizable, IDisableable, IModifiable {
     uint48 totalAuctionLength; // [seconds]
   }
 
-  function AUCTION_HOUSE_TYPE() external view returns (bytes32 _AUCTION_HOUSE_TYPE);
+  // solhint-disable-next-line func-name-mixedcase
+  function AUCTION_HOUSE_TYPE() external view returns (bytes32 _auctionHouseType);
 
   function bids(uint256 _id)
     external

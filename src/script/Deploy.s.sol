@@ -211,8 +211,8 @@ abstract contract Deploy is Script, Contracts {
     liquidationEngine.addAuthorization(address(collateralAuctionHouse[_params.name]));
 
     // setup registry
-    collateralAuctionHouse[_params.name].modifyParameters('oracleRelayer', address(oracleRelayer));
-    collateralAuctionHouse[_params.name].modifyParameters('collateralFSM', address(_params.oracle));
+    collateralAuctionHouse[_params.name].modifyParameters('oracleRelayer', abi.encode(oracleRelayer));
+    collateralAuctionHouse[_params.name].modifyParameters('collateralFSM', abi.encode(_params.oracle));
     liquidationEngine.modifyParameters(
       _params.name, 'collateralAuctionHouse', abi.encode(collateralAuctionHouse[_params.name])
     );
@@ -222,6 +222,8 @@ abstract contract Deploy is Script, Contracts {
     // setup params
     safeEngine.modifyParameters(_params.name, 'debtCeiling', abi.encode(_params.debtCeiling));
     taxCollector.modifyParameters(_params.name, 'stabilityFee', abi.encode(_params.stabilityFee));
+    taxCollector.taxSingle(_params.name);
+
     taxCollector.modifyParameters(
       _params.name,
       'secondaryTaxReceiver',
@@ -245,8 +247,8 @@ abstract contract Deploy is Script, Contracts {
 
   function deployPIDController(PIDParams memory _params) public {
     pidController = new PIDController({
-      _Kp: _params.proportionalGain,
-      _Ki: _params.integralGain,
+      _kp: _params.proportionalGain,
+      _ki: _params.integralGain,
       _perSecondCumulativeLeak: _params.perSecondCumulativeLeak,
       _integralPeriodSize: _params.periodSize, // TODO: rename ips to ps
       _noiseBarrier: _params.noiseBarrier,

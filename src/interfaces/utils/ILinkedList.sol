@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.19;
 
+import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
+
 /**
  * @title ILinkedList
  * @dev This interface is used to implement a linked list data structure
  * @dev goig to be implemented as FIFO, all the new items will be added at the end of the list, and the list will be iterated from the head to the end
  */
-interface ILinkedList {
+interface ILinkedList is IAuthorizable {
   error LinkedList_EmptyList();
   error LinkedList_InvalidIndex(uint256 _index);
 

@@ -2,8 +2,10 @@
 pragma solidity 0.8.19;
 
 import {ILinkedList} from '@interfaces/utils/ILinkedList.sol';
+import {Authorizable} from '@contracts/utils/Authorizable.sol';
 
-contract LinkedList is ILinkedList {
+contract LinkedList is Authorizable, ILinkedList {
+  
   uint256 public head;
   uint256 public tail;
   uint256 public size;
@@ -13,11 +15,13 @@ contract LinkedList is ILinkedList {
 
   mapping(uint256 => Node) internal _nodes;
 
+  constructor() Authorizable(msg.sender) {}
+
   function nodes(uint256 _key) external view returns (Node memory _node) {
     return _nodes[_key];
   }
 
-  function push(address _contractAddress) external returns (uint256 _index) {
+  function push(address _contractAddress) external isAuthorized returns (uint256 _index) {
     // The elements are added at the end of the list
     Node memory _node = Node({
       contractAddress: _contractAddress,
@@ -41,7 +45,7 @@ contract LinkedList is ILinkedList {
     return size;
   }
 
-  function push(address _contractAddress, uint256 _index) external returns (bool success) {
+  function push(address _contractAddress, uint256 _index) external isAuthorized returns (bool success) {
     if (size == 0) revert LinkedList_EmptyList();
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
@@ -70,7 +74,7 @@ contract LinkedList is ILinkedList {
     }
   }
 
-  function pop() external returns (address _contractAddress) {
+  function pop() external isAuthorized returns (address _contractAddress) {
     if (size == 0) revert LinkedList_EmptyList();
     Node memory _node = _nodes[head];
     delete _nodes[head];
@@ -83,7 +87,7 @@ contract LinkedList is ILinkedList {
     return _node.contractAddress;
   }
 
-  function remove(address _contractAddress) external returns (bool _success) {
+  function remove(address _contractAddress) external isAuthorized returns (bool _success) {
     if (size == 0) revert LinkedList_EmptyList();
     uint256 _key = head;
     uint256 _previousKey = 0;
@@ -110,7 +114,7 @@ contract LinkedList is ILinkedList {
     }
   }
 
-  function remove(uint256 _index) external returns (bool _success, address _contractAddress) {
+  function remove(uint256 _index) external isAuthorized returns (bool _success, address _contractAddress) {
     if (size == 0) revert LinkedList_EmptyList();
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
@@ -138,7 +142,7 @@ contract LinkedList is ILinkedList {
     }
   }
 
-  function replace(uint256 _index, address _contractAddress) external returns (address _removedAddress) {
+  function replace(uint256 _index, address _contractAddress) external isAuthorized returns (address _removedAddress) {
     if (size == 0) revert LinkedList_EmptyList();
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
@@ -152,7 +156,7 @@ contract LinkedList is ILinkedList {
     }
   }
 
-  function replace(address _replacedAddress, address _contractAddress) external returns (bool _success) {
+  function replace(address _replacedAddress, address _contractAddress) external isAuthorized returns (bool _success) {
     if (size == 0) revert LinkedList_EmptyList();
     uint256 _key = head;
     uint256 _previousKey = 0;

@@ -8,8 +8,10 @@ abstract contract Base is HaiTest {
   ILinkedList public linkedList;
   address newContractAddress = label('newContractAddress');
   address placeHolderAddress = label('placeHolderAddress');
+  address deployer = label('deployer');
 
   function setUp() public virtual {
+    vm.prank(deployer);
     linkedList = new LinkedList();
   }
 
@@ -24,10 +26,15 @@ abstract contract Base is HaiTest {
       linkedList.pop();
     }
   }
+
+  modifier authorized() {
+    vm.startPrank(deployer);
+    _;
+  }
 }
 
 contract Unit_LinkedList_Push is Base {
-  function test_Push_First() public {
+  function test_Push_First() public authorized {
     linkedList.push(newContractAddress);
 
     assertEq(linkedList.head(), 1);
@@ -37,7 +44,7 @@ contract Unit_LinkedList_Push is Base {
     assertEq(linkedList.nodes(1).next, 0);
   }
 
-  function test_Push_First_AfterEmptiedPreviousList(uint8 _previousSize) public {
+  function test_Push_First_AfterEmptiedPreviousList(uint8 _previousSize) public authorized {
     vm.assume(_previousSize < 100);
     _loadList(_previousSize);
     _popFromList(_previousSize);
@@ -51,7 +58,7 @@ contract Unit_LinkedList_Push is Base {
     assertEq(linkedList.nodes(_newKey).next, 0);
   }
 
-  function test_Push_WithFilledList(uint8 _previousSize) public {
+  function test_Push_WithFilledList(uint8 _previousSize) public authorized {
     vm.assume(_previousSize < 100);
     _loadList(_previousSize);
 
@@ -64,7 +71,7 @@ contract Unit_LinkedList_Push is Base {
     assertEq(linkedList.nodes(_newKey).next, 0);
   }
 
-  function test_Push_RandomSize(uint8 _previousSize, uint8 _removedItems) public {
+  function test_Push_RandomSize(uint8 _previousSize, uint8 _removedItems) public authorized {
     vm.assume(_previousSize < 100);
     vm.assume(_removedItems < _previousSize);
     _loadList(_previousSize);
@@ -82,12 +89,12 @@ contract Unit_LinkedList_Push is Base {
 }
 
 contract Unit_LinkedList_Push_Index is Base {
-  function test_Revert_EmptyList() public {
+  function test_Revert_EmptyList() public authorized {
     vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
     linkedList.push(newAddress(), 0);
   }
 
-  function test_Revert_InvalidIndex(uint8 _previousSize, uint8 _index) public {
+  function test_Revert_InvalidIndex(uint8 _previousSize, uint8 _index) public authorized {
     vm.assume(_previousSize > 0 && _previousSize < 100);
     vm.assume(_previousSize <= _index);
     _loadList(_previousSize);
@@ -96,7 +103,7 @@ contract Unit_LinkedList_Push_Index is Base {
     linkedList.push(newAddress(), _index);
   }
 
-  function test_Push_RandomIndex(uint8 _previousSize, uint8 _index) public {
+  function test_Push_RandomIndex(uint8 _previousSize, uint8 _index) public authorized {
     vm.assume(_previousSize > 0 && _previousSize < 100);
     vm.assume(_previousSize > _index);
     _loadList(_previousSize);
@@ -130,12 +137,12 @@ contract Unit_LinkedList_Push_Index is Base {
 }
 
 contract Unit_LinkedList_Pop is Base {
-  function test_Revert_ListEmpty() public {
+  function test_Revert_ListEmpty() public authorized {
     vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
     linkedList.pop();
   }
 
-  function test_Pop_RandomAmount(uint8 _previousSize, uint8 _itemsToPop) public {
+  function test_Pop_RandomAmount(uint8 _previousSize, uint8 _itemsToPop) public authorized {
     vm.assume(_previousSize > 0 && _previousSize < 100);
     vm.assume(_previousSize >= _itemsToPop);
     _loadList(_previousSize);
@@ -160,12 +167,12 @@ contract Unit_LinkedList_Pop is Base {
 }
 
 contract Unit_LinkedList_Remove_ContractAddress is Base {
-  function test_Revert_ListEmpty() public {
+  function test_Revert_ListEmpty() public authorized {
     vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
     linkedList.remove(newContractAddress);
   }
 
-  function test_Remove_At_RandomPosition(uint8 _previousSize, uint8 _randomPosition) public {
+  function test_Remove_At_RandomPosition(uint8 _previousSize, uint8 _randomPosition) public authorized {
     vm.assume(_previousSize > 0 && _previousSize < 100);
     vm.assume(_previousSize > _randomPosition);
 
@@ -197,7 +204,7 @@ contract Unit_LinkedList_Remove_ContractAddress is Base {
     }
   }
 
-  function test_Return_False_ContractNotFound(uint8 _previousSize) public {
+  function test_Return_False_ContractNotFound(uint8 _previousSize) public  authorized{
     vm.assume(_previousSize > 0 && _previousSize < 100);
     _loadList(_previousSize);
     bool _success = linkedList.remove(newContractAddress);
@@ -208,12 +215,12 @@ contract Unit_LinkedList_Remove_ContractAddress is Base {
 }
 
 contract Unit_LinkedList_Remove_Index is Base {
-  function test_Revert_ListEmpty() public {
+  function test_Revert_ListEmpty() public authorized {
     vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
     linkedList.remove(0);
   }
 
-  function test_Revert_InvalidIndex(uint8 _size, uint8 _index) public {
+  function test_Revert_InvalidIndex(uint8 _size, uint8 _index) public authorized {
     vm.assume(_size > 0 && _size < 100);
     vm.assume(_index >= _size);
     _loadList(_size);
@@ -222,7 +229,7 @@ contract Unit_LinkedList_Remove_Index is Base {
     linkedList.remove(_index);
   }
 
-  function test_Remove_At_RandomPosition123(uint8 _previousSize, uint8 _randomPosition) public {
+  function test_Remove_At_RandomPosition123(uint8 _previousSize, uint8 _randomPosition) public authorized {
     vm.assume(_previousSize > 0 && _previousSize < 100);
     vm.assume(_previousSize > _randomPosition);
 
@@ -257,12 +264,12 @@ contract Unit_LinkedList_Remove_Index is Base {
 }
 
 contract Unit_LinkedList_Replace_Index is Base {
-  function test_Revert_ListEmpty() public {
+  function test_Revert_ListEmpty() public authorized {
     vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
     linkedList.replace(0, newContractAddress);
   }
 
-  function test_Revert_InvalidIndex(uint8 _size, uint8 _index) public {
+  function test_Revert_InvalidIndex(uint8 _size, uint8 _index) public authorized {
     vm.assume(_size > 0 && _size < 100);
     vm.assume(_index >= _size);
     _loadList(_size);
@@ -271,7 +278,7 @@ contract Unit_LinkedList_Replace_Index is Base {
     linkedList.replace(_index, newContractAddress);
   }
 
-  function test_Replace_At_RandomPosition(uint8 _previousSize, uint8 _randomPosition) public {
+  function test_Replace_At_RandomPosition(uint8 _previousSize, uint8 _randomPosition) public authorized {
     vm.assume(_previousSize > 0 && _previousSize < 100);
     vm.assume(_previousSize > _randomPosition);
 
@@ -292,12 +299,12 @@ contract Unit_LinkedList_Replace_Index is Base {
 }
 
 contract Unit_LinkedList_Replace_ContractAddress is Base {
-  function test_Revert_ListEmpty() public {
+  function test_Revert_ListEmpty() public authorized {
     vm.expectRevert(ILinkedList.LinkedList_EmptyList.selector);
     linkedList.replace(placeHolderAddress, newContractAddress);
   }
 
-  function test_Replace_At_RandomPosition(uint8 _previousSize, uint8 _randomPosition) public {
+  function test_Replace_At_RandomPosition(uint8 _previousSize, uint8 _randomPosition) public authorized {
     vm.assume(_previousSize > 0 && _previousSize < 100);
     vm.assume(_previousSize > _randomPosition);
 
@@ -316,7 +323,7 @@ contract Unit_LinkedList_Replace_ContractAddress is Base {
     assertEq(linkedList.nodes(_randomPosition + 1).contractAddress, newContractAddress);
   }
 
-  function test_Return_False_ContractNotFound(uint8 _previousSize) public {
+  function test_Return_False_ContractNotFound(uint8 _previousSize) public authorized {
     vm.assume(_previousSize > 0 && _previousSize < 100);
     _loadList(_previousSize);
     bool _success = linkedList.replace(placeHolderAddress, newContractAddress);

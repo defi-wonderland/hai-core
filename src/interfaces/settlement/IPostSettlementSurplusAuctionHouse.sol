@@ -5,7 +5,7 @@ import {ISAFEEngine} from '@interfaces/ISAFEEngine.sol';
 import {IToken} from '@interfaces/external/IToken.sol';
 
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
-import {IModifiable, GLOBAL_PARAM} from '@interfaces/utils/IModifiable.sol';
+import {IModifiable} from '@interfaces/utils/IModifiable.sol';
 
 interface IPostSettlementSurplusAuctionHouse is IAuthorizable, IModifiable {
   // --- Events ---
@@ -52,8 +52,10 @@ interface IPostSettlementSurplusAuctionHouse is IAuthorizable, IModifiable {
     uint48 totalAuctionLength; // [seconds]
   }
 
-  function AUCTION_HOUSE_TYPE() external view returns (bytes32 _AUCTION_HOUSE_TYPE);
-  function SURPLUS_AUCTION_TYPE() external view returns (bytes32 _SURPLUS_AUCTION_TYPE);
+  // solhint-disable-next-line func-name-mixedcase
+  function AUCTION_HOUSE_TYPE() external view returns (bytes32 _auctionHouseType);
+  // solhint-disable-next-line func-name-mixedcase
+  function SURPLUS_AUCTION_TYPE() external view returns (bytes32 _surplusAuctionHouseType);
 
   function bids(uint256 _id)
     external

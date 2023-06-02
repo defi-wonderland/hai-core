@@ -3,9 +3,9 @@ pragma solidity 0.8.19;
 
 import {IDisableable} from '@interfaces/utils/IDisableable.sol';
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
-import {IModifiablePerCollateral, GLOBAL_PARAM} from '@interfaces/utils/IModifiablePerCollateral.sol';
+import {IModifiable} from '@interfaces/utils/IModifiable.sol';
 
-interface ISAFEEngine is IDisableable, IAuthorizable, IModifiablePerCollateral {
+interface ISAFEEngine is IAuthorizable, IModifiable, IDisableable {
   // --- Events ---
   event ApproveSAFEModification(address _sender, address _account);
   event DenySAFEModification(address _sender, address _account);
@@ -111,7 +111,7 @@ interface ISAFEEngine is IDisableable, IAuthorizable, IModifiablePerCollateral {
   function settleDebt(uint256 _rad) external;
   function transferInternalCoins(address _source, address _destination, uint256 _rad) external;
   function transferCollateral(bytes32 _collateralType, address _source, address _destination, uint256 _wad) external;
-  function canModifySAFE(address _safe, address _account) external view returns (bool);
+  function canModifySAFE(address _safe, address _account) external view returns (bool _allowed);
   function approveSAFEModification(address _account) external;
   function denySAFEModification(address _acount) external;
   function createUnbackedDebt(address _debtDestination, address _coinDestination, uint256 _rad) external;

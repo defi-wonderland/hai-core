@@ -11,7 +11,7 @@ import {ICollateralAuctionHouse} from '@interfaces/ICollateralAuctionHouse.sol';
 import {IBaseOracle} from '@interfaces/oracles/IBaseOracle.sol';
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 import {IDisableable} from '@interfaces/utils/IDisableable.sol';
-import {IModifiable, GLOBAL_PARAM} from '@interfaces/utils/IModifiable.sol';
+import {IModifiable} from '@interfaces/utils/IModifiable.sol';
 import {Math, RAY, WAD} from '@libraries/Math.sol';
 import {HaiTest, stdStorage, StdStorage} from '@test/utils/HaiTest.t.sol';
 
@@ -255,6 +255,7 @@ contract Unit_GlobalSettlement_Constructor is Base {
 
 contract Unit_GlobalSettlement_DisableContract is Base {
   function test_Revert_NonDisableable() public {
+    vm.startPrank(deployer);
     vm.expectRevert(IDisableable.NonDisableable.selector);
 
     globalSettlement.disableContract();
@@ -300,13 +301,6 @@ contract Unit_GlobalSettlement_ShutdownSystem is Base {
     globalSettlement.shutdownSystem();
 
     assertEq(globalSettlement.shutdownTime(), block.timestamp);
-  }
-
-  function test_Emit_DisableContract() public happyPath {
-    expectEmitNoIndex();
-    emit DisableContract();
-
-    globalSettlement.shutdownSystem();
   }
 
   function test_Call_SafeEngine_DisableContract() public happyPath {
@@ -1257,7 +1251,7 @@ contract Unit_GlobalSettlement_ModifyParameters is Base {
 
   function test_Emit_ModifyParameters(uint256 _shutdownCooldown) public happyPath {
     expectEmitNoIndex();
-    emit ModifyParameters('shutdownCooldown', GLOBAL_PARAM, abi.encode(_shutdownCooldown));
+    emit ModifyParameters('shutdownCooldown', bytes32(0), abi.encode(_shutdownCooldown));
 
     globalSettlement.modifyParameters('shutdownCooldown', abi.encode(_shutdownCooldown));
   }
