@@ -20,6 +20,8 @@
 pragma solidity 0.8.19;
 
 // TODO: address all contracts as IDisableable unless we need the interface to interact with them
+import {ILinkedList, LinkedList} from '@contracts/utils/LinkedList.sol';
+
 import {
   IGlobalSettlement,
   ISAFEEngine,
@@ -138,12 +140,15 @@ contract GlobalSettlement is Authorizable, Modifiable, Disableable, IGlobalSettl
   IAccountingEngine public accountingEngine;
   IOracleRelayer public oracleRelayer;
   IStabilityFeeTreasury public stabilityFeeTreasury;
+  ILinkedList public disableables;
 
   // --- Init ---
-  constructor() Authorizable(msg.sender) {}
+  constructor() Authorizable(msg.sender) {
+    disableables = new LinkedList();
+  }
 
   // --- Shutdown ---
-  
+
   /// @dev Avoids externally disabling this contract
   function _onContractDisable() internal pure override {
     revert NonDisableable();
@@ -154,15 +159,13 @@ contract GlobalSettlement is Authorizable, Modifiable, Disableable, IGlobalSettl
    * @notice Freeze the system and start the cooldown period
    */
   function shutdownSystem() external isAuthorized whenEnabled {
-    shutdownTime = block.timestamp;
-    contractEnabled = 0;
+    // disable all contracts
+    address[] memory _contractsToDisable = disableables.getList();
+    for (uint256 _i = 0; _i < _contractsToDisable.length; _i++) {
+      Disableable(address(_contractsToDisable[_i])).disableContract();
+    }
 
-    safeEngine.disableContract();
-    liquidationEngine.disableContract();
-    // treasury must be disabled before the accounting engine so that all surplus is gathered in one place
-    if (address(stabilityFeeTreasury) != address(0)) stabilityFeeTreasury.disableContract();
-    accountingEngine.disableContract();
-    oracleRelayer.disableContract();
+    shutdownTime = block.timestamp;
     emit ShutdownSystem();
   }
 
@@ -313,12 +316,45 @@ contract GlobalSettlement is Authorizable, Modifiable, Disableable, IGlobalSettl
   function _modifyParameters(bytes32 _param, bytes memory _data) internal override whenEnabled {
     address _address = _data.toAddress();
 
-    if (_param == 'safeEngine') safeEngine = ISAFEEngine(_address);
-    else if (_param == 'liquidationEngine') liquidationEngine = ILiquidationEngine(_address);
-    else if (_param == 'accountingEngine') accountingEngine = IAccountingEngine(_address);
-    else if (_param == 'oracleRelayer') oracleRelayer = IOracleRelayer(_address);
-    else if (_param == 'stabilityFeeTreasury') stabilityFeeTreasury = IStabilityFeeTreasury(_address);
-    else if (_param == 'shutdownCooldown') shutdownCooldown = _data.toUint256();
-    else revert UnrecognizedParam();
+    if (_param == 'safeEngine') {
+      if (address(safeEngine) == address(0)) {
+        disableables.push(_address);
+      } else {
+        disableables.replace(address(safeEngine), _address);
+      }
+      safeEngine = ISAFEEngine(_address);
+    } else if (_param == 'liquidationEngine') {
+      if (address(liquidationEngine) == address(0)) {
+        disableables.push(_address);
+      } else {
+        disableables.replace(address(liquidationEngine), _address);
+      }
+      liquidationEngine = ILiquidationEngine(_address);
+    } else if (_param == 'accountingEngine') {
+      if (address(accountingEngine) == address(0)) {
+        disableables.push(_address);
+      } else {
+        disableables.replace(address(accountingEngine), _address);
+      }
+      accountingEngine = IAccountingEngine(_address);
+    } else if (_param == 'oracleRelayer') {
+      if (address(oracleRelayer) == address(0)) {
+        disableables.push(_address);
+      } else {
+        disableables.replace(address(oracleRelayer), _address);
+      }
+      oracleRelayer = IOracleRelayer(_address);
+    } else if (_param == 'stabilityFeeTreasury') {
+      if (address(stabilityFeeTreasury) == address(0)) {
+        disableables.push(_address);
+      } else {
+        disableables.replace(address(stabilityFeeTreasury), _address);
+      }
+      stabilityFeeTreasury = IStabilityFeeTreasury(_address);
+    } else if (_param == 'shutdownCooldown') {
+      shutdownCooldown = _data.toUint256();
+    } else {
+      revert UnrecognizedParam();
+    }
   }
 }

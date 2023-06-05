@@ -204,7 +204,7 @@ contract Unit_LinkedList_Remove_ContractAddress is Base {
     }
   }
 
-  function test_Return_False_ContractNotFound(uint8 _previousSize) public  authorized{
+  function test_Return_False_ContractNotFound(uint8 _previousSize) public authorized {
     vm.assume(_previousSize > 0 && _previousSize < 100);
     _loadList(_previousSize);
     bool _success = linkedList.remove(newContractAddress);

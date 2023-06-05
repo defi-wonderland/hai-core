@@ -58,7 +58,7 @@ interface ILinkedList is IAuthorizable {
   /**
    * @dev Adds a new element to the list in the given index
    */
-  function push(address _contractAddress, uint256 _index) external returns (bool success);
+  function push(address _contractAddress, uint256 _index) external returns (bool _success);
 
   /**
    * @dev Removes an element from the list given the contract address
@@ -90,4 +90,10 @@ interface ILinkedList is IAuthorizable {
    * @return _success If the element was replaced or not
    */
   function replace(address _replacedAddress, address _contractAddress) external returns (bool _success);
+
+  /**
+   * @dev Returns the list of contracts
+   * @return _list The list of contracts
+   */
+  function getList() external view returns (address[] memory _list);
 }

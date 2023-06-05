@@ -12,6 +12,7 @@ import {IBaseOracle} from '@interfaces/oracles/IBaseOracle.sol';
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 import {IDisableable} from '@interfaces/utils/IDisableable.sol';
 import {IModifiable} from '@interfaces/utils/IModifiable.sol';
+import {ILinkedList, LinkedList} from '@contracts/utils/LinkedList.sol';
 import {Math, RAY, WAD} from '@libraries/Math.sol';
 import {HaiTest, stdStorage, StdStorage} from '@test/utils/HaiTest.t.sol';
 
@@ -29,6 +30,7 @@ abstract contract Base is HaiTest {
   IStabilityFeeTreasury mockStabilityFeeTreasury = IStabilityFeeTreasury(mockContract('StabilityFeeTreasury'));
   ICollateralAuctionHouse mockCollateralAuctionHouse = ICollateralAuctionHouse(mockContract('CollateralAuctionHouse'));
   IBaseOracle mockOracle = IBaseOracle(mockContract('Oracle'));
+  ILinkedList disableables;
 
   GlobalSettlement globalSettlement;
 
@@ -40,7 +42,23 @@ abstract contract Base is HaiTest {
 
     globalSettlement.addAuthorization(authorizedAccount);
 
+    ILinkedList disableables = new LinkedList();
+    disableables.addAuthorization(address(globalSettlement));
+    disableables.push(address(mockSafeEngine));
+    disableables.push(address(mockLiquidationEngine));
+    disableables.push(address(mockAccountingEngine));
+    disableables.push(address(mockOracleRelayer));
+    disableables.push(address(mockStabilityFeeTreasury));
+
+    _mockDisableables(disableables);
+
     vm.stopPrank();
+  }
+
+  function _mockDisableables(ILinkedList _linkedList) internal {
+    stdstore.target(address(globalSettlement)).sig(IGlobalSettlement.disableables.selector).checked_write(
+      address(_linkedList)
+    );
   }
 
   function _mockCoinBalance(address _coinAddress, uint256 _coinBalance) internal {
@@ -323,6 +341,7 @@ contract Unit_GlobalSettlement_ShutdownSystem is Base {
 
   function testFail_Call_StabilityFeeTreasury_DisableContract() public happyPath {
     _mockStabilityFeeTreasury(address(0));
+    disableables.replace(address(mockStabilityFeeTreasury), address(0));
 
     vm.expectCall(address(mockStabilityFeeTreasury), abi.encodeCall(mockStabilityFeeTreasury.disableContract, ()));
 
@@ -1217,7 +1236,7 @@ contract Unit_GlobalSettlement_ModifyParameters is Base {
     assertEq(address(globalSettlement.liquidationEngine()), _liquidationEngine);
   }
 
-  function test_Set_AccountingEngine(address _accountingEngine) public happyPath {
+  function test_Set_AccountingEngine123(address _accountingEngine) public happyPath {
     globalSettlement.modifyParameters('accountingEngine', abi.encode(_accountingEngine));
 
     assertEq(address(globalSettlement.accountingEngine()), _accountingEngine);

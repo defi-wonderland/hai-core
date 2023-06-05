@@ -5,7 +5,6 @@ import {ILinkedList} from '@interfaces/utils/ILinkedList.sol';
 import {Authorizable} from '@contracts/utils/Authorizable.sol';
 
 contract LinkedList is Authorizable, ILinkedList {
-  
   uint256 public head;
   uint256 public tail;
   uint256 public size;
@@ -45,13 +44,13 @@ contract LinkedList is Authorizable, ILinkedList {
     return size;
   }
 
-  function push(address _contractAddress, uint256 _index) external isAuthorized returns (bool success) {
+  function push(address _contractAddress, uint256 _index) external isAuthorized returns (bool _success) {
     if (size == 0) revert LinkedList_EmptyList();
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
     uint256 _previousKey = 0;
-    for (uint256 i = 0; i <= _index; i++) {
-      if (i == _index) {
+    for (uint256 _i = 0; _i <= _index; _i++) {
+      if (_i == _index) {
         // reusable block between push functions but letting it for clarity of the spike
         // the element is the head
         Node memory _node = Node({contractAddress: _contractAddress, next: _key});
@@ -119,8 +118,8 @@ contract LinkedList is Authorizable, ILinkedList {
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
     uint256 _previousKey = 0;
-    for (uint256 i = 0; i <= _index; i++) {
-      if (i == _index) {
+    for (uint256 _i = 0; _i <= _index; _i++) {
+      if (_i == _index) {
         if (_key == tail) {
           // updates the tail
           tail = _previousKey;
@@ -146,8 +145,8 @@ contract LinkedList is Authorizable, ILinkedList {
     if (size == 0) revert LinkedList_EmptyList();
     if (_index >= size) revert LinkedList_InvalidIndex(_index);
     uint256 _key = head;
-    for (uint256 i = 0; i <= _index; i++) {
-      if (i == _index) {
+    for (uint256 _i = 0; _i <= _index; _i++) {
+      if (_i == _index) {
         _removedAddress = _nodes[_key].contractAddress;
         _nodes[_key].contractAddress = _contractAddress;
         return (_removedAddress);
@@ -168,5 +167,16 @@ contract LinkedList is Authorizable, ILinkedList {
       _previousKey = _key;
       _key = _nodes[_key].next;
     }
+  }
+
+  function getList() external view returns (address[] memory _list) {
+    if (size == 0) revert LinkedList_EmptyList();
+    _list = new address[](size);
+    uint256 _key = head;
+    for (uint256 _i = 0; _i < size; _i++) {
+      _list[_i] = _nodes[_key].contractAddress;
+      _key = _nodes[_key].next;
+    }
+    return _list;
   }
 }

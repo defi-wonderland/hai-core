@@ -8,6 +8,7 @@ import {IOracleRelayer} from '@interfaces/IOracleRelayer.sol';
 import {IStabilityFeeTreasury} from '@interfaces/IStabilityFeeTreasury.sol';
 import {ICollateralAuctionHouse} from '@interfaces/ICollateralAuctionHouse.sol';
 import {IBaseOracle} from '@interfaces/oracles/IBaseOracle.sol';
+import {ILinkedList} from '@interfaces/utils/ILinkedList.sol';
 
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 import {IDisableable} from '@interfaces/utils/IDisableable.sol';
@@ -69,4 +70,5 @@ interface IGlobalSettlement is IAuthorizable, IDisableable, IModifiable {
   function calculateCashPrice(bytes32 _cType) external;
   function prepareCoinsForRedeeming(uint256 _coinAmount) external;
   function redeemCollateral(bytes32 _cType, uint256 _coinsAmount) external;
+  function disableables() external view returns (ILinkedList _disableables);
 }
