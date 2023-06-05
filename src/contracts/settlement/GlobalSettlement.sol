@@ -159,13 +159,14 @@ contract GlobalSettlement is Authorizable, Modifiable, Disableable, IGlobalSettl
    * @notice Freeze the system and start the cooldown period
    */
   function shutdownSystem() external isAuthorized whenEnabled {
+    shutdownTime = block.timestamp;
+    contractEnabled = 0;
+
     // disable all contracts
     address[] memory _contractsToDisable = disableables.getList();
     for (uint256 _i = 0; _i < _contractsToDisable.length; _i++) {
       Disableable(address(_contractsToDisable[_i])).disableContract();
     }
-
-    shutdownTime = block.timestamp;
     emit ShutdownSystem();
   }
 
