@@ -502,15 +502,6 @@ contract Unit_PIDController_GetBoundedRedemptionRate is Base {
 
     assertEq(_newRedemptionRate, RAY + pidController.params().feedbackOutputUpperBound);
   }
-
-  // This scenario would not happen in reality because the feedbackOutputLowerBound will never be less than -NEGATIVE_RATE_LIMIT
-  function test_Return_NewRedemptionRate_NEGATIVE_RATE_LIMIT(int256 _boundedPiOutput) public {
-    vm.assume(_boundedPiOutput < -int256(RAY));
-    _mockBoundedPIOutput(_boundedPiOutput);
-    uint256 _newRedemptionRate = pidController.getBoundedRedemptionRate(0);
-
-    assertEq(_newRedemptionRate, NEGATIVE_RATE_LIMIT);
-  }
 }
 
 contract Unit_PIDController_GetNextRedemptionRate is Base {
