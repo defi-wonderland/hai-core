@@ -28,6 +28,10 @@ contract HaiProxy is Ownable, IHaiProxy {
 
     if (!_succeeded) {
       revert TargetCallFailed(_response);
+
+      // If the call was succesfull but there was no retyrn data we check that the address was a contract
+    } else if (_response.length == 0 && _target.code.length == 0) {
+      revert TargetEmptyCode();
     }
   }
 }
