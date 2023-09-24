@@ -36,7 +36,7 @@ contract Unit_HaiProxy_Execute is Base {
 
   function test_Revert_targetNoCode() public {
     vm.startPrank(owner);
-    vm.expectRevert(IHaiProxy.TargetEmptyCode.selector);
+    vm.expectRevert('Address: call to non-contract');
 
     proxy.execute(address(target), bytes(''));
 

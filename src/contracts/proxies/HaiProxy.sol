@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import {Ownable} from '@contracts/utils/Ownable.sol';
+import {Address} from '@openzeppelin/utils/Address.sol';
 import {IHaiProxy} from '@interfaces/proxies/IHaiProxy.sol';
 
 /**
@@ -10,6 +11,8 @@ import {IHaiProxy} from '@interfaces/proxies/IHaiProxy.sol';
  * @dev    The proxy executes a delegate call to an Actions contract, which have the logic to execute the batched transactions
  */
 contract HaiProxy is Ownable, IHaiProxy {
+  using Address for address;
+
   // --- Init ---
 
   /**
@@ -22,16 +25,6 @@ contract HaiProxy is Ownable, IHaiProxy {
   /// @inheritdoc IHaiProxy
   function execute(address _target, bytes memory _data) external payable onlyOwner returns (bytes memory _response) {
     if (_target == address(0)) revert TargetAddressRequired();
-
-    bool _succeeded;
-    (_succeeded, _response) = _target.delegatecall(_data);
-
-    if (!_succeeded) {
-      revert TargetCallFailed(_response);
-
-      // If the call was successful but there was no return data we check that the address is a contract
-    } else if (_response.length == 0 && _target.code.length == 0) {
-      revert TargetEmptyCode();
-    }
+    _response = _target.functionDelegateCall(_data);
   }
 }

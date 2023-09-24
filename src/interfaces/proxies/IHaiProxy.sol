@@ -9,15 +9,6 @@ interface IHaiProxy is IOwnable {
   /// @notice Throws if the target address is null
   error TargetAddressRequired();
 
-  /// @notice Throws if the target contains no code
-  error TargetEmptyCode();
-
-  /**
-   * @notice Throws if the target call fails
-   * @param  _response The error response log of the target call
-   */
-  error TargetCallFailed(bytes _response);
-
   // --- Methods ---
 
   /**
