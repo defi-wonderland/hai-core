@@ -80,7 +80,7 @@ contract TokenDistributor is Authorizable, ITokenDistributor {
     bytes32 _s
   ) external {
     _claim(_proof, _amount);
-    token.delegateBySig(_delegatee, 0, _expiry, _v, _r, _s); // using 0 nonce
+    token.delegateBySig(_delegatee, token.nonces(msg.sender), _expiry, _v, _r, _s);
   }
 
   /// @inheritdoc ITokenDistributor
@@ -91,13 +91,6 @@ contract TokenDistributor is Authorizable, ITokenDistributor {
     token.safeTransfer(_sweepReceiver, _balance);
 
     emit Swept({_sweepReceiver: _sweepReceiver, _amount: _balance});
-  }
-
-  /// @inheritdoc ITokenDistributor
-  function withdraw(address _to, uint256 _amount) external override isAuthorized {
-    token.safeTransfer(_to, _amount);
-
-    emit Withdrawn({_to: _to, _amount: _amount});
   }
 
   function _canClaim(bytes32[] calldata _proof, address _user, uint256 _amount) internal view returns (bool _claimable) {

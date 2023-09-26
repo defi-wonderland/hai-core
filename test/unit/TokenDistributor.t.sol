@@ -87,6 +87,10 @@ abstract contract Base is HaiTest {
     vm.mockCall(address(token), abi.encodeCall(token.balanceOf, (_user)), abi.encode(_balance));
   }
 
+  function _mockERC20Nonces(address _user, uint256 _nonce) internal {
+    vm.mockCall(address(token), abi.encodeCall(token.nonces, address(_user)), abi.encode(_nonce));
+  }
+
   function _mockERC20VotesDelegateBySig(
     address _delegatee,
     uint256 _nonce,
@@ -380,35 +384,40 @@ contract Unit_TokenDistributor_ClaimAndDelegate is Base {
     vm.startPrank(airdropRecipients[4]);
   }
 
-  function test_Set_Claimed(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
-    _mockERC20VotesDelegateBySig(delegatee, 0, _expiry, _v, _r, _s);
+  function test_Set_Claimed(uint256 _nonce, uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
+    _mockERC20Nonces(airdropRecipients[4], _nonce);
+    _mockERC20VotesDelegateBySig(delegatee, _nonce, _expiry, _v, _r, _s);
     tokenDistributor.claimAndDelegate(validEveProofs, airdropAmounts[4], delegatee, _expiry, _v, _r, _s);
 
     assertTrue(tokenDistributor.claimed(airdropRecipients[4]));
   }
 
-  function test_Set_TotalClaimable(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
+  function test_Set_TotalClaimable(uint256 _nonce, uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
+    _mockERC20Nonces(airdropRecipients[4], _nonce);
     _mockERC20VotesDelegateBySig(delegatee, 0, _expiry, _v, _r, _s);
     tokenDistributor.claimAndDelegate(validEveProofs, airdropAmounts[4], delegatee, _expiry, _v, _r, _s);
 
     assertEq(tokenDistributor.totalClaimable(), totalClaimable - airdropAmounts[4]);
   }
 
-  function test_Call_ERC20Votes_Transfer(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
+  function test_Call_ERC20Votes_Transfer(uint256 _nonce, uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
+    _mockERC20Nonces(airdropRecipients[4], _nonce);
     _mockERC20VotesDelegateBySig(delegatee, 0, _expiry, _v, _r, _s);
 
     vm.expectCall(address(token), abi.encodeCall(token.transfer, (airdropRecipients[4], airdropAmounts[4])));
     tokenDistributor.claimAndDelegate(validEveProofs, airdropAmounts[4], delegatee, _expiry, _v, _r, _s);
   }
 
-  function test_Call_ERC20Votes_DelegateBySig(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
-    vm.expectCall(address(token), abi.encodeCall(token.delegateBySig, (delegatee, 0, _expiry, _v, _r, _s)));
+  function test_Call_ERC20Votes_DelegateBySig(uint256 _nonce, uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
+    _mockERC20Nonces(airdropRecipients[4], _nonce);
+    vm.expectCall(address(token), abi.encodeCall(token.delegateBySig, (delegatee, _nonce, _expiry, _v, _r, _s)));
 
     tokenDistributor.claimAndDelegate(validEveProofs, airdropAmounts[4], delegatee, _expiry, _v, _r, _s);
   }
 
-  function test_Emit_Claimed(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
-    _mockERC20VotesDelegateBySig(delegatee, 0, _expiry, _v, _r, _s);
+  function test_Emit_Claimed(uint256 _nonce, uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
+    _mockERC20Nonces(airdropRecipients[4], _nonce);
+    _mockERC20VotesDelegateBySig(delegatee, _nonce, _expiry, _v, _r, _s);
 
     vm.expectEmit();
     emit Claimed(airdropRecipients[4], airdropAmounts[4]);
@@ -534,42 +543,5 @@ contract Unit_TokenDistributor_Sweep is Base {
     vm.expectRevert(abi.encodeWithSelector(Assertions.NotGreaterThan.selector, 0, 0));
 
     tokenDistributor.sweep(sweepReceiver);
-  }
-}
-
-contract Unit_TokenDistributor_Withdraw is Base {
-  event Withdrawn(address _to, uint256 _amount);
-
-  address recipient = label('recipient');
-
-  function test_Call_ERC20Votes_Transfer(uint256 _amount) public authorized {
-    vm.assume(_amount > 0);
-    _mockERC20VotesTransfer(recipient, _amount);
-
-    vm.expectCall(address(token), abi.encodeCall(token.transfer, (recipient, _amount)));
-    tokenDistributor.withdraw(recipient, _amount);
-  }
-
-  function test_Emit_Withdrawn(uint256 _amount) public authorized {
-    vm.assume(_amount > 0);
-    _mockERC20VotesTransfer(recipient, _amount);
-
-    vm.expectEmit();
-    emit Withdrawn(recipient, _amount);
-
-    tokenDistributor.withdraw(recipient, _amount);
-  }
-
-  function test_Revert_Sweep_Unauthorized() public {
-    vm.expectRevert(IAuthorizable.Unauthorized.selector);
-
-    tokenDistributor.withdraw(recipient, 1);
-  }
-
-  function testFail_ERC20Votes_Transfer(uint256 _amount) public authorized {
-    vm.assume(_amount > 0);
-    _mockERC20VotesTransferFail(recipient, _amount);
-
-    tokenDistributor.withdraw(recipient, _amount);
   }
 }
