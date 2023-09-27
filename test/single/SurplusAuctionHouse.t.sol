@@ -165,6 +165,17 @@ contract SingleBurningSurplusAuctionHouseTest is DSTest {
     assertEq(safeEngine.coinBalance(address(surplusAuctionHouse)), 100 ether);
   }
 
+  function test_start_auction_with_initial_bid() public {
+    uint256 _initialBid = 1;
+    protocolToken.approve(address(surplusAuctionHouse), _initialBid);
+
+    assertEq(safeEngine.coinBalance(address(this)), 1000 ether);
+    assertEq(safeEngine.coinBalance(address(surplusAuctionHouse)), 0 ether);
+    surplusAuctionHouse.startAuction({_amountToSell: 100 ether, _initialBid: 1});
+    assertEq(safeEngine.coinBalance(address(this)), 900 ether);
+    assertEq(safeEngine.coinBalance(address(surplusAuctionHouse)), 100 ether);
+  }
+
   function test_increase_bid_same_bidder() public {
     uint256 id = surplusAuctionHouse.startAuction({_amountToSell: 100 ether, _initialBid: 0});
     GuyBurningSurplusAuction(ali).increaseBidSize(id, 100 ether, 190 ether);

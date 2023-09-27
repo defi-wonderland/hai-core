@@ -109,6 +109,9 @@ contract SurplusAuctionHouse is Authorizable, Modifiable, Disableable, ISurplusA
 
     safeEngine.transferInternalCoins(msg.sender, address(this), _amountToSell);
 
+    // If there is an initial bid we also transfer the bid amount from the sender
+    if (_initialBid != 0) protocolToken.safeTransferFrom(msg.sender, address(this), _initialBid);
+
     emit StartAuction({
       _id: _id,
       _auctioneer: msg.sender,
