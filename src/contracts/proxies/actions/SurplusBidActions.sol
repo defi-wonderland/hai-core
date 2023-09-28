@@ -9,6 +9,7 @@ import {ICoinJoin} from '@interfaces/utils/ICoinJoin.sol';
 import {ISurplusBidActions} from '@interfaces/proxies/actions/ISurplusBidActions.sol';
 
 import {CommonActions} from '@contracts/proxies/actions/CommonActions.sol';
+import {SafeERC20} from '@openzeppelin/token/ERC20/utils/SafeERC20.sol';
 
 import {RAY} from '@libraries/Math.sol';
 
@@ -17,6 +18,8 @@ import {RAY} from '@libraries/Math.sol';
  * @notice All methods here are executed as delegatecalls from the user's proxy
  */
 contract SurplusBidActions is ISurplusBidActions, CommonActions {
+  using SafeERC20 for IERC20Metadata;
+
   // --- Methods ---
 
   /// @inheritdoc ISurplusBidActions
@@ -31,7 +34,7 @@ contract SurplusBidActions is ISurplusBidActions, CommonActions {
 
     // prepare protocol token spending
     IERC20Metadata _protocolToken = ISurplusAuctionHouse(_surplusAuctionHouse).protocolToken();
-    _protocolToken.transferFrom(msg.sender, address(this), _spendAmount);
+    _protocolToken.safeTransferFrom(msg.sender, address(this), _spendAmount);
     _protocolToken.approve(address(_surplusAuctionHouse), _spendAmount);
 
     // proxy needs to be approved for protocol token spending
