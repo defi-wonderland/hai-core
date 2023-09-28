@@ -42,8 +42,13 @@ contract CollateralBidActions is CommonActions, ICollateralBidActions {
     (uint256 _boughtAmount, uint256 _adjustedBid) =
       ICollateralAuctionHouse(_collateralAuctionHouse).buyCollateral(_auctionId, _bidAmount);
 
-    require(_adjustedBid <= _bidAmount, 'Invalid adjusted bid');
-    require(_boughtAmount >= _minCollateralAmount, 'Invalid bought amount');
+    if (_adjustedBid > _bidAmount) {
+      revert ColActions_InvalidAdjustedBid();
+    }
+
+    if (_boughtAmount < _minCollateralAmount) {
+      revert ColActions_InsufficientCollateralReceived(_minCollateralAmount, _boughtAmount);
+    }
 
     // exit collateral
     _exitCollateral(_collateralJoin, _boughtAmount);

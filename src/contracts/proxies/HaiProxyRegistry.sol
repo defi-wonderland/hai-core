@@ -47,7 +47,9 @@ contract HaiProxyRegistry is IHaiProxyRegistry {
   /// @notice Internal method used to deploy a new proxy instance and store it in the registry
   function _build(address _owner) internal returns (address payable _proxy) {
     // Not allow new _proxy if the user already has one and remains being the owner
-    require(proxies[_owner] == IHaiProxy(payable(address(0))) || proxies[_owner].owner() != _owner);
+    if (proxies[_owner] != IHaiProxy(payable(address(0))) && proxies[_owner].owner() == _owner) {
+      revert AlreadyHasProxy(_owner, proxies[_owner]);
+    }
     _proxy = factory.build(_owner);
     proxies[_owner] = IHaiProxy(_proxy);
     emit Build(_owner, _proxy);

@@ -14,6 +14,11 @@ interface IHaiProxyRegistry {
    */
   event Build(address _usr, address _proxy);
 
+  // --- Errors ---
+
+  /// @notice Throws if the user already has a proxy and remains being the owner
+  error AlreadyHasProxy(address _owner, IHaiProxy _proxy);
+
   // --- Data ---
 
   /// @notice Mapping of user addresses to proxy instances
