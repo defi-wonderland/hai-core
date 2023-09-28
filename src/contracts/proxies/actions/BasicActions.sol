@@ -306,7 +306,7 @@ contract BasicActions is CommonActions, IBasicActions {
       _collateralSource: address(this),
       _debtDestination: address(this),
       _deltaCollateral: 0,
-      _deltaDebt: -int256(_safeData.generatedDebt)
+      _deltaDebt: -_safeData.generatedDebt.toInt()
     });
   }
 
