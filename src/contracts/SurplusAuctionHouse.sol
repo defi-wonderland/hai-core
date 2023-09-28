@@ -141,7 +141,8 @@ contract SurplusAuctionHouse is Authorizable, Modifiable, Disableable, ISurplusA
     if (_bid * WAD < _params.bidIncrease * _auction.bidAmount) revert SAH_InsufficientIncrease();
 
     if (msg.sender != _auction.highBidder) {
-      protocolToken.safeTransferFrom(msg.sender, _auction.highBidder, _auction.bidAmount);
+      // If there was no previous bid then no transfer is needed
+      if (_auction.bidAmount != 0) protocolToken.safeTransferFrom(msg.sender, _auction.highBidder, _auction.bidAmount);
       _auction.highBidder = msg.sender;
     }
     protocolToken.safeTransferFrom(msg.sender, address(this), _bid - _auction.bidAmount);
