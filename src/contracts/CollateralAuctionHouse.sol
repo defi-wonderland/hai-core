@@ -340,11 +340,6 @@ contract CollateralAuctionHouse is Authorizable, Modifiable, Disableable, IColla
   }
 
   /// @inheritdoc ICollateralAuctionHouse
-  function settleAuction(uint256) external pure {
-    return;
-  }
-
-  /// @inheritdoc ICollateralAuctionHouse
   function terminateAuctionPrematurely(uint256 _id) external isAuthorized {
     Auction memory _auction = _auctions[_id];
     delete _auctions[_id];
