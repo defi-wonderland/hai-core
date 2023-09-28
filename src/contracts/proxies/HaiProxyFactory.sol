@@ -18,6 +18,9 @@ contract HaiProxyFactory is IHaiProxyFactory {
   /// @inheritdoc IHaiProxyFactory
   mapping(address _owner => IHaiProxy) public proxies;
 
+  /// @inheritdoc IHaiProxyFactory
+  mapping(address _owner => uint256 nonce) public nonces;
+
   // --- Methods ---
 
   /// @inheritdoc IHaiProxyFactory
@@ -36,7 +39,10 @@ contract HaiProxyFactory is IHaiProxyFactory {
     if (proxies[_owner] != IHaiProxy(payable(address(0))) && proxies[_owner].owner() == _owner) {
       revert AlreadyHasProxy(_owner, proxies[_owner]);
     }
-    _proxy = payable(address(new HaiProxy(_owner)));
+    // Calculate the salt for the owner, incrementing their nonce in the process
+    bytes32 _salt = keccak256(abi.encode(_owner, nonces[_owner]++));
+    // Create the new proxy
+    _proxy = payable(address(new HaiProxy{salt: _salt}(_owner)));
     isProxy[_proxy] = true;
     proxies[_owner] = IHaiProxy(_proxy);
     emit Created(msg.sender, _owner, address(_proxy));

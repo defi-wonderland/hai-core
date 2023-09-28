@@ -27,6 +27,9 @@ interface IHaiProxyFactory {
   /// @notice Mapping of user addresses to proxy instances
   function proxies(address _owner) external view returns (IHaiProxy _proxy);
 
+  /// @notice Mapping of the next nonce to be used for the specified owner
+  function nonces(address _owner) external view returns (uint256 _nonce);
+
   // --- Methods ---
 
   /**
