@@ -2,7 +2,6 @@
 pragma solidity 0.8.19;
 
 import {HaiSafeManager} from '@contracts/proxies/HaiSafeManager.sol';
-import {HaiProxyRegistry} from '@contracts/proxies/HaiProxyRegistry.sol';
 import {HaiProxy} from '@contracts/proxies/HaiProxy.sol';
 
 import {ISAFEEngine} from '@interfaces/ISAFEEngine.sol';
