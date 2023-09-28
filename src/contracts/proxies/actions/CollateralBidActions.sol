@@ -26,7 +26,7 @@ contract CollateralBidActions is CommonActions, ICollateralBidActions {
     uint256 _auctionId,
     uint256 _minCollateralAmount,
     uint256 _bidAmount
-  ) external delegateCall {
+  ) external onlyDelegateCall {
     ISAFEEngine _safeEngine = ICoinJoin(_coinJoin).safeEngine();
     // checks coin balance and joins more if needed
     uint256 _coinBalance = _safeEngine.coinBalance(address(this)) / RAY;

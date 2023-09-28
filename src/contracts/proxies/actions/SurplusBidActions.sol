@@ -23,7 +23,11 @@ contract SurplusBidActions is ISurplusBidActions, CommonActions {
   // --- Methods ---
 
   /// @inheritdoc ISurplusBidActions
-  function increaseBidSize(address _surplusAuctionHouse, uint256 _auctionId, uint256 _bidAmount) external delegateCall {
+  function increaseBidSize(
+    address _surplusAuctionHouse,
+    uint256 _auctionId,
+    uint256 _bidAmount
+  ) external onlyDelegateCall {
     uint256 _spendAmount = _bidAmount;
     ISurplusAuctionHouse.Auction memory _auction = ISurplusAuctionHouse(_surplusAuctionHouse).auctions(_auctionId);
 
@@ -42,7 +46,7 @@ contract SurplusBidActions is ISurplusBidActions, CommonActions {
   }
 
   /// @inheritdoc ISurplusBidActions
-  function settleAuction(address _coinJoin, address _surplusAuctionHouse, uint256 _auctionId) external delegateCall {
+  function settleAuction(address _coinJoin, address _surplusAuctionHouse, uint256 _auctionId) external onlyDelegateCall {
     uint256 _amountToSell = ISurplusAuctionHouse(_surplusAuctionHouse).auctions(_auctionId).amountToSell;
     ISurplusAuctionHouse(_surplusAuctionHouse).settleAuction(_auctionId);
 

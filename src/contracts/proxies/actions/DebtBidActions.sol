@@ -28,7 +28,7 @@ contract DebtBidActions is CommonActions, IDebtBidActions {
     address _debtAuctionHouse,
     uint256 _auctionId,
     uint256 _soldAmount
-  ) external delegateCall {
+  ) external onlyDelegateCall {
     uint256 _bidAmount = IDebtAuctionHouse(_debtAuctionHouse).auctions(_auctionId).bidAmount;
 
     ISAFEEngine _safeEngine = ICoinJoin(_coinJoin).safeEngine();
@@ -49,7 +49,7 @@ contract DebtBidActions is CommonActions, IDebtBidActions {
   }
 
   /// @inheritdoc IDebtBidActions
-  function settleAuction(address _coinJoin, address _debtAuctionHouse, uint256 _auctionId) external delegateCall {
+  function settleAuction(address _coinJoin, address _debtAuctionHouse, uint256 _auctionId) external onlyDelegateCall {
     IDebtAuctionHouse.Auction memory _auction = IDebtAuctionHouse(_debtAuctionHouse).auctions(_auctionId);
     IDebtAuctionHouse(_debtAuctionHouse).settleAuction(_auctionId);
 
@@ -68,7 +68,7 @@ contract DebtBidActions is CommonActions, IDebtBidActions {
   }
 
   /// @inheritdoc IDebtBidActions
-  function collectProtocolTokens(address _protocolToken) external delegateCall {
+  function collectProtocolTokens(address _protocolToken) external onlyDelegateCall {
     // get the amount of protocol tokens that the proxy has
     uint256 _coinsToCollect = IERC20Metadata(_protocolToken).balanceOf(address(this));
     IERC20Metadata(_protocolToken).safeTransfer(msg.sender, _coinsToCollect);

@@ -24,23 +24,23 @@ abstract contract CommonActions is ICommonActions {
   // --- Methods ---
 
   /// @inheritdoc ICommonActions
-  function joinSystemCoins(address _coinJoin, address _dst, uint256 _wad) external delegateCall {
+  function joinSystemCoins(address _coinJoin, address _dst, uint256 _wad) external onlyDelegateCall {
     _joinSystemCoins(_coinJoin, _dst, _wad);
   }
 
   /// @inheritdoc ICommonActions
-  function exitSystemCoins(address _coinJoin, uint256 _coinsToExit) external delegateCall {
+  function exitSystemCoins(address _coinJoin, uint256 _coinsToExit) external onlyDelegateCall {
     _exitSystemCoins(_coinJoin, _coinsToExit);
   }
 
   /// @inheritdoc ICommonActions
-  function exitAllSystemCoins(address _coinJoin) external delegateCall {
+  function exitAllSystemCoins(address _coinJoin) external onlyDelegateCall {
     uint256 _coinsToExit = ICoinJoin(_coinJoin).safeEngine().coinBalance(address(this));
     _exitSystemCoins(_coinJoin, _coinsToExit);
   }
 
   /// @inheritdoc ICommonActions
-  function exitCollateral(address _collateralJoin, uint256 _wad) external delegateCall {
+  function exitCollateral(address _collateralJoin, uint256 _wad) external onlyDelegateCall {
     _exitCollateral(_collateralJoin, _wad);
   }
 
@@ -125,7 +125,7 @@ abstract contract CommonActions is ICommonActions {
   // --- Modifiers ---
 
   /// @notice Checks if the call is being made through a delegate call
-  modifier delegateCall() {
+  modifier onlyDelegateCall() {
     if (address(this) == _THIS) revert OnlyDelegateCalls();
     _;
   }
