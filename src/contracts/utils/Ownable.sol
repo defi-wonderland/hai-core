@@ -23,14 +23,14 @@ abstract contract Ownable is IOwnable {
   }
 
   /// @inheritdoc IOwnable
-  function setOwner(address _owner) external onlyOwner {
+  function setOwner(address _owner) external virtual onlyOwner {
     _setOwner(_owner);
   }
 
   // --- Internal ---
 
   /// @notice Sets a new contract owner
-  function _setOwner(address _newOwner) internal {
+  function _setOwner(address _newOwner) internal virtual {
     owner = _newOwner;
     emit SetOwner(_newOwner);
   }

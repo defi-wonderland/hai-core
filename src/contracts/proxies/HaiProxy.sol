@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.19;
 
-import {Ownable} from '@contracts/utils/Ownable.sol';
+import {HaiOwnable2Step, Ownable} from '@contracts/utils/HaiOwnable2Step.sol';
 import {IHaiProxy} from '@interfaces/proxies/IHaiProxy.sol';
 
 /**
@@ -9,7 +9,7 @@ import {IHaiProxy} from '@interfaces/proxies/IHaiProxy.sol';
  * @notice This contract is an ownable proxy to execute batched transactions in the protocol contracts
  * @dev    The proxy executes a delegate call to an Actions contract, which have the logic to execute the batched transactions
  */
-contract HaiProxy is Ownable, IHaiProxy {
+contract HaiProxy is HaiOwnable2Step, IHaiProxy {
   // --- Init ---
 
   /**
