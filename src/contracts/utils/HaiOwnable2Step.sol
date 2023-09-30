@@ -7,7 +7,7 @@ import {Ownable, IOwnable} from '@contracts/utils/Ownable.sol';
 
 /**
  * @title  HaiOwnable2Step
- * @notice This abstract contract inherits Ownable and implements a two-step contract ownershup transfer
+ * @notice This abstract contract inherits Ownable and implements a two-step ownership transfer
  */
 abstract contract HaiOwnable2Step is Ownable, IHaiOwnable2Step {
   // --- Data ---
