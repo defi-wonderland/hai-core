@@ -566,16 +566,24 @@ contract Unit_SurplusAuctionHouse_IncreaseBidSize is Base {
     uint256 _bidIncrease,
     uint256 _bidDuration
   ) public happyPath(_auction, _bid, _bidIncrease, _bidDuration) {
+    uint256 _payment = _bid;
+    uint256 _refund;
+
+    if (_auction.highBidder != user && _auction.bidExpiry != 0) {
+      _refund = _auction.bidAmount;
+      _payment = _bid - _auction.bidAmount;
+    } else if (_auction.highBidder == user && _auction.bidExpiry != 0) {
+      _payment = _bid - _auction.bidAmount;
+    }
+
     vm.expectCall(
       address(mockProtocolToken),
-      abi.encodeCall(mockProtocolToken.transferFrom, (_auction.highBidder, _auction.highBidder, _auction.bidAmount)),
+      abi.encodeCall(mockProtocolToken.transferFrom, (_auction.highBidder, _auction.highBidder, _refund)),
       0
     );
     vm.expectCall(
       address(mockProtocolToken),
-      abi.encodeCall(
-        mockProtocolToken.transferFrom, (_auction.highBidder, address(surplusAuctionHouse), _bid - _auction.bidAmount)
-      ),
+      abi.encodeCall(mockProtocolToken.transferFrom, (_auction.highBidder, address(surplusAuctionHouse), _payment)),
       1
     );
 
@@ -589,18 +597,31 @@ contract Unit_SurplusAuctionHouse_IncreaseBidSize is Base {
     uint256 _bidIncrease,
     uint256 _bidDuration
   ) public happyPath(_auction, _bid, _bidIncrease, _bidDuration) {
+    uint256 _payment = _bid;
+    uint256 _refund;
+
+    // if the user was not the previous high bidder we refund them
+    if (_auction.highBidder != user && _auction.bidExpiry != 0) {
+      _refund = _auction.bidAmount;
+      _payment = _bid - _auction.bidAmount;
+
+      // if the user was the previous high bidder they don't need to pay the full amount
+    } else if (_auction.highBidder == user && _auction.bidExpiry != 0) {
+      _payment = _bid - _auction.bidAmount;
+    }
+
     // If there was no initial bidAmount then this would transfer 0 tokens, so its not called
-    if (_auction.bidAmount != 0) {
+    if (_refund != 0) {
       vm.expectCall(
         address(mockProtocolToken),
-        abi.encodeCall(mockProtocolToken.transferFrom, (user, _auction.highBidder, _auction.bidAmount)),
+        abi.encodeCall(mockProtocolToken.transferFrom, (user, _auction.highBidder, _refund)),
         1
       );
     }
 
     vm.expectCall(
       address(mockProtocolToken),
-      abi.encodeCall(mockProtocolToken.transferFrom, (user, address(surplusAuctionHouse), _bid - _auction.bidAmount)),
+      abi.encodeCall(mockProtocolToken.transferFrom, (user, address(surplusAuctionHouse), _payment)),
       1
     );
 
