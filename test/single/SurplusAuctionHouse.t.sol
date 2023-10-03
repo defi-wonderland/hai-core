@@ -173,7 +173,7 @@ contract SingleBurningSurplusAuctionHouseTest is DSTest {
     assertEq(protocolToken.balanceOf(ali), 0);
   }
 
-  function test_increaseBidSize_withInitialBid() public {
+  function test_increase_bid_with_initial_bid() public {
     uint256 _initialBid = 0.1 ether;
     protocolToken.approve(address(surplusAuctionHouse), _initialBid);
 
