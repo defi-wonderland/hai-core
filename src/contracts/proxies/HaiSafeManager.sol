@@ -31,9 +31,9 @@ contract HaiSafeManager is IHaiSafeManager {
   /// @notice Nonce used to generate safe ids (autoincremental)
   uint256 internal _safeId;
   /// @notice Mapping of user addresses to their enumerable set of safes
-  mapping(address _safeOwner => EnumerableSet.UintSet) private _usrSafes;
+  mapping(address _safeOwner => EnumerableSet.UintSet) internal _usrSafes;
   /// @notice Mapping of user addresses to their enumerable set of safes per collateral type
-  mapping(address _safeOwner => mapping(bytes32 _cType => EnumerableSet.UintSet)) private _usrSafesPerCollat;
+  mapping(address _safeOwner => mapping(bytes32 _cType => EnumerableSet.UintSet)) internal _usrSafesPerCollat;
   /// @notice Mapping of safe ids to their data
   mapping(uint256 _safeId => SAFEData) internal _safeData;
 
