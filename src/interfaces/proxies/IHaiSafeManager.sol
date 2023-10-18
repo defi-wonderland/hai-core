@@ -11,7 +11,7 @@ interface IHaiSafeManager {
   /// @notice Emitted when calling transferSAFEOwnership with the sender address and the method arguments
   event TransferSAFEOwnership(address indexed _sender, uint256 indexed _safe, address _dst);
   /// @notice Emitted when calling openSAFE with the sender address and the method arguments
-  event OpenSAFE(address indexed _sender, address indexed _own, uint256 indexed _safe);
+  event OpenSAFE(address indexed _sender, uint256 indexed _safe);
   /// @notice Emitted when calling modifySAFECollateralization with the sender address and the method arguments
   event ModifySAFECollateralization(
     address indexed _sender, uint256 indexed _safe, int256 _deltaCollateral, int256 _deltaDebt
@@ -118,12 +118,11 @@ interface IHaiSafeManager {
   function allowHandler(address _usr, bool _ok) external;
 
   /**
-   * @notice Open a new safe for a user address
+   * @notice Open a new safe for the sender address
    * @param  _cType Bytes32 representation of the collateral type
-   * @param  _usr Address of the user to open the safe for
    * @return _id Id of the new SAFE
    */
-  function openSAFE(bytes32 _cType, address _usr) external returns (uint256 _id);
+  function openSAFE(bytes32 _cType) external returns (uint256 _id);
 
   /**
    * @notice Transfer the ownership of a safe to a dst address

@@ -120,18 +120,16 @@ contract HaiSafeManager is IHaiSafeManager {
   }
 
   /// @inheritdoc IHaiSafeManager
-  function openSAFE(bytes32 _cType, address _usr) external returns (uint256 _id) {
-    if (_usr == address(0)) revert ZeroAddress();
-
+  function openSAFE(bytes32 _cType) external returns (uint256 _id) {
     ++_safeId;
     address _safeHandler = address(new SAFEHandler(safeEngine));
 
-    _safeData[_safeId] = SAFEData({owner: _usr, safeHandler: _safeHandler, collateralType: _cType});
+    _safeData[_safeId] = SAFEData({owner: msg.sender, safeHandler: _safeHandler, collateralType: _cType});
 
-    _usrSafes[_usr].add(_safeId);
-    _usrSafesPerCollat[_usr][_cType].add(_safeId);
+    _usrSafes[msg.sender].add(_safeId);
+    _usrSafesPerCollat[msg.sender][_cType].add(_safeId);
 
-    emit OpenSAFE(msg.sender, _usr, _safeId);
+    emit OpenSAFE(msg.sender, _safeId);
     return _safeId;
   }
 

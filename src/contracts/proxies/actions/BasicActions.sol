@@ -139,8 +139,8 @@ contract BasicActions is CommonActions, IBasicActions {
   }
 
   /// @notice Routes the openSAFE call to the HaiSafeManager contract
-  function _openSAFE(address _manager, bytes32 _cType, address _usr) internal returns (uint256 _safeId) {
-    _safeId = HaiSafeManager(_manager).openSAFE(_cType, _usr);
+  function _openSAFE(address _manager, bytes32 _cType) internal returns (uint256 _safeId) {
+    _safeId = HaiSafeManager(_manager).openSAFE(_cType);
   }
 
   /// @notice Routes the transferCollateral call to the HaiSafeManager contract
@@ -223,8 +223,8 @@ contract BasicActions is CommonActions, IBasicActions {
   // --- Methods ---
 
   /// @inheritdoc IBasicActions
-  function openSAFE(address _manager, bytes32 _cType, address _usr) external onlyDelegateCall returns (uint256 _safeId) {
-    return _openSAFE(_manager, _cType, _usr);
+  function openSAFE(address _manager, bytes32 _cType) external onlyDelegateCall returns (uint256 _safeId) {
+    return _openSAFE(_manager, _cType);
   }
 
   /// @inheritdoc IBasicActions
@@ -334,7 +334,7 @@ contract BasicActions is CommonActions, IBasicActions {
     uint256 _collateralAmount,
     uint256 _deltaWad
   ) external onlyDelegateCall returns (uint256 _safe) {
-    _safe = _openSAFE(_manager, _cType, address(this));
+    _safe = _openSAFE(_manager, _cType);
 
     _lockTokenCollateralAndGenerateDebt(
       _manager, _taxCollector, _collateralJoin, _coinJoin, _safe, _collateralAmount, _deltaWad

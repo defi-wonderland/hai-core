@@ -10,10 +10,9 @@ interface IBasicActions is ICommonActions {
    * @notice Opens a brand new SAFE
    * @param  _manager Address of the HaiSafeManager contract
    * @param  _cType Bytes32 representing the collateral type
-   * @param  _usr Address of the SAFE owner
    * @return _safeId Id of the created SAFE
    */
-  function openSAFE(address _manager, bytes32 _cType, address _usr) external returns (uint256 _safeId);
+  function openSAFE(address _manager, bytes32 _cType) external returns (uint256 _safeId);
 
   /**
    * @notice Generates debt and sends COIN amount to msg.sender
