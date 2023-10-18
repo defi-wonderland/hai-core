@@ -45,7 +45,7 @@ contract Unit_InitiateTransferOwnership is Base {
     _mockSAFE(_safe, _safeData);
   }
 
-  function test_transferOwnership(
+  function test_TransferOwnership(
     uint256 _safe,
     IHaiSafeManager.SAFEData memory _safeData,
     address _recipient
@@ -59,7 +59,7 @@ contract Unit_InitiateTransferOwnership is Base {
     assertEq(safeManager.safeData(_safe).pendingOwner, _recipient);
   }
 
-  function test_reset_transferOwnership(
+  function test_Reset_TransferOwnership(
     uint256 _safe,
     IHaiSafeManager.SAFEData memory _safeData,
     address _recipient
@@ -75,7 +75,7 @@ contract Unit_InitiateTransferOwnership is Base {
     assertEq(safeManager.safeData(_safe).pendingOwner, address(0));
   }
 
-  function test_revert_notOwner(
+  function test_Revert_NotOwner(
     uint256 _safe,
     IHaiSafeManager.SAFEData memory _safeData,
     address _recipient,
@@ -108,7 +108,7 @@ contract Unit_AcceptTransferOwnership is Base {
     _mockSAFE(_safe, _safeData);
   }
 
-  function test_acceptTransferOwnership(uint256 _safe, IHaiSafeManager.SAFEData memory _safeData) external {
+  function test_AcceptTransferOwnership(uint256 _safe, IHaiSafeManager.SAFEData memory _safeData) external {
     vm.assume(_safeData.owner != _safeData.pendingOwner);
     vm.assume(_safeData.pendingOwner != address(0));
     _mockSAFE(_safe, _safeData);
@@ -131,7 +131,7 @@ contract Unit_AcceptTransferOwnership is Base {
     assertEq(safeManager.getSafes(_safeData.pendingOwner, _safeData.collateralType).length, 1);
   }
 
-  function test_revert_notPendingOwner(
+  function test_Revert_NotPendingOwner(
     uint256 _safe,
     IHaiSafeManager.SAFEData memory _safeData,
     address _sender

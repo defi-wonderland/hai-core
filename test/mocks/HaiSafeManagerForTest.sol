@@ -9,8 +9,8 @@ contract HaiSafeManagerForTest is HaiSafeManager {
 
   constructor(address _safeEngine) HaiSafeManager(_safeEngine) {}
 
-  function setSAFE(uint256 _safe, IHaiSafeManager.SAFEData memory __safeData) external {
-    _safeData[_safe] = IHaiSafeManager.SAFEData({
+  function setSAFE(uint256 _safe, SAFEData memory __safeData) external {
+    _safeData[_safe] = SAFEData({
       owner: __safeData.owner,
       pendingOwner: __safeData.pendingOwner,
       safeHandler: __safeData.safeHandler,
