@@ -203,18 +203,6 @@ contract HaiSafeManager is IHaiSafeManager {
   }
 
   /// @inheritdoc IHaiSafeManager
-  function enterSystem(address _src, uint256 _safe) external handlerAllowed(_src) safeAllowed(_safe) {
-    SAFEData memory _sData = _safeData[_safe];
-    ISAFEEngine.SAFE memory _safeInfo = ISAFEEngine(safeEngine).safes(_sData.collateralType, _sData.safeHandler);
-    int256 _deltaCollateral = _safeInfo.lockedCollateral.toInt();
-    int256 _deltaDebt = _safeInfo.generatedDebt.toInt();
-    ISAFEEngine(safeEngine).transferSAFECollateralAndDebt(
-      _sData.collateralType, _src, _sData.safeHandler, _deltaCollateral, _deltaDebt
-    );
-    emit EnterSystem(msg.sender, _src, _safe);
-  }
-
-  /// @inheritdoc IHaiSafeManager
   function moveSAFE(uint256 _safeSrc, uint256 _safeDst) external safeAllowed(_safeSrc) safeAllowed(_safeDst) {
     SAFEData memory _srcData = _safeData[_safeSrc];
     SAFEData memory _dstData = _safeData[_safeDst];
@@ -230,20 +218,6 @@ contract HaiSafeManager is IHaiSafeManager {
     _usrSafes[_srcData.owner].remove(_safeSrc);
     _usrSafesPerCollat[_srcData.owner][_srcData.collateralType].remove(_safeSrc);
     emit MoveSAFE(msg.sender, _safeSrc, _safeDst);
-  }
-
-  /// @inheritdoc IHaiSafeManager
-  function addSAFE(uint256 _safe) external {
-    SAFEData memory _sData = _safeData[_safe];
-    _usrSafes[msg.sender].add(_safe);
-    _usrSafesPerCollat[msg.sender][_sData.collateralType].add(_safe);
-  }
-
-  /// @inheritdoc IHaiSafeManager
-  function removeSAFE(uint256 _safe) external safeAllowed(_safe) {
-    SAFEData memory _sData = _safeData[_safe];
-    _usrSafes[_sData.owner].remove(_safe);
-    _usrSafesPerCollat[_sData.owner][_sData.collateralType].remove(_safe);
   }
 
   /// @inheritdoc IHaiSafeManager

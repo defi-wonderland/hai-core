@@ -16,7 +16,6 @@ The SAFE Manager Contract serves as an interface for interacting with the SAFE E
 - `transferCollateral`: Transfers collateral from one account to another.
 - `transferInternalCoins`: Transfers internal coins from one account to another.
 - `quitSystem`: Closes a SAFE and transfers all remaining collateral and debt to the user's address.
-- `enterSystem`: Migrates collateral and debt from a source SAFE Handler to a destination SAFE.
 - `moveSAFE`: Migrates a SAFE from one SAFE to another.
 
 ## 3. Key Mechanisms & Concepts
