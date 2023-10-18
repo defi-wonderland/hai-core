@@ -466,16 +466,30 @@ contract Unit_PostSettlementSurplusAuctionHouse_IncreaseBidSize is Base {
     uint256 _bidIncrease,
     uint256 _bidDuration
   ) public happyPath(_auction, _bid, _bidIncrease, _bidDuration) {
-    vm.expectCall(
-      address(mockProtocolToken),
-      abi.encodeCall(mockProtocolToken.transferFrom, (_auction.highBidder, _auction.highBidder, _auction.bidAmount)),
-      0
-    );
+    uint256 _payment = _bid;
+    uint256 _refund;
+
+    // if the user was not the previous high bidder we refund the previous high bidder them
+    if (_auction.highBidder != user && _auction.bidExpiry != 0) {
+      _refund = _auction.bidAmount;
+      _payment = _bid - _auction.bidAmount;
+
+      // if the user was the previous high bidder they only need to pay the increment
+    } else if (_auction.highBidder == user && _auction.bidExpiry != 0) {
+      _payment = _bid - _auction.bidAmount;
+    }
+
+    if (_refund != 0) {
+      vm.expectCall(
+        address(mockProtocolToken),
+        abi.encodeCall(mockProtocolToken.transferFrom, (_auction.highBidder, _auction.highBidder, _refund)),
+        0
+      );
+    }
     vm.expectCall(
       address(mockProtocolToken),
       abi.encodeCall(
-        mockProtocolToken.transferFrom,
-        (_auction.highBidder, address(postSettlementSurplusAuctionHouse), _bid - _auction.bidAmount)
+        mockProtocolToken.transferFrom, (_auction.highBidder, address(postSettlementSurplusAuctionHouse), _payment)
       ),
       1
     );
@@ -490,16 +504,30 @@ contract Unit_PostSettlementSurplusAuctionHouse_IncreaseBidSize is Base {
     uint256 _bidIncrease,
     uint256 _bidDuration
   ) public happyPath(_auction, _bid, _bidIncrease, _bidDuration) {
+    uint256 _payment = _bid;
+    uint256 _refund;
+
+    // if the user was not the previous high bidder we refund the previous high bidder them
+    if (_auction.highBidder != user && _auction.bidExpiry != 0) {
+      _refund = _auction.bidAmount;
+      _payment = _bid - _auction.bidAmount;
+
+      // if the user was the previous high bidder they only need to pay the increment
+    } else if (_auction.highBidder == user && _auction.bidExpiry != 0) {
+      _payment = _bid - _auction.bidAmount;
+    }
+
+    if (_refund != 0) {
+      vm.expectCall(
+        address(mockProtocolToken),
+        abi.encodeCall(mockProtocolToken.transferFrom, (user, _auction.highBidder, _refund)),
+        1
+      );
+    }
+
     vm.expectCall(
       address(mockProtocolToken),
-      abi.encodeCall(mockProtocolToken.transferFrom, (user, _auction.highBidder, _auction.bidAmount)),
-      1
-    );
-    vm.expectCall(
-      address(mockProtocolToken),
-      abi.encodeCall(
-        mockProtocolToken.transferFrom, (user, address(postSettlementSurplusAuctionHouse), _bid - _auction.bidAmount)
-      ),
+      abi.encodeCall(mockProtocolToken.transferFrom, (user, address(postSettlementSurplusAuctionHouse), _payment)),
       1
     );
 
