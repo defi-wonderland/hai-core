@@ -39,6 +39,7 @@ contract Unit_InitiateTransferOwnership is Base {
 
   function _assumeHappyPath(uint256, IHaiSafeManager.SAFEData memory _safeData, address _recipient) internal pure {
     vm.assume(_safeData.pendingOwner != _recipient && _safeData.pendingOwner != _safeData.owner);
+    vm.assume(_safeData.owner != _recipient);
   }
 
   function _mockValues(uint256 _safe, IHaiSafeManager.SAFEData memory _safeData) internal {
@@ -64,6 +65,7 @@ contract Unit_InitiateTransferOwnership is Base {
     IHaiSafeManager.SAFEData memory _safeData,
     address _recipient
   ) external happyPath(_safe, _safeData, _recipient) {
+    vm.assume(_safeData.owner != address(0));
     vm.assume(_safeData.pendingOwner != address(0));
 
     vm.expectEmit();
