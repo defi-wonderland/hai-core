@@ -4,15 +4,10 @@ pragma solidity 0.8.19;
 import {HaiSafeManager, IHaiSafeManager, ISAFEEngine} from '@contracts/proxies/HaiSafeManager.sol';
 
 import {HaiSafeManagerForTest} from '@test/mocks/HaiSafeManagerForTest.sol';
-import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
-import {HaiTest, stdStorage, StdStorage} from '@test/utils/HaiTest.t.sol';
+import {HaiTest} from '@test/utils/HaiTest.t.sol';
 
 abstract contract Base is HaiTest {
-  using stdStorage for StdStorage;
-
   address deployer = label('deployer');
-  address authorizedAccount = label('authorizedAccount');
-  address user = label('user');
   ISAFEEngine safeEngine = ISAFEEngine(mockContract('safeEngine'));
 
   HaiSafeManager safeManager;
@@ -105,10 +100,6 @@ contract Unit_InitiateTransferOwnership is Base {
 
 contract Unit_AcceptTransferOwnership is Base {
   event TransferSAFEOwnership(address indexed _sender, uint256 indexed _safe, address _dst);
-
-  function _mockValues(uint256 _safe, IHaiSafeManager.SAFEData memory _safeData) internal {
-    _mockSAFE(_safe, _safeData);
-  }
 
   function test_AcceptTransferOwnership(uint256 _safe, IHaiSafeManager.SAFEData memory _safeData) external {
     vm.assume(_safeData.owner != _safeData.pendingOwner);
