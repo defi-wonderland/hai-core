@@ -2,7 +2,6 @@
 pragma solidity 0.8.19;
 
 import {HaiSafeManager, EnumerableSet} from '@contracts/proxies/HaiSafeManager.sol';
-import {IHaiSafeManager} from '@interfaces/proxies/IHaiSafeManager.sol';
 
 contract HaiSafeManagerForTest is HaiSafeManager {
   using EnumerableSet for EnumerableSet.UintSet;
