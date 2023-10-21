@@ -13,6 +13,7 @@ import {Authorizable} from '@contracts/utils/Authorizable.sol';
 import {Modifiable} from '@contracts/utils/Modifiable.sol';
 
 import {Encoding} from '@libraries/Encoding.sol';
+import {Assertions} from '@libraries/Assertions.sol';
 
 /**
  * @title  OracleJob
@@ -20,6 +21,8 @@ import {Encoding} from '@libraries/Encoding.sol';
  */
 contract OracleJob is Job, Authorizable, Modifiable, IOracleJob {
   using Encoding for bytes;
+  using Assertions for uint256;
+  using Assertions for address;
 
   // --- Data ---
 
@@ -48,7 +51,7 @@ contract OracleJob is Job, Authorizable, Modifiable, IOracleJob {
     address _pidRateSetter,
     address _stabilityFeeTreasury,
     uint256 _rewardAmount
-  ) Job(_stabilityFeeTreasury, _rewardAmount) Authorizable(msg.sender) {
+  ) Job(_stabilityFeeTreasury, _rewardAmount) Authorizable(msg.sender) validParams {
     oracleRelayer = IOracleRelayer(_oracleRelayer);
     pidRateSetter = IPIDRateSetter(_pidRateSetter);
 
@@ -88,5 +91,13 @@ contract OracleJob is Job, Authorizable, Modifiable, IOracleJob {
     else if (_param == 'shouldWorkUpdateRate') shouldWorkUpdateRate = _bool;
     else if (_param == 'rewardAmount') rewardAmount = _data.toUint256();
     else revert UnrecognizedParam();
+  }
+
+  /// @inheritdoc Modifiable
+  function _validateParameters() internal view override {
+    address(oracleRelayer).assertHasCode();
+    address(pidRateSetter).assertHasCode();
+    address(stabilityFeeTreasury).assertHasCode();
+    rewardAmount.assertNonNull();
   }
 }

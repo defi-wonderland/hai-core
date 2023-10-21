@@ -11,6 +11,7 @@ import {Authorizable} from '@contracts/utils/Authorizable.sol';
 import {Modifiable} from '@contracts/utils/Modifiable.sol';
 
 import {Encoding} from '@libraries/Encoding.sol';
+import {Assertions} from '@libraries/Assertions.sol';
 
 /**
  * @title  AccountingJob
@@ -18,6 +19,8 @@ import {Encoding} from '@libraries/Encoding.sol';
  */
 contract AccountingJob is Job, Authorizable, Modifiable, IAccountingJob {
   using Encoding for bytes;
+  using Assertions for uint256;
+  using Assertions for address;
 
   // --- Data ---
 
@@ -46,7 +49,7 @@ contract AccountingJob is Job, Authorizable, Modifiable, IAccountingJob {
     address _accountingEngine,
     address _stabilityFeeTreasury,
     uint256 _rewardAmount
-  ) Job(_stabilityFeeTreasury, _rewardAmount) Authorizable(msg.sender) {
+  ) Job(_stabilityFeeTreasury, _rewardAmount) Authorizable(msg.sender) validParams {
     accountingEngine = IAccountingEngine(_accountingEngine);
 
     shouldWorkPopDebtFromQueue = true;
@@ -96,5 +99,12 @@ contract AccountingJob is Job, Authorizable, Modifiable, IAccountingJob {
     else if (_param == 'shouldWorkTransferExtraSurplus') shouldWorkTransferExtraSurplus = _bool;
     else if (_param == 'rewardAmount') rewardAmount = _data.toUint256();
     else revert UnrecognizedParam();
+  }
+
+  /// @inheritdoc Modifiable
+  function _validateParameters() internal view override {
+    address(accountingEngine).assertHasCode();
+    address(stabilityFeeTreasury).assertHasCode();
+    rewardAmount.assertNonNull();
   }
 }

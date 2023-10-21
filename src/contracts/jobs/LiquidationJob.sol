@@ -11,6 +11,7 @@ import {Authorizable} from '@contracts/utils/Authorizable.sol';
 import {Modifiable} from '@contracts/utils/Modifiable.sol';
 
 import {Encoding} from '@libraries/Encoding.sol';
+import {Assertions} from '@libraries/Assertions.sol';
 
 /**
  * @title  LiquidationJob
@@ -18,6 +19,8 @@ import {Encoding} from '@libraries/Encoding.sol';
  */
 contract LiquidationJob is Job, Authorizable, Modifiable, ILiquidationJob {
   using Encoding for bytes;
+  using Assertions for uint256;
+  using Assertions for address;
 
   // --- Data ---
 
@@ -40,7 +43,7 @@ contract LiquidationJob is Job, Authorizable, Modifiable, ILiquidationJob {
     address _liquidationEngine,
     address _stabilityFeeTreasury,
     uint256 _rewardAmount
-  ) Job(_stabilityFeeTreasury, _rewardAmount) Authorizable(msg.sender) {
+  ) Job(_stabilityFeeTreasury, _rewardAmount) Authorizable(msg.sender) validParams {
     liquidationEngine = ILiquidationEngine(_liquidationEngine);
 
     shouldWork = true;
@@ -65,5 +68,12 @@ contract LiquidationJob is Job, Authorizable, Modifiable, ILiquidationJob {
     else if (_param == 'shouldWork') shouldWork = _data.toBool();
     else if (_param == 'rewardAmount') rewardAmount = _data.toUint256();
     else revert UnrecognizedParam();
+  }
+
+  /// @inheritdoc Modifiable
+  function _validateParameters() internal view override {
+    address(liquidationEngine).assertHasCode();
+    address(stabilityFeeTreasury).assertHasCode();
+    rewardAmount.assertNonNull();
   }
 }
