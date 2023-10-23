@@ -78,19 +78,19 @@ contract Unit_AccountingJob_Constructor is Base {
     _;
   }
 
+  function test_Emit_AddAuthorization() public happyPath {
+    vm.expectEmit();
+    emit AddAuthorization(user);
+
+    new AccountingJobForTest(address(mockAccountingEngine), address(mockStabilityFeeTreasury), REWARD_AMOUNT);
+  }
+
   function test_Set_StabilityFeeTreasury() public happyPath {
     assertEq(address(accountingJob.stabilityFeeTreasury()), address(mockStabilityFeeTreasury));
   }
 
   function test_Set_RewardAmount() public happyPath {
     assertEq(accountingJob.rewardAmount(), REWARD_AMOUNT);
-  }
-
-  function test_Emit_AddAuthorization() public happyPath {
-    vm.expectEmit();
-    emit AddAuthorization(user);
-
-    new AccountingJobForTest(address(mockAccountingEngine), address(mockStabilityFeeTreasury), REWARD_AMOUNT);
   }
 
   function test_Set_AccountingEngine(address _accountingEngine) public happyPath mockAsContract(_accountingEngine) {
@@ -283,8 +283,6 @@ contract Unit_AccountingJob_WorkTransferExtraSurplus is Base {
 }
 
 contract Unit_AccountingJob_ModifyParameters is Base {
-  event ModifyParameters(bytes32 indexed _param, bytes32 indexed _cType, bytes _data);
-
   modifier happyPath() {
     vm.startPrank(authorizedAccount);
     _;
@@ -339,21 +337,27 @@ contract Unit_AccountingJob_ModifyParameters is Base {
   }
 
   function test_Revert_Null_AccountingEngine() public {
+    vm.startPrank(authorizedAccount);
+
     vm.expectRevert(abi.encodeWithSelector(Assertions.NoCode.selector, address(0)));
 
-    new AccountingJobForTest(address(0), address(mockStabilityFeeTreasury), REWARD_AMOUNT);
+    accountingJob.modifyParameters('accountingEngine', abi.encode(address(0)));
   }
 
   function test_Revert_Null_StabilityFeeTreasury() public {
+    vm.startPrank(authorizedAccount);
+
     vm.expectRevert(abi.encodeWithSelector(Assertions.NoCode.selector, address(0)));
 
-    new AccountingJobForTest(address(mockAccountingEngine), address(0), REWARD_AMOUNT);
+    accountingJob.modifyParameters('stabilityFeeTreasury', abi.encode(address(0)));
   }
 
   function test_Revert_Null_RewardAmount() public {
+    vm.startPrank(authorizedAccount);
+
     vm.expectRevert(Assertions.NullAmount.selector);
 
-    new AccountingJobForTest(address(mockAccountingEngine), address(mockStabilityFeeTreasury), 0);
+    accountingJob.modifyParameters('rewardAmount', abi.encode(0));
   }
 
   function test_Revert_UnrecognizedParam(bytes memory _data) public {

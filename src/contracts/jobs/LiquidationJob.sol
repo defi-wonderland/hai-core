@@ -3,7 +3,6 @@ pragma solidity 0.8.19;
 
 import {ILiquidationJob} from '@interfaces/jobs/ILiquidationJob.sol';
 import {ILiquidationEngine} from '@interfaces/ILiquidationEngine.sol';
-import {IStabilityFeeTreasury} from '@interfaces/IStabilityFeeTreasury.sol';
 
 import {Job} from '@contracts/jobs/Job.sol';
 
@@ -17,9 +16,8 @@ import {Assertions} from '@libraries/Assertions.sol';
  * @title  LiquidationJob
  * @notice This contract contains rewarded methods to handle the SAFE liquidations
  */
-contract LiquidationJob is Job, Authorizable, Modifiable, ILiquidationJob {
+contract LiquidationJob is Authorizable, Modifiable, Job, ILiquidationJob {
   using Encoding for bytes;
-  using Assertions for uint256;
   using Assertions for address;
 
   // --- Data ---
@@ -60,20 +58,15 @@ contract LiquidationJob is Job, Authorizable, Modifiable, ILiquidationJob {
   // --- Administration ---
 
   /// @inheritdoc Modifiable
-  function _modifyParameters(bytes32 _param, bytes memory _data) internal override {
-    address _address = _data.toAddress();
-
-    if (_param == 'liquidationEngine') liquidationEngine = ILiquidationEngine(_address);
-    else if (_param == 'stabilityFeeTreasury') stabilityFeeTreasury = IStabilityFeeTreasury(_address);
+  function _modifyParameters(bytes32 _param, bytes memory _data) internal override(Job, Modifiable) {
+    if (_param == 'liquidationEngine') liquidationEngine = ILiquidationEngine(_data.toAddress());
     else if (_param == 'shouldWork') shouldWork = _data.toBool();
-    else if (_param == 'rewardAmount') rewardAmount = _data.toUint256();
-    else revert UnrecognizedParam();
+    else Job._modifyParameters(_param, _data);
   }
 
   /// @inheritdoc Modifiable
-  function _validateParameters() internal view override {
+  function _validateParameters() internal view override(Job, Modifiable) {
     address(liquidationEngine).assertHasCode();
-    address(stabilityFeeTreasury).assertHasCode();
-    rewardAmount.assertNonNull();
+    Job._validateParameters();
   }
 }

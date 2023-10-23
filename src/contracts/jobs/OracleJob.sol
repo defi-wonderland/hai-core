@@ -5,7 +5,6 @@ import {IOracleJob} from '@interfaces/jobs/IOracleJob.sol';
 import {IOracleRelayer} from '@interfaces/IOracleRelayer.sol';
 import {IDelayedOracle} from '@interfaces/oracles/IDelayedOracle.sol';
 import {IPIDRateSetter} from '@interfaces/IPIDRateSetter.sol';
-import {IStabilityFeeTreasury} from '@interfaces/IStabilityFeeTreasury.sol';
 
 import {Job} from '@contracts/jobs/Job.sol';
 
@@ -19,9 +18,8 @@ import {Assertions} from '@libraries/Assertions.sol';
  * @title  OracleJob
  * @notice This contract contains rewarded methods to handle the oracle relayer and the PID rate setter updates
  */
-contract OracleJob is Job, Authorizable, Modifiable, IOracleJob {
+contract OracleJob is Authorizable, Modifiable, Job, IOracleJob {
   using Encoding for bytes;
-  using Assertions for uint256;
   using Assertions for address;
 
   // --- Data ---
@@ -80,24 +78,21 @@ contract OracleJob is Job, Authorizable, Modifiable, IOracleJob {
   // --- Administration ---
 
   /// @inheritdoc Modifiable
-  function _modifyParameters(bytes32 _param, bytes memory _data) internal override {
+  function _modifyParameters(bytes32 _param, bytes memory _data) internal override(Job, Modifiable) {
     address _address = _data.toAddress();
     bool _bool = _data.toBool();
 
     if (_param == 'oracleRelayer') oracleRelayer = IOracleRelayer(_address);
     else if (_param == 'pidRateSetter') pidRateSetter = IPIDRateSetter(_address);
-    else if (_param == 'stabilityFeeTreasury') stabilityFeeTreasury = IStabilityFeeTreasury(_address);
     else if (_param == 'shouldWorkUpdateCollateralPrice') shouldWorkUpdateCollateralPrice = _bool;
     else if (_param == 'shouldWorkUpdateRate') shouldWorkUpdateRate = _bool;
-    else if (_param == 'rewardAmount') rewardAmount = _data.toUint256();
-    else revert UnrecognizedParam();
+    else Job._modifyParameters(_param, _data);
   }
 
   /// @inheritdoc Modifiable
-  function _validateParameters() internal view override {
+  function _validateParameters() internal view override(Job, Modifiable) {
     address(oracleRelayer).assertHasCode();
     address(pidRateSetter).assertHasCode();
-    address(stabilityFeeTreasury).assertHasCode();
-    rewardAmount.assertNonNull();
+    Job._validateParameters();
   }
 }

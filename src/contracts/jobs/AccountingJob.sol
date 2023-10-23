@@ -3,7 +3,6 @@ pragma solidity 0.8.19;
 
 import {IAccountingJob} from '@interfaces/jobs/IAccountingJob.sol';
 import {IAccountingEngine} from '@interfaces/IAccountingEngine.sol';
-import {IStabilityFeeTreasury} from '@interfaces/IStabilityFeeTreasury.sol';
 
 import {Job} from '@contracts/jobs/Job.sol';
 
@@ -17,9 +16,8 @@ import {Assertions} from '@libraries/Assertions.sol';
  * @title  AccountingJob
  * @notice This contract contains rewarded methods to handle the accounting engine debt and surplus
  */
-contract AccountingJob is Job, Authorizable, Modifiable, IAccountingJob {
+contract AccountingJob is Authorizable, Modifiable, Job, IAccountingJob {
   using Encoding for bytes;
-  using Assertions for uint256;
   using Assertions for address;
 
   // --- Data ---
@@ -87,24 +85,20 @@ contract AccountingJob is Job, Authorizable, Modifiable, IAccountingJob {
   // --- Administration ---
 
   /// @inheritdoc Modifiable
-  function _modifyParameters(bytes32 _param, bytes memory _data) internal override {
-    address _address = _data.toAddress();
+  function _modifyParameters(bytes32 _param, bytes memory _data) internal override(Modifiable, Job) {
     bool _bool = _data.toBool();
 
-    if (_param == 'accountingEngine') accountingEngine = IAccountingEngine(_address);
-    else if (_param == 'stabilityFeeTreasury') stabilityFeeTreasury = IStabilityFeeTreasury(_address);
+    if (_param == 'accountingEngine') accountingEngine = IAccountingEngine(_data.toAddress());
     else if (_param == 'shouldWorkPopDebtFromQueue') shouldWorkPopDebtFromQueue = _bool;
     else if (_param == 'shouldWorkAuctionDebt') shouldWorkAuctionDebt = _bool;
     else if (_param == 'shouldWorkAuctionSurplus') shouldWorkAuctionSurplus = _bool;
     else if (_param == 'shouldWorkTransferExtraSurplus') shouldWorkTransferExtraSurplus = _bool;
-    else if (_param == 'rewardAmount') rewardAmount = _data.toUint256();
-    else revert UnrecognizedParam();
+    else Job._modifyParameters(_param, _data);
   }
 
   /// @inheritdoc Modifiable
-  function _validateParameters() internal view override {
+  function _validateParameters() internal view override(Modifiable, Job) {
     address(accountingEngine).assertHasCode();
-    address(stabilityFeeTreasury).assertHasCode();
-    rewardAmount.assertNonNull();
+    Job._validateParameters();
   }
 }
