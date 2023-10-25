@@ -174,12 +174,11 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
 
     uint256 _coinBalance = safeEngine.coinBalance(address(this));
     uint256 _debtBalance = safeEngine.debtBalance(address(this));
+    (_coinBalance, _debtBalance) = _settleDebt(_coinBalance, _debtBalance, _coinBalance);
 
     if (_params.debtAuctionBidSize > _unqueuedUnauctionedDebt(_debtBalance)) revert AccEng_InsufficientDebt();
 
-    (_coinBalance, _debtBalance) = _settleDebt(_coinBalance, _debtBalance, _coinBalance);
     totalOnAuctionDebt += _params.debtAuctionBidSize;
-
     _id = debtAuctionHouse.startAuction({
       _incomeReceiver: address(this),
       _amountToSell: _params.debtAuctionMintedTokens,
@@ -315,7 +314,7 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
 
   /// @inheritdoc Modifiable
   function _validateParameters() internal view override {
-    address(surplusAuctionHouse).assertNonNull();
-    address(debtAuctionHouse).assertNonNull();
+    address(surplusAuctionHouse).assertHasCode();
+    address(debtAuctionHouse).assertHasCode();
   }
 }

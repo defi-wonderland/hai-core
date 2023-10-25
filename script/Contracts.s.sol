@@ -41,7 +41,6 @@ import {HardcodedOracle} from '@contracts/for-test/HardcodedOracle.sol';
 
 // --- Token adapters ---
 import {CoinJoin, ICoinJoin} from '@contracts/utils/CoinJoin.sol';
-import {ETHJoin, IETHJoin} from '@contracts/utils/ETHJoin.sol';
 import {CollateralJoin, ICollateralJoin} from '@contracts/utils/CollateralJoin.sol';
 
 // --- Factories ---
@@ -74,7 +73,6 @@ import {PostSettlementSurplusBidActions} from '@contracts/proxies/actions/PostSe
 import {GlobalSettlementActions} from '@contracts/proxies/actions/GlobalSettlementActions.sol';
 import {RewardedActions} from '@contracts/proxies/actions/RewardedActions.sol';
 import {HaiProxy} from '@contracts/proxies/HaiProxy.sol';
-import {HaiProxyRegistry} from '@contracts/proxies/HaiProxyRegistry.sol';
 import {HaiProxyFactory} from '@contracts/proxies/HaiProxyFactory.sol';
 import {HaiSafeManager} from '@contracts/proxies/HaiSafeManager.sol';
 
@@ -108,7 +106,6 @@ abstract contract Contracts {
   ISystemCoin public systemCoin;
   mapping(bytes32 => IERC20Metadata) public collateral;
   ICoinJoin public coinJoin;
-  IETHJoin public ethJoin;
   mapping(bytes32 => ICollateralJoin) public collateralJoin;
 
   // --- Oracle contracts ---
@@ -139,7 +136,6 @@ abstract contract Contracts {
   IOracleJob public oracleJob;
 
   // --- Proxy contracts ---
-  HaiProxyRegistry public proxyRegistry;
   HaiProxyFactory public proxyFactory;
   HaiSafeManager public safeManager;
 
