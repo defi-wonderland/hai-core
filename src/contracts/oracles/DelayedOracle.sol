@@ -56,13 +56,14 @@ contract DelayedOracle is IBaseOracle, IDelayedOracle {
 
   /// @inheritdoc IDelayedOracle
   function updateResult() external returns (bool _success) {
+    // Read the price from the median
+    (uint256 _priceFeedValue, bool _hasValidValue) = _getPriceSourceResult();
+
     // Check if the delay to set the new feed passed
     if (!_delayHasElapsed()) {
       // If it hasn't passed, check if the upcoming feed is valid
       // in the case that it is not valid we check if we can fetch a new valid feed to replace it.
       if (!_nextFeed.isValid) {
-        // Read the price from the median
-        (uint256 _priceFeedValue, bool _hasValidValue) = _getPriceSourceResult();
         // Check if the newly fetched feed is valid
         if (_hasValidValue) {
           _nextFeed = Feed(_priceFeedValue, _hasValidValue);
@@ -70,12 +71,9 @@ contract DelayedOracle is IBaseOracle, IDelayedOracle {
         // Store the new next Feed
         return _hasValidValue;
       }
-      // The delay has not elapsed
+
       revert DelayedOracle_DelayHasNotElapsed();
     }
-
-    // Read the price from the median
-    (uint256 _priceFeedValue, bool _hasValidValue) = _getPriceSourceResult();
 
     // Update state
     _currentFeed = _nextFeed;
