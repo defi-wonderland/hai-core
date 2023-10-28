@@ -147,7 +147,14 @@ contract PostSettlementSurplusAuctionHouse is Authorizable, Modifiable, IPostSet
 
     protocolToken.safeTransferFrom(msg.sender, address(this), _deltaBidAmount);
 
-    emit IncreaseBidSize(_id, msg.sender, block.timestamp, _bid, _auction.amountToSell, _auction.bidExpiry);
+    emit IncreaseBidSize({
+      _id: _id,
+      _bidder: msg.sender,
+      _blockTimestamp: block.timestamp,
+      _raisedAmount: _bid,
+      _soldAmount: _auction.amountToSell,
+      _bidExpiry: _auction.bidExpiry
+    });
   }
 
   /// @inheritdoc ICommonSurplusAuctionHouse

@@ -158,10 +158,10 @@ contract SurplusAuctionHouse is Authorizable, Modifiable, Disableable, ISurplusA
       _auction.highBidder = msg.sender;
     }
 
-    protocolToken.safeTransferFrom(msg.sender, address(this), _deltaBidAmount);
-
     _auction.bidAmount = _bid;
     _auction.bidExpiry = block.timestamp + _params.bidDuration;
+
+    protocolToken.safeTransferFrom(msg.sender, address(this), _deltaBidAmount);
 
     emit IncreaseBidSize({
       _id: _id,
