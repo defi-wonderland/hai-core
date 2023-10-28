@@ -64,8 +64,7 @@ abstract contract Base is HaiTest {
 
     _mockERC20VotesDelegate(deployer);
     vm.prank(deployer);
-    tokenDistributor =
-      new TokenDistributor(merkleRoot, token, totalClaimable, claimPeriodStart, claimPeriodEnd, deployer);
+    tokenDistributor = new TokenDistributor(merkleRoot, token, totalClaimable, claimPeriodStart, claimPeriodEnd);
 
     uint256 _index = merkleTreeGenerator.getIndex(merkleTree, leaves[4]);
     validEveProofs = merkleTreeGenerator.getProof(merkleTree, _index);
@@ -137,24 +136,16 @@ contract Unit_TokenDistributor_Constructor is Base {
     assertEq(tokenDistributor.claimPeriodEnd(), claimPeriodEnd);
   }
 
-  function test_Call_ERC20Votes_Delegate(address _delegate) public {
-    vm.assume(_delegate != address(0));
-
-    vm.expectCall(address(token), abi.encodeWithSelector(ERC20Votes.delegate.selector, _delegate));
-
-    new TokenDistributor(merkleRoot, token, totalClaimable, claimPeriodStart, claimPeriodEnd, _delegate);
-  }
-
   function test_Revert_Token_IsNull() public {
     vm.expectRevert(Assertions.NullAddress.selector);
 
-    new TokenDistributor(merkleRoot, ERC20Votes(address(0)), totalClaimable, claimPeriodStart, claimPeriodEnd, deployer);
+    new TokenDistributor(merkleRoot, ERC20Votes(address(0)), totalClaimable, claimPeriodStart, claimPeriodEnd);
   }
 
   function test_Revert_TotalClaimable_IsNull() public {
     vm.expectRevert(Assertions.NullAmount.selector);
 
-    new TokenDistributor(merkleRoot, token, 0, claimPeriodStart, claimPeriodEnd, deployer);
+    new TokenDistributor(merkleRoot, token, 0, claimPeriodStart, claimPeriodEnd);
   }
 
   function test_Revert_ClaimPeriodStart_LtEqTimeStamp(uint256 _claimPeriodStart) public {
@@ -162,7 +153,7 @@ contract Unit_TokenDistributor_Constructor is Base {
 
     vm.expectRevert(abi.encodeWithSelector(Assertions.NotGreaterThan.selector, _claimPeriodStart, block.timestamp));
 
-    new TokenDistributor(merkleRoot, token, totalClaimable, _claimPeriodStart, claimPeriodEnd, deployer);
+    new TokenDistributor(merkleRoot, token, totalClaimable, _claimPeriodStart, claimPeriodEnd);
   }
 
   function test_Revert_ClaimPeriodEnd_LtEqClaimPeriodStart(uint256 _claimPeriodStart, uint256 _claimPeriodEnd) public {
@@ -171,7 +162,7 @@ contract Unit_TokenDistributor_Constructor is Base {
 
     vm.expectRevert(abi.encodeWithSelector(Assertions.NotGreaterThan.selector, _claimPeriodEnd, _claimPeriodStart));
 
-    new TokenDistributor(merkleRoot, token, totalClaimable, _claimPeriodStart, _claimPeriodEnd, deployer);
+    new TokenDistributor(merkleRoot, token, totalClaimable, _claimPeriodStart, _claimPeriodEnd);
   }
 }
 
@@ -258,7 +249,7 @@ contract Unit_CanClaim_ExternalScript is Base {
   function setUp() public override {
     super.setUp();
     bytes32 _root = 0x30e48fd8bee18a1728bfd9f536125c5a352b778d5b07a92de684b14cb7bb92ad; // Root generated with OZ js library
-    tokenDistributor = new TokenDistributor(_root, token, totalClaimable, claimPeriodStart, claimPeriodEnd, deployer);
+    tokenDistributor = new TokenDistributor(_root, token, totalClaimable, claimPeriodStart, claimPeriodEnd);
     vm.warp(claimPeriodStart); // going ahead in time for claim period start
   }
 
@@ -320,27 +311,27 @@ contract Unit_TokenDistributor_Claim is Base {
 
   function test_Revert_ClaimPeriodNotStarted() public {
     vm.warp(claimPeriodStart - 1); // going back in time for claim period start
-    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimPeriodNotStarted.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
 
     tokenDistributor.claim(validEveProofs, airdropAmounts[4]);
   }
 
   function test_Revert_ClaimPeriodEnded() public {
     vm.warp(claimPeriodEnd + 1); // going ahead in time period ended
-    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimPeriodEnded.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
 
     tokenDistributor.claim(validEveProofs, airdropAmounts[4]);
   }
 
   function test_Revert_ZeroAmount() public {
-    vm.expectRevert(ITokenDistributor.TokenDistributor_ZeroAmount.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
 
     tokenDistributor.claim(validEveProofs, 0);
   }
 
   function test_Revert_AlreadyClaimed() public {
     _mockClaimed(airdropRecipients[4], true);
-    vm.expectRevert(ITokenDistributor.TokenDistributor_AlreadyClaimed.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
 
     tokenDistributor.claim(validEveProofs, airdropAmounts[4]);
   }
@@ -349,7 +340,7 @@ contract Unit_TokenDistributor_Claim is Base {
     vm.stopPrank();
     vm.startPrank(newAddress());
 
-    vm.expectRevert(ITokenDistributor.TokenDistributor_FailedMerkleProofVerify.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
     tokenDistributor.claim(validEveProofs, airdropAmounts[4]);
   }
 
@@ -359,12 +350,12 @@ contract Unit_TokenDistributor_Claim is Base {
     _proofs[1] = bytes32(0xa0246557dc9e869dd36d0dcede531af0ab5a4bddda571c276a4519029b69affa);
     _proofs[2] = bytes32(0x5372fc2bc58ba885b7863917a0ff8130edf9cca8a1db00c8958f37d59f99af34); // wrong, the valid is 0x5372fc2bc58ba885b7863917a0ff8130edf9cca8a1db00c8958f37d59f99af33
 
-    vm.expectRevert(ITokenDistributor.TokenDistributor_FailedMerkleProofVerify.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
     tokenDistributor.claim(_proofs, airdropAmounts[4]);
   }
 
   function test_Revert_FailedMerkleProofVerify_InvalidAmount() public {
-    vm.expectRevert(ITokenDistributor.TokenDistributor_FailedMerkleProofVerify.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
     tokenDistributor.claim(validEveProofs, 499_999);
   }
 
@@ -427,20 +418,20 @@ contract Unit_TokenDistributor_ClaimAndDelegate is Base {
 
   function test_Revert_ClaimPeriodNotStarted(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
     vm.warp(claimPeriodStart - 1); // going back in time for claim period start
-    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimPeriodNotStarted.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
 
     tokenDistributor.claimAndDelegate(validEveProofs, airdropAmounts[4], delegatee, _expiry, _v, _r, _s);
   }
 
   function test_Revert_ClaimPeriodEnded(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
     vm.warp(claimPeriodEnd + 1); // going ahead in time period ended
-    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimPeriodEnded.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
 
     tokenDistributor.claimAndDelegate(validEveProofs, airdropAmounts[4], delegatee, _expiry, _v, _r, _s);
   }
 
   function test_Revert_ZeroAmount(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
-    vm.expectRevert(ITokenDistributor.TokenDistributor_ZeroAmount.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
 
     tokenDistributor.claimAndDelegate(validEveProofs, 0, delegatee, _expiry, _v, _r, _s);
   }
@@ -448,7 +439,7 @@ contract Unit_TokenDistributor_ClaimAndDelegate is Base {
   function test_Revert_AlreadyClaimed(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
     _mockClaimed(airdropRecipients[4], true);
 
-    vm.expectRevert(ITokenDistributor.TokenDistributor_AlreadyClaimed.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
     tokenDistributor.claimAndDelegate(validEveProofs, airdropAmounts[4], delegatee, _expiry, _v, _r, _s);
   }
 
@@ -456,7 +447,7 @@ contract Unit_TokenDistributor_ClaimAndDelegate is Base {
     vm.stopPrank();
     vm.startPrank(newAddress());
 
-    vm.expectRevert(ITokenDistributor.TokenDistributor_FailedMerkleProofVerify.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
 
     tokenDistributor.claimAndDelegate(validEveProofs, airdropAmounts[4], delegatee, _expiry, _v, _r, _s);
   }
@@ -467,13 +458,13 @@ contract Unit_TokenDistributor_ClaimAndDelegate is Base {
     _proofs[1] = bytes32(0xa0246557dc9e869dd36d0dcede531af0ab5a4bddda571c276a4519029b69affa);
     _proofs[2] = bytes32(0x5372fc2bc58ba885b7863917a0ff8130edf9cca8a1db00c8958f37d59f99af34); // wrong, the valid is 0x5372fc2bc58ba885b7863917a0ff8130edf9cca8a1db00c8958f37d59f99af33
 
-    vm.expectRevert(ITokenDistributor.TokenDistributor_FailedMerkleProofVerify.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
 
     tokenDistributor.claimAndDelegate(_proofs, airdropAmounts[4], delegatee, _expiry, _v, _r, _s);
   }
 
   function test_Revert_FailedMerkleProofVerify_InvalidAmount(uint256 _expiry, uint8 _v, bytes32 _r, bytes32 _s) public {
-    vm.expectRevert(ITokenDistributor.TokenDistributor_FailedMerkleProofVerify.selector);
+    vm.expectRevert(ITokenDistributor.TokenDistributor_ClaimInvalid.selector);
     tokenDistributor.claimAndDelegate(validEveProofs, 499_999, delegatee, _expiry, _v, _r, _s);
   }
 
