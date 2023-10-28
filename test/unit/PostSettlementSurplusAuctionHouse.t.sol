@@ -398,7 +398,7 @@ contract Unit_PostSettlementSurplusAuctionHouse_IncreaseBidSize is Base {
     _mockBidDuration(_bidDuration);
   }
 
-  function test_Revert_HighBidderNotSet(SurplusAuction memory _auction, uint256 _amountToBuy, uint256 _bid) public {
+  function test_Revert_HighBidderNotSet(SurplusAuction memory _auction, uint256 _bid) public {
     _auction.highBidder = address(0);
 
     _mockValues(_auction, 0, 0);
@@ -408,7 +408,7 @@ contract Unit_PostSettlementSurplusAuctionHouse_IncreaseBidSize is Base {
     postSettlementSurplusAuctionHouse.increaseBidSize(_auction.id, _bid);
   }
 
-  function test_Revert_BidAlreadyExpired(SurplusAuction memory _auction, uint256 _amountToBuy, uint256 _bid) public {
+  function test_Revert_BidAlreadyExpired(SurplusAuction memory _auction, uint256 _bid) public {
     vm.assume(_auction.highBidder != address(0));
     vm.assume(_auction.bidExpiry != 0 && _auction.bidExpiry <= block.timestamp);
 
@@ -419,7 +419,7 @@ contract Unit_PostSettlementSurplusAuctionHouse_IncreaseBidSize is Base {
     postSettlementSurplusAuctionHouse.increaseBidSize(_auction.id, _bid);
   }
 
-  function test_Revert_AuctionAlreadyExpired(SurplusAuction memory _auction, uint256 _amountToBuy, uint256 _bid) public {
+  function test_Revert_AuctionAlreadyExpired(SurplusAuction memory _auction, uint256 _bid) public {
     vm.assume(_auction.highBidder != address(0));
     vm.assume(_auction.bidExpiry == 0 || _auction.bidExpiry > block.timestamp);
     vm.assume(_auction.auctionDeadline <= block.timestamp);
@@ -460,32 +460,24 @@ contract Unit_PostSettlementSurplusAuctionHouse_IncreaseBidSize is Base {
     postSettlementSurplusAuctionHouse.increaseBidSize(_auction.id, _bid);
   }
 
-  function test_Call_ProtocolToken_Move_0(
+  function test_Call_ProtocolToken_Move_HighBidder(
     SurplusAuction memory _auction,
     uint256 _bid,
     uint256 _bidIncrease,
     uint256 _bidDuration
   ) public happyPath(_auction, _bid, _bidIncrease, _bidDuration) {
     uint256 _payment = _bid;
-    uint256 _refund;
 
-    // if the user was not the previous high bidder we refund the previous high bidder them
-    if (_auction.highBidder != user && _auction.bidExpiry != 0) {
-      _refund = _auction.bidAmount;
-      _payment = _bid - _auction.bidAmount;
-
-      // if the user was the previous high bidder they only need to pay the increment
-    } else if (_auction.highBidder == user && _auction.bidExpiry != 0) {
+    // if the user was the previous high bidder they only need to pay the increment
+    if (_auction.bidExpiry != 0) {
       _payment = _bid - _auction.bidAmount;
     }
 
-    if (_refund != 0) {
-      vm.expectCall(
-        address(mockProtocolToken),
-        abi.encodeCall(mockProtocolToken.transferFrom, (_auction.highBidder, _auction.highBidder, _refund)),
-        0
-      );
-    }
+    vm.expectCall(
+      address(mockProtocolToken),
+      abi.encodeCall(mockProtocolToken.transferFrom, (_auction.highBidder, _auction.highBidder, _auction.bidAmount)),
+      0
+    );
     vm.expectCall(
       address(mockProtocolToken),
       abi.encodeCall(
@@ -498,7 +490,7 @@ contract Unit_PostSettlementSurplusAuctionHouse_IncreaseBidSize is Base {
     postSettlementSurplusAuctionHouse.increaseBidSize(_auction.id, _bid);
   }
 
-  function test_Call_ProtocolToken_Move_1(
+  function test_Call_ProtocolToken_Move_NotHighBidder(
     SurplusAuction memory _auction,
     uint256 _bid,
     uint256 _bidIncrease,
@@ -507,16 +499,13 @@ contract Unit_PostSettlementSurplusAuctionHouse_IncreaseBidSize is Base {
     uint256 _payment = _bid;
     uint256 _refund;
 
-    // if the user was not the previous high bidder we refund the previous high bidder them
-    if (_auction.highBidder != user && _auction.bidExpiry != 0) {
+    // if the user was not the previous high bidder we refund the previous high bidder
+    if (_auction.bidExpiry != 0) {
       _refund = _auction.bidAmount;
-      _payment = _bid - _auction.bidAmount;
-
-      // if the user was the previous high bidder they only need to pay the increment
-    } else if (_auction.highBidder == user && _auction.bidExpiry != 0) {
       _payment = _bid - _auction.bidAmount;
     }
 
+    // If there was no initial bidAmount then this would transfer 0 tokens, so it's not called
     if (_refund != 0) {
       vm.expectCall(
         address(mockProtocolToken),
@@ -524,7 +513,6 @@ contract Unit_PostSettlementSurplusAuctionHouse_IncreaseBidSize is Base {
         1
       );
     }
-
     vm.expectCall(
       address(mockProtocolToken),
       abi.encodeCall(mockProtocolToken.transferFrom, (user, address(postSettlementSurplusAuctionHouse), _payment)),
