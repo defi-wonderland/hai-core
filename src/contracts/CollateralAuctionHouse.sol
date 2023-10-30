@@ -5,7 +5,7 @@ import {ICollateralAuctionHouse} from '@interfaces/ICollateralAuctionHouse.sol';
 import {ISAFEEngine} from '@interfaces/ISAFEEngine.sol';
 import {ILiquidationEngine} from '@interfaces/ILiquidationEngine.sol';
 import {IOracleRelayer} from '@interfaces/IOracleRelayer.sol';
-import {IDelayedOracle} from '@interfaces/oracles/IDelayedOracle.sol';
+import {IBaseOracle} from '@interfaces/oracles/IBaseOracle.sol';
 
 import {Disableable} from '@contracts/utils/Disableable.sol';
 import {Authorizable} from '@contracts/utils/Authorizable.sol';
@@ -119,7 +119,7 @@ contract CollateralAuctionHouse is Authorizable, Modifiable, Disableable, IColla
     uint256 _customDiscount
   ) internal pure returns (uint256 _boughtCollateral, uint256 _readjustedBid) {
     // calculate the collateral price in relation to the latest system coin price and apply the discount
-    uint256 _discountedPrice = _collateralPrice.rdiv(_systemCoinPrice).wmul(_customDiscount);
+    uint256 _discountedPrice = _collateralPrice.wmul(_customDiscount).rdiv(_systemCoinPrice);
     // calculate the amount of collateral bought
     _boughtCollateral = _adjustedBid.wdiv(_discountedPrice);
 
@@ -137,9 +137,9 @@ contract CollateralAuctionHouse is Authorizable, Modifiable, Disableable, IColla
    * @return _collateralPrice The collateral price if valid [wad]
    */
   function _getCollateralPrice() internal view returns (uint256 _collateralPrice) {
-    IDelayedOracle _delayedOracle = oracleRelayer().cParams(collateralType).oracle;
+    IBaseOracle _oracle = oracleRelayer().cParams(collateralType).oracle;
     bool _hasValidValue;
-    (_collateralPrice, _hasValidValue) = _delayedOracle.getResultWithValidity();
+    (_collateralPrice, _hasValidValue) = _oracle.getResultWithValidity();
     if (!_hasValidValue) return 0;
 
     return _collateralPrice;
@@ -357,7 +357,7 @@ contract CollateralAuctionHouse is Authorizable, Modifiable, Disableable, IColla
     emit TerminateAuctionPrematurely({
       _id: _id,
       _blockTimestamp: block.timestamp,
-      _leftoverReceiver: _auction.forgoneCollateralReceiver,
+      _leftoverReceiver: msg.sender,
       _leftoverCollateral: _auction.amountToSell
     });
   }
