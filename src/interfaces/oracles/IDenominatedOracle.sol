@@ -8,8 +8,6 @@ interface IDenominatedOracle is IBaseOracle {
 
   /// @notice Throws if either the provided price source or denominated price source are null
   error DenominatedOracle_NullPriceSource();
-  /// @notice Throws if the feed price is invalid.
-  error DenominatedOracle_InvalidPriceFeed();
 
   /**
    * @notice Address of the base price source that is used to calculate the price

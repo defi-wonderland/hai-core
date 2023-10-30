@@ -77,7 +77,7 @@ contract DenominatedOracle is IBaseOracle, IDenominatedOracle {
     uint256 _denominationPriceSourceValue = denominationPriceSource.read();
 
     if (inverted) {
-      if (_priceSourceValue == 0) revert DenominatedOracle_InvalidPriceFeed();
+      if (_priceSourceValue == 0) revert InvalidPriceFeed();
       _priceSourceValue = WAD.wdiv(_priceSourceValue);
     }
 
