@@ -1257,25 +1257,6 @@ contract SingleLiquidationTest is DSTest {
     assertEq(safeEngine.coinBalance(address(accountingEngine)), _initialCoinBalance - _newCoinBalance);
   }
 
-  function testFail_liquidation_quantity_small_leaves_dust() public {
-    safeEngine.modifyParameters('gold', 'debtFloor', abi.encode(rad(150 ether)));
-    safeEngine.updateCollateralPrice('gold', ray(2.5 ether), ray(2.5 ether));
-
-    safeEngine.modifySAFECollateralization('gold', me, me, me, 100 ether, 150 ether);
-
-    safeEngine.updateCollateralPrice('gold', ray(1 ether), ray(1 ether));
-
-    liquidationEngine.modifyParameters('onAuctionSystemCoinLimit', abi.encode(rad(150 ether)));
-    liquidationEngine.modifyParameters('gold', 'liquidationQuantity', abi.encode(rad(1 ether)));
-
-    assertEq(liquidationEngine.params().onAuctionSystemCoinLimit, rad(150 ether));
-    assertEq(liquidationEngine.currentOnAuctionSystemCoins(), 0);
-
-    assertEq(liquidationEngine.getLimitAdjustedDebtToCover('gold', address(this)), 1 ether);
-
-    liquidationEngine.liquidateSAFE('gold', address(this));
-  }
-
   function testFail_liquidation_remaining_on_auction_limit_results_in_dust() public {
     safeEngine.modifyParameters('gold', 'debtFloor', abi.encode(rad(150 ether)));
     safeEngine.updateCollateralPrice('gold', ray(2.5 ether), ray(2.5 ether));
