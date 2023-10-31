@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import 'ds-test/test.sol';
 
@@ -171,6 +171,37 @@ contract SingleBurningSurplusAuctionHouseTest is DSTest {
     assertEq(protocolToken.balanceOf(ali), 10 ether);
     GuyBurningSurplusAuction(ali).increaseBidSize(id, 200 ether);
     assertEq(protocolToken.balanceOf(ali), 0);
+  }
+
+  function test_increase_bid_with_initial_bid() public {
+    uint256 _initialBid = 0.1 ether;
+    protocolToken.approve(address(surplusAuctionHouse), _initialBid);
+
+    uint256 id = surplusAuctionHouse.startAuction({_amountToSell: 100 ether, _initialBid: _initialBid});
+    // amount to buy taken from creator
+    assertEq(safeEngine.coinBalance(address(this)), 900 ether);
+
+    GuyBurningSurplusAuction(ali).increaseBidSize(id, 1 ether);
+    // bid taken from bidder
+    assertEq(protocolToken.balanceOf(ali), 199 ether);
+    // payment remains in auction
+    assertEq(protocolToken.balanceOf(address(surplusAuctionHouse)), 1 ether);
+
+    GuyBurningSurplusAuction(bob).increaseBidSize(id, 2 ether);
+    // bid taken from bidder
+    assertEq(protocolToken.balanceOf(bob), 198 ether);
+    // prev bidder refunded
+    assertEq(protocolToken.balanceOf(ali), 200 ether);
+    // excess remains in auction
+    assertEq(protocolToken.balanceOf(address(surplusAuctionHouse)), 2 ether);
+
+    hevm.warp(block.timestamp + 5 weeks);
+    GuyBurningSurplusAuction(bob).settleAuction(id);
+    // high bidder gets the amount sold
+    assertEq(safeEngine.coinBalance(address(surplusAuctionHouse)), 0 ether);
+    assertEq(safeEngine.coinBalance(bob), 100 ether);
+    // income is burned
+    assertEq(protocolToken.balanceOf(address(surplusAuctionHouse)), 0 ether);
   }
 
   function test_increaseBidSize() public {
