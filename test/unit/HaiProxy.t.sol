@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
-import {IHaiProxy, HaiProxy} from '@contracts/proxies/HaiProxy.sol';
+import {HaiProxy, IHaiProxy} from '@contracts/proxies/HaiProxy.sol';
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
+import {Address} from '@openzeppelin/utils/Address.sol';
 import {HaiTest, stdStorage, StdStorage} from '@test/utils/HaiTest.t.sol';
 
 abstract contract Base is HaiTest {
@@ -26,25 +27,25 @@ abstract contract Base is HaiTest {
 contract Unit_HaiProxy_Execute is Base {
   address target = label('target');
 
-  function test_execute() public {
-    // We etch some arbitraty (non-reverting) bytecode
+  function test_Execute() public {
+    // We etch some arbitrary (non-reverting) bytecode
     vm.etch(target, bytes('F'));
 
     vm.startPrank(owner);
-    proxy.execute(address(target), bytes(''));
+    proxy.execute(target, bytes(''));
   }
 
-  function test_Revert_targetNoCode() public {
+  function test_Revert_TargetNoCode() public {
     vm.startPrank(owner);
-    vm.expectRevert('Address: call to non-contract');
+    vm.expectRevert(abi.encodeWithSelector(Address.AddressEmptyCode.selector, target));
 
-    proxy.execute(address(target), bytes(''));
+    proxy.execute(target, bytes(''));
 
     // Sanity check
     assert(target.code.length == 0);
   }
 
-  function test_Revert_targetAddressZero() public {
+  function test_Revert_TargetAddressZero() public {
     vm.startPrank(owner);
     vm.expectRevert(IHaiProxy.TargetAddressRequired.selector);
 

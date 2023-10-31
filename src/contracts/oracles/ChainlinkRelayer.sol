@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import {IBaseOracle} from '@interfaces/oracles/IBaseOracle.sol';
 import {IChainlinkRelayer} from '@interfaces/oracles/IChainlinkRelayer.sol';
@@ -61,7 +61,7 @@ contract ChainlinkRelayer is IBaseOracle, IChainlinkRelayer {
     (, int256 _aggregatorResult,, uint256 _aggregatorTimestamp,) = chainlinkFeed.latestRoundData();
 
     // Revert if price is invalid
-    if (_aggregatorResult == 0 || !_isValidFeed(_aggregatorTimestamp)) revert InvalidPriceFeed();
+    if (_aggregatorResult <= 0 || !_isValidFeed(_aggregatorTimestamp)) revert InvalidPriceFeed();
 
     // Parse the quote into 18 decimals format
     _result = _parseResult(_aggregatorResult);

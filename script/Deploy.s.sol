@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import '@script/Contracts.s.sol';
 import '@script/Registry.s.sol';
@@ -44,8 +44,7 @@ abstract contract Deploy is Common, Script {
     for (uint256 _i; _i < collateralTypes.length; _i++) {
       bytes32 _cType = collateralTypes[_i];
 
-      if (_cType == ETH_A) deployEthCollateralContracts();
-      else deployCollateralContracts(_cType);
+      deployCollateralContracts(_cType);
       _setupCollateral(_cType);
     }
 
