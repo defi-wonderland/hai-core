@@ -44,7 +44,7 @@ contract DelayedOracle is IBaseOracle, IDelayedOracle {
 
     (uint256 _priceFeedValue, bool _hasValidValue) = _getPriceSourceResult();
     if (_hasValidValue) {
-      _nextFeed = Feed(_priceFeedValue, true);
+      _nextFeed = Feed(_priceFeedValue, _hasValidValue);
       _currentFeed = _nextFeed;
       lastUpdateTime = block.timestamp;
 
@@ -66,9 +66,11 @@ contract DelayedOracle is IBaseOracle, IDelayedOracle {
       if (!_nextFeed.isValid) {
         // Check if the newly fetched feed is valid
         if (_hasValidValue) {
+          // Store the new next Feed
           _nextFeed = Feed(_priceFeedValue, _hasValidValue);
+          lastUpdateTime = block.timestamp;
         }
-        // Store the new next Feed
+
         return _hasValidValue;
       }
 

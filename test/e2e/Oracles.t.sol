@@ -191,7 +191,7 @@ contract OracleSetup is HaiTest {
     (, _valid) = wethUsdDelayedOracle.getNextResultWithValidity();
     assertEq(_valid, false);
 
-    // After 10 minutes this result becomes valid and its updated to reflect this
+    // After 10 minutes this result becomes valid and it's updated to reflect this
     vm.warp(block.timestamp + 10 minutes);
     wethUsdDelayedOracle.updateResult();
 
@@ -202,7 +202,7 @@ contract OracleSetup is HaiTest {
     (, _valid) = wethUsdDelayedOracle.getNextResultWithValidity();
     assertEq(_valid, true);
 
-    vm.warp(block.timestamp + 50 minutes);
+    vm.warp(block.timestamp + 1 hours);
     wethUsdDelayedOracle.updateResult();
   }
 
