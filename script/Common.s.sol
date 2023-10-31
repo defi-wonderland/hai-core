@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import '@script/Contracts.s.sol';
-import {Params, ParamChecker, HAI, ETH_A, JOB_REWARD} from '@script/Params.s.sol';
+import '@script/Params.s.sol';
 import '@script/Registry.s.sol';
 
 abstract contract Common is Contracts, Params {
@@ -138,6 +138,7 @@ abstract contract Common is Contracts, Params {
     // deploy Tokens
     systemCoin = new SystemCoin('HAI Index Token', 'HAI');
     protocolToken = new ProtocolToken('Protocol Token', 'KITE');
+    _deployUniV3Pool();
 
     // deploy Base contracts
     safeEngine = new SAFEEngine(_safeEngineParams);
@@ -338,6 +339,35 @@ abstract contract Common is Contracts, Params {
     postSettlementSurplusBidActions = new PostSettlementSurplusBidActions();
     globalSettlementActions = new GlobalSettlementActions();
     rewardedActions = new RewardedActions();
+  }
+
+  function _deployUniV3Pool() internal {
+    (address _token0, address _token1) = address(systemCoin) < address(collateral[WETH])
+      ? (address(systemCoin), address(collateral[WETH]))
+      : (address(collateral[WETH]), address(systemCoin));
+
+    uint256 _ethUSDPrice = delayedOracle[WETH].read();
+
+    address _uniV3Pool = INonfungiblePositionManager(NONFUNGIBLE_POSITION_MANAGER).createAndInitializePoolIfNecessary({
+      token0: _token0,
+      token1: _token1,
+      fee: HAI_POOL_FEE_TIER,
+      sqrtPriceX96: uint160(_ethUSDPrice) // REVIEW: How to calculate sqrtPriceX96 on-chain?
+    });
+
+    for (uint256 _i; _i < HAI_POOL_OBSERVATION_CARDINALITY;) {
+      IUniswapV3Pool(_uniV3Pool).increaseObservationCardinalityNext(500);
+      _i += 500;
+    }
+
+    // REVIEW: systemCoinOracle was set to be a HardcodedOracle during setupEnvironment(),
+    //         and will be set to be a DeviatedOracle during setupPostEnvironment()
+    systemCoinOracle = uniV3RelayerFactory.deployUniV3Relayer({
+      _baseToken: address(systemCoin),
+      _quoteToken: address(collateral[WETH]),
+      _feeTier: HAI_POOL_FEE_TIER,
+      _quotePeriod: 1 days
+    });
   }
 
   modifier updateParams() {

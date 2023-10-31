@@ -2,8 +2,8 @@
 pragma solidity 0.8.19;
 
 import '@script/Contracts.s.sol';
-import '@script/Registry.s.sol';
 import '@script/Params.s.sol';
+import '@script/Registry.s.sol';
 
 import {Script} from 'forge-std/Script.sol';
 import {Common} from '@script/Common.s.sol';

@@ -28,6 +28,8 @@ import {WAD, RAY, RAD} from '@libraries/Math.sol';
 // HAI Params
 bytes32 constant HAI = bytes32('HAI'); // 0x4841490000000000000000000000000000000000000000000000000000000000
 uint256 constant HAI_INITIAL_PRICE = 1e18; // 1 HAI = 1 USD
+uint24 constant HAI_POOL_FEE_TIER = 3000; // 0.3 %
+uint16 constant HAI_POOL_OBSERVATION_CARDINALITY = 5000; // Safest cardinality would be 43.2k (at 2s per block, 1d TWAP)
 
 // Collateral Names
 bytes32 constant ETH_A = bytes32('ETH-A'); // 0x4554482d41000000000000000000000000000000000000000000000000000000
