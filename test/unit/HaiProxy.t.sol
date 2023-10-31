@@ -27,16 +27,16 @@ abstract contract Base is HaiTest {
 contract Unit_HaiProxy_Execute is Base {
   address target = label('target');
 
-  function test_Execute() public {
-    // We etch some arbitrary (non-reverting) bytecode
-    vm.etch(target, bytes('F'));
-
+  modifier happyPath() {
     vm.startPrank(owner);
+    _;
+  }
+
+  function test_Execute() public happyPath mockAsContract(target) {
     proxy.execute(target, bytes(''));
   }
 
-  function test_Revert_TargetNoCode() public {
-    vm.startPrank(owner);
+  function test_Revert_TargetNoCode() public happyPath {
     vm.expectRevert(abi.encodeWithSelector(Address.AddressEmptyCode.selector, target));
 
     proxy.execute(target, bytes(''));
@@ -45,8 +45,7 @@ contract Unit_HaiProxy_Execute is Base {
     assert(target.code.length == 0);
   }
 
-  function test_Revert_TargetAddressZero() public {
-    vm.startPrank(owner);
+  function test_Revert_TargetAddressZero() public happyPath {
     vm.expectRevert(IHaiProxy.TargetAddressRequired.selector);
 
     proxy.execute(address(0), bytes(''));
