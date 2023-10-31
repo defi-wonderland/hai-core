@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.19;
 
-import {IERC20Metadata} from '@openzeppelin/token/ERC20/extensions/IERC20Metadata.sol';
-import {IVotes, IERC20Permit} from '@openzeppelin/token/ERC20/extensions/ERC20Votes.sol';
+import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import {IVotes, IERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 
 interface IProtocolToken is IERC20Metadata, IERC20Permit, IVotes, IAuthorizable {

@@ -6,7 +6,7 @@ import {Deploy, DeployMainnet, DeployGoerli} from '@script/Deploy.s.sol';
 
 import {ParamChecker, WETH, WSTETH, OP} from '@script/Params.s.sol';
 import {OP_OPTIMISM} from '@script/Registry.s.sol';
-import {ERC20Votes} from '@openzeppelin/token/ERC20/extensions/ERC20Votes.sol';
+import {ERC20Votes} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 
 import {Contracts} from '@script/Contracts.s.sol';
 import {GoerliDeployment} from '@script/GoerliDeployment.s.sol';

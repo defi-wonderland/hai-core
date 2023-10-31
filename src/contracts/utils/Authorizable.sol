@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 
-import {EnumerableSet} from '@openzeppelin/utils/structs/EnumerableSet.sol';
+import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
 /**
  * @title  Authorizable

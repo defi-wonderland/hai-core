@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.19;
 
-import {ERC20Votes, ERC20Permit, ERC20} from '@openzeppelin/token/ERC20/extensions/ERC20Votes.sol';
+import {ERC20Votes, ERC20Permit, ERC20} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 import {Authorizable} from '@contracts/utils/Authorizable.sol';
 
 import {IProtocolToken} from '@interfaces/tokens/IProtocolToken.sol';
