@@ -342,24 +342,24 @@ abstract contract Common is Contracts, Params {
   }
 
   function _deployUniV3Pool() internal {
-    (address _token0, address _token1) = address(systemCoin) < address(collateral[WETH])
-      ? (address(systemCoin), address(collateral[WETH]))
-      : (address(collateral[WETH]), address(systemCoin));
-
-    uint256 _ethUSDPrice = delayedOracle[WETH].read();
-
-    address _uniV3Pool = INonfungiblePositionManager(NONFUNGIBLE_POSITION_MANAGER).createAndInitializePoolIfNecessary({
-      token0: _token0,
-      token1: _token1,
-      fee: HAI_POOL_FEE_TIER,
-      sqrtPriceX96: uint160(_ethUSDPrice) // REVIEW: How to calculate sqrtPriceX96 on-chain?
+    address _uniV3Pool = IUniswapV3Factory(UNISWAP_V3_FACTORY).createPool({
+      tokenA: address(systemCoin),
+      tokenB: address(collateral[WETH]),
+      fee: HAI_POOL_FEE_TIER
     });
+
+    address _token0 = IUniswapV3Pool(_uniV3Pool).token0();
+    uint160 _sqrtPriceX96 =
+      _token0 == address(systemCoin) ? HAI_INITIAL_SQRT_PRICE_X96 : HAI_INITIAL_SQRT_PRICE_X96_INVERSE;
+
+    IUniswapV3Pool(_uniV3Pool).initialize(_sqrtPriceX96);
 
     for (uint256 _i; _i < HAI_POOL_OBSERVATION_CARDINALITY;) {
       IUniswapV3Pool(_uniV3Pool).increaseObservationCardinalityNext(500);
       _i += 500;
     }
 
+    /*
     // REVIEW: systemCoinOracle was set to be a HardcodedOracle during setupEnvironment(),
     //         and will be set to be a DeviatedOracle during setupPostEnvironment()
     systemCoinOracle = uniV3RelayerFactory.deployUniV3Relayer({
@@ -367,7 +367,7 @@ abstract contract Common is Contracts, Params {
       _quoteToken: address(collateral[WETH]),
       _feeTier: HAI_POOL_FEE_TIER,
       _quotePeriod: 1 days
-    });
+    });*/
   }
 
   modifier updateParams() {

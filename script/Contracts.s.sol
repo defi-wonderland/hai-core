@@ -61,8 +61,8 @@ import {OracleJob, IOracleJob} from '@contracts/jobs/OracleJob.sol';
 
 // --- Interfaces ---
 import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import {IUniswapV3Factory} from '@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol';
 import {IUniswapV3Pool} from '@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol';
-import {INonfungiblePositionManager} from '@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol';
 import {IModifiable} from '@interfaces/utils/IModifiable.sol';
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 
