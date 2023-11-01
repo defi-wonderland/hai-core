@@ -7,15 +7,20 @@ import {IBaseOracle} from '@interfaces/oracles/IBaseOracle.sol';
 interface IChainlinkRelayer is IBaseOracle {
   // --- Errors ---
 
-  /// @notice Throws if the provided aggregator address is null
-  error ChainlinkRelayer_NullAggregator();
+  /// @notice Throws if the provided price feed address is null
+  error ChainlinkRelayer_NullPriceFeed();
+  /// @notice Throws if the provided sequencer uptime feed address is null
+  error ChainlinkRelayer_NullSequencerUptimeFeed();
   /// @notice Throws if the provided stale threshold is null
   error ChainlinkRelayer_NullStaleThreshold();
 
   // --- Registry ---
 
-  /// @notice Address of the Chainlink aggregator used to consult the price
-  function chainlinkFeed() external view returns (IChainlinkOracle _chainlinkFeed);
+  /// @notice Address of the Chainlink price feed used to consult the price
+  function priceFeed() external view returns (IChainlinkOracle _priceFeed);
+
+  /// @notice Address of the Chainlink sequencer uptime feed used to consult the sequencer status
+  function sequencerUptimeFeed() external view returns (IChainlinkOracle _sequencerUptimeFeed);
 
   // --- Data ---
 

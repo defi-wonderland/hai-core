@@ -75,9 +75,12 @@ contract DeployMainnet is MainnetParams, Deploy {
 
   function setupEnvironment() public virtual override updateParams {
     // Setup oracle feeds
-    IBaseOracle _ethUSDPriceFeed = chainlinkRelayerFactory.deployChainlinkRelayer(OP_CHAINLINK_ETH_USD_FEED, 1 hours);
-    IBaseOracle _wstethETHPriceFeed =
-      chainlinkRelayerFactory.deployChainlinkRelayer(OP_CHAINLINK_WSTETH_ETH_FEED, 1 hours);
+    IBaseOracle _ethUSDPriceFeed = chainlinkRelayerFactory.deployChainlinkRelayer(
+      OP_CHAINLINK_ETH_USD_FEED, OP_CHAINLINK_SEQUENCER_UPTIME_FEED, 1 hours
+    );
+    IBaseOracle _wstethETHPriceFeed = chainlinkRelayerFactory.deployChainlinkRelayer(
+      OP_CHAINLINK_WSTETH_ETH_FEED, OP_CHAINLINK_SEQUENCER_UPTIME_FEED, 1 hours
+    );
 
     IBaseOracle _wstethUSDPriceFeed = denominatedOracleFactory.deployDenominatedOracle({
       _priceSource: _wstethETHPriceFeed,
@@ -113,8 +116,9 @@ contract DeployGoerli is GoerliParams, Deploy {
 
     // WETH
     collateral[WETH] = IERC20Metadata(OP_WETH);
-    IBaseOracle _ethUSDPriceFeed =
-      chainlinkRelayerFactory.deployChainlinkRelayer(OP_GOERLI_CHAINLINK_ETH_USD_FEED, 1 hours); // live feed
+    IBaseOracle _ethUSDPriceFeed = chainlinkRelayerFactory.deployChainlinkRelayer(
+      OP_GOERLI_CHAINLINK_ETH_USD_FEED, OP_GOERLI_CHAINLINK_SEQUENCER_UPTIME_FEED, 1 hours
+    ); // live feed
 
     // OP
     collateral[OP] = IERC20Metadata(OP_OPTIMISM);
@@ -131,8 +135,9 @@ contract DeployGoerli is GoerliParams, Deploy {
     collateral[TOTEM] = new MintableERC20('Totem', 'TTM', 0);
 
     // BTC: live feed
-    IBaseOracle _wbtcUsdOracle =
-      chainlinkRelayerFactory.deployChainlinkRelayer(OP_GOERLI_CHAINLINK_BTC_USD_FEED, 1 hours);
+    IBaseOracle _wbtcUsdOracle = chainlinkRelayerFactory.deployChainlinkRelayer(
+      OP_GOERLI_CHAINLINK_BTC_USD_FEED, OP_GOERLI_CHAINLINK_SEQUENCER_UPTIME_FEED, 1 hours
+    );
     // STN: denominated feed (1000 STN = 1 wBTC)
     IBaseOracle _stonesWbtcOracle = new HardcodedOracle('STN / BTC', 0.001e18);
     IBaseOracle _stonesOracle =

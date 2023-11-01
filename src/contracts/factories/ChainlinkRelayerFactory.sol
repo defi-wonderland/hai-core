@@ -31,12 +31,13 @@ contract ChainlinkRelayerFactory is Authorizable, IChainlinkRelayerFactory {
 
   /// @inheritdoc IChainlinkRelayerFactory
   function deployChainlinkRelayer(
-    address _aggregator,
+    address _priceFeed,
+    address _sequencerUptimeFeed,
     uint256 _staleThreshold
   ) external isAuthorized returns (IBaseOracle _chainlinkRelayer) {
-    _chainlinkRelayer = new ChainlinkRelayerChild(_aggregator, _staleThreshold);
+    _chainlinkRelayer = new ChainlinkRelayerChild(_priceFeed, _sequencerUptimeFeed, _staleThreshold);
     _chainlinkRelayers.add(address(_chainlinkRelayer));
-    emit NewChainlinkRelayer(address(_chainlinkRelayer), _aggregator, _staleThreshold);
+    emit NewChainlinkRelayer(address(_chainlinkRelayer), _priceFeed, _sequencerUptimeFeed, _staleThreshold);
   }
 
   // --- Views ---

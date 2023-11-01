@@ -14,7 +14,9 @@ contract ChainlinkRelayer is IBaseOracle, IChainlinkRelayer {
   // --- Registry ---
 
   /// @inheritdoc IChainlinkRelayer
-  IChainlinkOracle public chainlinkFeed;
+  IChainlinkOracle public priceFeed;
+  /// @inheritdoc IChainlinkRelayer
+  IChainlinkOracle public sequencerUptimeFeed;
 
   // --- Data ---
 
@@ -29,24 +31,27 @@ contract ChainlinkRelayer is IBaseOracle, IChainlinkRelayer {
   // --- Init ---
 
   /**
-   * @param  _aggregator The address of the Chainlink aggregator
+   * @param  _priceFeed The address of the Chainlink price feed
+   * @param  _sequencerUptimeFeed The address of the Chainlink sequencer uptime feed
    * @param  _staleThreshold The threshold after which the price is considered stale
    */
-  constructor(address _aggregator, uint256 _staleThreshold) {
-    if (_aggregator == address(0)) revert ChainlinkRelayer_NullAggregator();
+  constructor(address _priceFeed, address _sequencerUptimeFeed, uint256 _staleThreshold) {
+    if (_priceFeed == address(0)) revert ChainlinkRelayer_NullPriceFeed();
+    if (_sequencerUptimeFeed == address(0)) revert ChainlinkRelayer_NullSequencerUptimeFeed();
     if (_staleThreshold == 0) revert ChainlinkRelayer_NullStaleThreshold();
 
+    priceFeed = IChainlinkOracle(_priceFeed);
+    sequencerUptimeFeed = IChainlinkOracle(_sequencerUptimeFeed);
     staleThreshold = _staleThreshold;
-    chainlinkFeed = IChainlinkOracle(_aggregator);
 
-    multiplier = 18 - chainlinkFeed.decimals();
-    symbol = chainlinkFeed.description();
+    multiplier = 18 - priceFeed.decimals();
+    symbol = priceFeed.description();
   }
 
   /// @inheritdoc IBaseOracle
   function getResultWithValidity() external view returns (uint256 _result, bool _validity) {
     // Fetch values from Chainlink
-    (, int256 _aggregatorResult,, uint256 _aggregatorTimestamp,) = chainlinkFeed.latestRoundData();
+    (, int256 _aggregatorResult,, uint256 _aggregatorTimestamp,) = priceFeed.latestRoundData();
 
     // Parse the quote into 18 decimals format
     _result = _parseResult(_aggregatorResult);
@@ -58,7 +63,7 @@ contract ChainlinkRelayer is IBaseOracle, IChainlinkRelayer {
   /// @inheritdoc IBaseOracle
   function read() external view returns (uint256 _result) {
     // Fetch values from Chainlink
-    (, int256 _aggregatorResult,, uint256 _aggregatorTimestamp,) = chainlinkFeed.latestRoundData();
+    (, int256 _aggregatorResult,, uint256 _aggregatorTimestamp,) = priceFeed.latestRoundData();
 
     // Revert if price is invalid
     if (_aggregatorResult <= 0 || !_isValidFeed(_aggregatorTimestamp)) revert InvalidPriceFeed();
