@@ -134,12 +134,11 @@ abstract contract Common is Contracts, Params {
     return governor != deployer && governor != address(0);
   }
 
-  function deployTokens() public updateParams {
+  function deployContracts() public updateParams {
+    // deploy Tokens
     systemCoin = new SystemCoin('HAI Index Token', 'HAI');
     protocolToken = new ProtocolToken('Protocol Token', 'KITE');
-  }
 
-  function deployContracts() public updateParams {
     // deploy Base contracts
     safeEngine = new SAFEEngine(_safeEngineParams);
 
