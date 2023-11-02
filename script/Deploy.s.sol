@@ -101,7 +101,7 @@ contract DeployMainnet is MainnetParams, Deploy {
 
     systemCoinOracle = new HardcodedOracle('HAI / USD', HAI_INITIAL_PRICE); // 1 HAI = 1 USD
 
-    // REVIEW: [FAIL. Reason: Setup failed: Revert]
+    // BUG: [FAIL. Reason: PIDRateSetter_InvalidPriceFeed()]
     // systemCoinOracle = uniV3RelayerFactory.deployUniV3Relayer({
     //   _baseToken: address(systemCoin),
     //   _quoteToken: address(collateral[WETH]),
