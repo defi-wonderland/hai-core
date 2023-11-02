@@ -134,11 +134,12 @@ abstract contract Common is Contracts, Params {
     return governor != deployer && governor != address(0);
   }
 
-  function deployContracts() public updateParams {
-    // deploy Tokens
+  function deployTokens() public updateParams {
     systemCoin = new SystemCoin('HAI Index Token', 'HAI');
     protocolToken = new ProtocolToken('Protocol Token', 'KITE');
+  }
 
+  function deployContracts() public updateParams {
     // deploy Base contracts
     safeEngine = new SAFEEngine(_safeEngineParams);
 
@@ -287,9 +288,6 @@ abstract contract Common is Contracts, Params {
 
     // auth
     oracleRelayer.addAuthorization(address(pidRateSetter));
-
-    // initialize
-    pidRateSetter.updateRate();
   }
 
   function deployJobContracts() public updateParams {

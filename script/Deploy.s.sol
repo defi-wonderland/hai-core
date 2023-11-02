@@ -18,6 +18,9 @@ abstract contract Deploy is Common, Script {
     deployer = vm.addr(_deployerPk);
     vm.startBroadcast(deployer);
 
+    // Deploy tokens used to setup the environment
+    deployTokens();
+
     // Environment may be different for each network
     setupEnvironment();
 
@@ -88,7 +91,6 @@ contract DeployMainnet is MainnetParams, Deploy {
       _inverted: false
     });
 
-    systemCoinOracle = new HardcodedOracle('HAI / USD', HAI_INITIAL_PRICE); // 1 HAI = 1 USD
     delayedOracle[WETH] = delayedOracleFactory.deployDelayedOracle(_ethUSDPriceFeed, 1 hours);
     delayedOracle[WSTETH] = delayedOracleFactory.deployDelayedOracle(_wstethUSDPriceFeed, 1 hours);
 
@@ -98,30 +100,19 @@ contract DeployMainnet is MainnetParams, Deploy {
     collateralTypes.push(WETH);
     collateralTypes.push(WSTETH);
 
-    // BUG: [FAIL. Reason: PIDRateSetter_InvalidPriceFeed()]
-
-    // _deployUniV3Pool();
-
-    // systemCoinOracle = uniV3RelayerFactory.deployUniV3Relayer({
-    //   _baseToken: address(systemCoin),
-    //   _quoteToken: address(collateral[WETH]),
-    //   _feeTier: HAI_POOL_FEE_TIER,
-    //   _quotePeriod: 1 days
-    // });
-  }
-
-  function setupPostEnvironment() public virtual override updateParams {
+    // Deploy HAI/WETH UniV3 pool
     _deployUniV3Pool();
 
+    // Setup HAI oracle feed
     systemCoinOracle = uniV3RelayerFactory.deployUniV3Relayer({
       _baseToken: address(systemCoin),
       _quoteToken: address(collateral[WETH]),
       _feeTier: HAI_POOL_FEE_TIER,
       _quotePeriod: 1 days
     });
-
-    oracleRelayer.modifyParameters('systemCoinOracle', abi.encode(systemCoinOracle));
   }
+
+  function setupPostEnvironment() public virtual override updateParams {}
 }
 
 contract DeployGoerli is GoerliParams, Deploy {

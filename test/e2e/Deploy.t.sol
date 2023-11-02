@@ -149,20 +149,19 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
   }
 
   function test_pid_update_rate() public {
-    uint256 _lastUpdateTime = pidRateSetter.lastUpdateTime();
-    assertEq(_lastUpdateTime, block.timestamp);
+    vm.expectRevert(IPIDRateSetter.PIDRateSetter_InvalidPriceFeed.selector);
+    pidRateSetter.updateRate();
+
+    uint256 _quotePeriod = IUniV3Relayer(address(systemCoinOracle)).quotePeriod();
+    skip(_quotePeriod);
+
+    pidRateSetter.updateRate();
 
     vm.expectRevert(IPIDRateSetter.PIDRateSetter_RateSetterCooldown.selector);
     pidRateSetter.updateRate();
 
     uint256 _updateRateDelay = pidRateSetter.params().updateRateDelay;
     skip(_updateRateDelay);
-
-    vm.expectRevert(IPIDRateSetter.PIDRateSetter_InvalidPriceFeed.selector);
-    pidRateSetter.updateRate();
-
-    uint256 _quotePeriod = IUniV3Relayer(address(systemCoinOracle)).quotePeriod();
-    skip(_quotePeriod - _updateRateDelay);
 
     pidRateSetter.updateRate();
   }
