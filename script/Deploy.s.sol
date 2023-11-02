@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import '@script/Contracts.s.sol';
 import '@script/Registry.s.sol';
@@ -17,9 +17,6 @@ abstract contract Deploy is Common, Script {
   function run() public {
     deployer = vm.addr(_deployerPk);
     vm.startBroadcast(deployer);
-
-    // Deploy oracle factories used to setup the environment
-    deployOracleFactories();
 
     // Environment may be different for each network
     setupEnvironment();
@@ -74,6 +71,12 @@ contract DeployMainnet is MainnetParams, Deploy {
   }
 
   function setupEnvironment() public virtual override updateParams {
+    // Deploy oracle factories
+    chainlinkRelayerFactory = new ChainlinkRelayerFactory(OP_CHAINLINK_SEQUENCER_UPTIME_FEED);
+    uniV3RelayerFactory = new UniV3RelayerFactory();
+    denominatedOracleFactory = new DenominatedOracleFactory();
+    delayedOracleFactory = new DelayedOracleFactory();
+
     // Setup oracle feeds
     IBaseOracle _ethUSDPriceFeed = chainlinkRelayerFactory.deployChainlinkRelayer(OP_CHAINLINK_ETH_USD_FEED, 1 hours);
     IBaseOracle _wstethETHPriceFeed =
@@ -106,6 +109,12 @@ contract DeployGoerli is GoerliParams, Deploy {
   }
 
   function setupEnvironment() public virtual override updateParams {
+    // Deploy oracle factories
+    chainlinkRelayerFactory = new ChainlinkRelayerFactory(OP_GOERLI_CHAINLINK_SEQUENCER_UPTIME_FEED);
+    uniV3RelayerFactory = new UniV3RelayerFactory();
+    denominatedOracleFactory = new DenominatedOracleFactory();
+    delayedOracleFactory = new DelayedOracleFactory();
+
     // Setup oracle feeds
 
     // HAI

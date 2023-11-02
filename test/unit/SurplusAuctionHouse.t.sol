@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import {ISAFEEngine} from '@interfaces/ISAFEEngine.sol';
 import {IProtocolToken} from '@interfaces/tokens/IProtocolToken.sol';
@@ -147,10 +147,7 @@ contract Unit_SurplusAuctionHouse_Constructor is Base {
     assertEq(address(surplusAuctionHouse.safeEngine()), _safeEngine);
   }
 
-  function test_Set_ProtocolToken(address _protocolToken) public happyPath {
-    vm.assume(uint160(_protocolToken) > 20);
-    vm.etch(_protocolToken, '0xF');
-
+  function test_Set_ProtocolToken(address _protocolToken) public happyPath mockAsContract(_protocolToken) {
     surplusAuctionHouse = new SurplusAuctionHouseForTest(address(mockSafeEngine), _protocolToken, sahParams);
 
     assertEq(address(surplusAuctionHouse.protocolToken()), _protocolToken);
@@ -560,12 +557,19 @@ contract Unit_SurplusAuctionHouse_IncreaseBidSize is Base {
     surplusAuctionHouse.increaseBidSize(_auction.id, _bid);
   }
 
-  function test_Call_ProtocolToken_Move_0(
+  function test_Call_ProtocolToken_Move_HighBidder(
     SurplusAuction memory _auction,
     uint256 _bid,
     uint256 _bidIncrease,
     uint256 _bidDuration
   ) public happyPath(_auction, _bid, _bidIncrease, _bidDuration) {
+    uint256 _payment = _bid;
+
+    // if the user was the previous high bidder they only need to pay the increment
+    if (_auction.bidExpiry != 0) {
+      _payment = _bid - _auction.bidAmount;
+    }
+
     vm.expectCall(
       address(mockProtocolToken),
       abi.encodeCall(mockProtocolToken.transferFrom, (_auction.highBidder, _auction.highBidder, _auction.bidAmount)),
@@ -573,9 +577,7 @@ contract Unit_SurplusAuctionHouse_IncreaseBidSize is Base {
     );
     vm.expectCall(
       address(mockProtocolToken),
-      abi.encodeCall(
-        mockProtocolToken.transferFrom, (_auction.highBidder, address(surplusAuctionHouse), _bid - _auction.bidAmount)
-      ),
+      abi.encodeCall(mockProtocolToken.transferFrom, (_auction.highBidder, address(surplusAuctionHouse), _payment)),
       1
     );
 
@@ -583,24 +585,32 @@ contract Unit_SurplusAuctionHouse_IncreaseBidSize is Base {
     surplusAuctionHouse.increaseBidSize(_auction.id, _bid);
   }
 
-  function test_Call_ProtocolToken_Move_1(
+  function test_Call_ProtocolToken_Move_NotHighBidder(
     SurplusAuction memory _auction,
     uint256 _bid,
     uint256 _bidIncrease,
     uint256 _bidDuration
   ) public happyPath(_auction, _bid, _bidIncrease, _bidDuration) {
-    // If there was no initial bidAmount then this would transfer 0 tokens, so its not called
-    if (_auction.bidAmount != 0) {
+    uint256 _payment = _bid;
+    uint256 _refund;
+
+    // if the user was not the previous high bidder we refund the previous high bidder
+    if (_auction.bidExpiry != 0) {
+      _refund = _auction.bidAmount;
+      _payment = _bid - _auction.bidAmount;
+    }
+
+    // If there was no initial bidAmount then this would transfer 0 tokens, so it's not called
+    if (_refund != 0) {
       vm.expectCall(
         address(mockProtocolToken),
-        abi.encodeCall(mockProtocolToken.transferFrom, (user, _auction.highBidder, _auction.bidAmount)),
+        abi.encodeCall(mockProtocolToken.transferFrom, (user, _auction.highBidder, _refund)),
         1
       );
     }
-
     vm.expectCall(
       address(mockProtocolToken),
-      abi.encodeCall(mockProtocolToken.transferFrom, (user, address(surplusAuctionHouse), _bid - _auction.bidAmount)),
+      abi.encodeCall(mockProtocolToken.transferFrom, (user, address(surplusAuctionHouse), _payment)),
       1
     );
 
@@ -908,10 +918,7 @@ contract Unit_SurplusAuctionHouse_ModifyParameters is Base {
     assertEq(abi.encode(_params), abi.encode(_fuzz));
   }
 
-  function test_Set_ProtocolToken(address _protocolToken) public happyPath {
-    vm.assume(uint160(_protocolToken) > 20);
-    vm.etch(_protocolToken, '0xF');
-
+  function test_Set_ProtocolToken(address _protocolToken) public happyPath mockAsContract(_protocolToken) {
     surplusAuctionHouse.modifyParameters('protocolToken', abi.encode(_protocolToken));
 
     assertEq(address(surplusAuctionHouse.protocolToken()), _protocolToken);

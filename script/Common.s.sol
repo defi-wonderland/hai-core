@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import '@script/Contracts.s.sol';
 import {Params, ParamChecker, HAI, ETH_A, JOB_REWARD} from '@script/Params.s.sol';
@@ -265,13 +265,6 @@ abstract contract Common is Contracts, Params {
 
     // setup initial price
     oracleRelayer.updateCollateralPrice(_cType);
-  }
-
-  function deployOracleFactories() public updateParams {
-    chainlinkRelayerFactory = new ChainlinkRelayerFactory();
-    uniV3RelayerFactory = new UniV3RelayerFactory();
-    denominatedOracleFactory = new DenominatedOracleFactory();
-    delayedOracleFactory = new DelayedOracleFactory();
   }
 
   function deployPIDController() public updateParams {

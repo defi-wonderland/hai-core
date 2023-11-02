@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import {ICollateralAuctionHouseFactory} from '@interfaces/factories/ICollateralAuctionHouseFactory.sol';
 import {ICollateralAuctionHouse} from '@interfaces/ICollateralAuctionHouse.sol';
@@ -79,7 +79,7 @@ contract CollateralAuctionHouseFactory is
     address _liquidationEngine,
     address _oracleRelayer
   ) Authorizable(msg.sender) validParams {
-    safeEngine = _safeEngine.assertNonNull();
+    safeEngine = _safeEngine.assertHasCode();
     _setLiquidationEngine(_liquidationEngine);
     oracleRelayer = _oracleRelayer;
   }
@@ -138,7 +138,7 @@ contract CollateralAuctionHouseFactory is
 
   /// @inheritdoc Modifiable
   function _validateParameters() internal view override {
-    liquidationEngine.assertNonNull();
-    oracleRelayer.assertNonNull();
+    liquidationEngine.assertHasCode();
+    oracleRelayer.assertHasCode();
   }
 }
