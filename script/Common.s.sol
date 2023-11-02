@@ -134,12 +134,12 @@ abstract contract Common is Contracts, Params {
     return governor != deployer && governor != address(0);
   }
 
-  function deployContracts() public updateParams {
-    // deploy Tokens
+  function deployTokens() public updateParams {
     systemCoin = new SystemCoin('HAI Index Token', 'HAI');
     protocolToken = new ProtocolToken('Protocol Token', 'KITE');
-    _deployUniV3Pool();
+  }
 
+  function deployContracts() public updateParams {
     // deploy Base contracts
     safeEngine = new SAFEEngine(_safeEngineParams);
 
@@ -358,16 +358,6 @@ abstract contract Common is Contracts, Params {
       IUniswapV3Pool(_uniV3Pool).increaseObservationCardinalityNext(500);
       _i += 500;
     }
-
-    /*
-    // REVIEW: systemCoinOracle was set to be a HardcodedOracle during setupEnvironment(),
-    //         and will be set to be a DeviatedOracle during setupPostEnvironment()
-    systemCoinOracle = uniV3RelayerFactory.deployUniV3Relayer({
-      _baseToken: address(systemCoin),
-      _quoteToken: address(collateral[WETH]),
-      _feeTier: HAI_POOL_FEE_TIER,
-      _quotePeriod: 1 days
-    });*/
   }
 
   modifier updateParams() {
