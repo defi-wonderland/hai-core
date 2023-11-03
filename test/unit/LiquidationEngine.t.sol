@@ -787,15 +787,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     }
   }
 
-  function _notNullAuction(
-    uint256 _limitedValue,
-    uint256 _liquidationPenalty,
-    uint256 _accumulatedRate
-  ) internal pure returns (bool _notNul) {
-    vm.assume(notOverflowMul(_limitedValue, WAD));
-    _notNul = _limitedValue * WAD / _liquidationPenalty / _accumulatedRate > 0;
-  }
-
   function _notHitLimit(
     uint256 _onAuctionSystemCoinLimit,
     uint256 _currentOnAuctionSystemCoins,
@@ -803,6 +794,15 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
   ) internal pure returns (bool _notLimitHit) {
     _notLimitHit = _currentOnAuctionSystemCoins < _onAuctionSystemCoinLimit
       && _onAuctionSystemCoinLimit - _currentOnAuctionSystemCoins >= _debtFloor;
+  }
+
+  function _notNullAuction(
+    uint256 _limitedValue,
+    uint256 _liquidationPenalty,
+    uint256 _accumulatedRate
+  ) internal pure returns (bool _notNull) {
+    vm.assume(notOverflowMul(_limitedValue, WAD));
+    _notNull = _limitedValue * WAD / _accumulatedRate / _liquidationPenalty > 0;
   }
 
   function _notNullCollateralToSell(
@@ -819,6 +819,33 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       notOverflowMul(_safeCollateral, _limitAdjustedDebt) && notOverflowAdd(_currentOnAuctionSystemCoins, _limitedValue)
     );
     _notNull = _safeCollateral * _limitAdjustedDebt / _safeDebt > 0;
+  }
+
+  function _notExceededCapacity(
+    uint256 _limitedValue,
+    uint256 _liquidationPenalty,
+    uint256 _accumulatedRate,
+    uint256 _currentOnAuctionSystemCoins,
+    uint256 _onAuctionSystemCoinLimit
+  ) internal pure returns (bool _notExceeded) {
+    vm.assume(notOverflowMul(_limitedValue, WAD));
+    uint256 _limitAdjustedDebt = _limitedValue * WAD / _accumulatedRate / _liquidationPenalty;
+    vm.assume(notOverflowAdd(_currentOnAuctionSystemCoins, _limitAdjustedDebt));
+    _notExceeded = _currentOnAuctionSystemCoins + _limitAdjustedDebt <= _onAuctionSystemCoinLimit;
+  }
+
+  function _notDusty(
+    uint256 _safeDebt,
+    uint256 _limitedValue,
+    uint256 _liquidationPenalty,
+    uint256 _debtFloor,
+    uint256 _accumulatedRate
+  ) internal pure returns (bool _notDustyBool) {
+    vm.assume(notOverflowMul(_limitedValue, WAD));
+    uint256 _limitAdjustedDebt = _limitedValue * WAD / _accumulatedRate / _liquidationPenalty;
+    // safe debt must be different from the _limitAdjustedDebt value, if not it's pointless to check because it will never be dusty (_limitAdjustedDebt == _safeDebt)
+    vm.assume(_safeDebt > _limitAdjustedDebt);
+    _notDustyBool = (_safeDebt - _limitAdjustedDebt) * _accumulatedRate >= _debtFloor;
   }
 
   function _limitByLiquidationQuantity(
@@ -889,7 +916,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       )
     );
     // Not need to call not null auction because we are limiting by safe debt
-    // Not needed to call not dusty since it is a full liquidation
     vm.assume(
       _notNullCollateralToSell(
         _liquidation.safeDebt,
@@ -900,6 +926,16 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
         _liquidation.currentOnAuctionSystemCoins
       )
     );
+    vm.assume(
+      _notExceededCapacity(
+        _liquidation.safeDebt,
+        _liquidation.liquidationPenalty,
+        _liquidation.accumulatedRate,
+        _liquidation.currentOnAuctionSystemCoins,
+        _liquidation.onAuctionSystemCoinLimit
+      )
+    );
+    // Not needed to call not dusty since it is a full liquidation
   }
 
   function _assumeHappyPathPartialLiquidationLiqQuantity(Liquidation memory _liquidation) internal pure {
@@ -917,6 +953,25 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     vm.assume(
       _notNullAuction(_liquidation.liquidationQuantity, _liquidation.liquidationPenalty, _liquidation.accumulatedRate)
     );
+    vm.assume(
+      _notNullCollateralToSell(
+        _liquidation.safeDebt,
+        _liquidation.safeCollateral,
+        _liquidation.liquidationQuantity,
+        _liquidation.accumulatedRate,
+        _liquidation.liquidationPenalty,
+        _liquidation.currentOnAuctionSystemCoins
+      )
+    );
+    vm.assume(
+      _notExceededCapacity(
+        _liquidation.liquidationQuantity,
+        _liquidation.liquidationPenalty,
+        _liquidation.accumulatedRate,
+        _liquidation.currentOnAuctionSystemCoins,
+        _liquidation.onAuctionSystemCoinLimit
+      )
+    );
     _limitByLiquidationQuantity(
       _liquidation.safeDebt,
       _liquidation.liquidationQuantity,
@@ -926,13 +981,12 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _liquidation.liquidationPenalty
     );
     vm.assume(
-      _notNullCollateralToSell(
+      _notDusty(
         _liquidation.safeDebt,
-        _liquidation.safeCollateral,
         _liquidation.liquidationQuantity,
-        _liquidation.accumulatedRate,
         _liquidation.liquidationPenalty,
-        _liquidation.currentOnAuctionSystemCoins
+        _liquidation.debtFloor,
+        _liquidation.accumulatedRate
       )
     );
   }
@@ -956,6 +1010,25 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
         _liquidation.accumulatedRate
       )
     );
+    vm.assume(
+      _notNullCollateralToSell(
+        _liquidation.safeDebt,
+        _liquidation.safeCollateral,
+        _liquidation.onAuctionSystemCoinLimit - _liquidation.currentOnAuctionSystemCoins,
+        _liquidation.accumulatedRate,
+        _liquidation.liquidationPenalty,
+        _liquidation.currentOnAuctionSystemCoins
+      )
+    );
+    vm.assume(
+      _notExceededCapacity(
+        _liquidation.onAuctionSystemCoinLimit - _liquidation.currentOnAuctionSystemCoins,
+        _liquidation.liquidationPenalty,
+        _liquidation.accumulatedRate,
+        _liquidation.currentOnAuctionSystemCoins,
+        _liquidation.onAuctionSystemCoinLimit
+      )
+    );
     _limitByCoins(
       _liquidation.safeDebt,
       _liquidation.liquidationQuantity,
@@ -965,13 +1038,12 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _liquidation.liquidationPenalty
     );
     vm.assume(
-      _notNullCollateralToSell(
+      _notDusty(
         _liquidation.safeDebt,
-        _liquidation.safeCollateral,
         _liquidation.onAuctionSystemCoinLimit - _liquidation.currentOnAuctionSystemCoins,
-        _liquidation.accumulatedRate,
         _liquidation.liquidationPenalty,
-        _liquidation.currentOnAuctionSystemCoins
+        _liquidation.debtFloor,
+        _liquidation.accumulatedRate
       )
     );
   }
@@ -1396,14 +1468,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
 
   function test_Revert_LiquidationLimitHit(Liquidation memory _liquidation) public {
     vm.assume(_notZeroDivision(_liquidation.accumulatedRate, _liquidation.liquidationPenalty));
-    _limitBySafeDebt(
-      _liquidation.safeDebt,
-      _liquidation.liquidationQuantity,
-      _liquidation.onAuctionSystemCoinLimit,
-      _liquidation.currentOnAuctionSystemCoins,
-      _liquidation.accumulatedRate,
-      _liquidation.liquidationPenalty
-    );
     vm.assume(
       _notSafe(
         _liquidation.liquidationPrice, _liquidation.safeCollateral, _liquidation.safeDebt, _liquidation.accumulatedRate
@@ -1489,9 +1553,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
         _liquidation.onAuctionSystemCoinLimit, _liquidation.currentOnAuctionSystemCoins, _liquidation.debtFloor
       )
     );
-    vm.assume(
-      _notNullAuction(_liquidation.liquidationQuantity, _liquidation.liquidationPenalty, _liquidation.accumulatedRate)
-    );
     _limitByLiquidationQuantity(
       _liquidation.safeDebt,
       _liquidation.liquidationQuantity,
@@ -1499,6 +1560,9 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _liquidation.currentOnAuctionSystemCoins,
       _liquidation.accumulatedRate,
       _liquidation.liquidationPenalty
+    );
+    vm.assume(
+      _notNullAuction(_liquidation.liquidationQuantity, _liquidation.liquidationPenalty, _liquidation.accumulatedRate)
     );
     vm.assume(
       !_notNullCollateralToSell(
@@ -1530,6 +1594,68 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
+  function test_Revert_ExceededCapacity(Liquidation memory _liquidation) public {
+    vm.assume(_notZeroDivision(_liquidation.accumulatedRate, _liquidation.liquidationPenalty));
+    vm.assume(
+      _notSafe(
+        _liquidation.liquidationPrice, _liquidation.safeCollateral, _liquidation.safeDebt, _liquidation.accumulatedRate
+      )
+    );
+    vm.assume(
+      _notHitLimit(
+        _liquidation.onAuctionSystemCoinLimit, _liquidation.currentOnAuctionSystemCoins, _liquidation.debtFloor
+      )
+    );
+    _limitByLiquidationQuantity(
+      _liquidation.safeDebt,
+      _liquidation.liquidationQuantity,
+      _liquidation.onAuctionSystemCoinLimit,
+      _liquidation.currentOnAuctionSystemCoins,
+      _liquidation.accumulatedRate,
+      _liquidation.liquidationPenalty
+    );
+    vm.assume(
+      _notNullAuction(_liquidation.liquidationQuantity, _liquidation.liquidationPenalty, _liquidation.accumulatedRate)
+    );
+    vm.assume(
+      _notNullCollateralToSell(
+        _liquidation.safeDebt,
+        _liquidation.safeCollateral,
+        _liquidation.liquidationQuantity,
+        _liquidation.accumulatedRate,
+        _liquidation.liquidationPenalty,
+        _liquidation.currentOnAuctionSystemCoins
+      )
+    );
+    vm.assume(
+      !_notExceededCapacity(
+        _liquidation.liquidationQuantity,
+        _liquidation.liquidationPenalty,
+        _liquidation.accumulatedRate,
+        _liquidation.currentOnAuctionSystemCoins,
+        _liquidation.onAuctionSystemCoinLimit
+      )
+    );
+
+    _mockValues(
+      Liquidation(
+        _liquidation.accumulatedRate,
+        _liquidation.debtFloor,
+        _liquidation.liquidationPrice,
+        _liquidation.safeCollateral,
+        _liquidation.safeDebt,
+        _liquidation.onAuctionSystemCoinLimit,
+        _liquidation.currentOnAuctionSystemCoins,
+        _liquidation.liquidationPenalty,
+        _liquidation.liquidationQuantity
+      )
+    );
+
+    vm.expectRevert(ILiquidationEngine.LiqEng_ExceededCapacity.selector);
+
+    liquidationEngine.liquidateSAFE(collateralType, safe);
+  }
+
   function test_Revert_CollateralOverflow() public {
     uint256 _safeCollateral = (2 ** 255) + 1;
     uint256 _accumulatedRate = _safeCollateral + 1;
@@ -1556,18 +1682,16 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
   }
 
   function test_Revert_DebtOverflow() public {
-    uint256 _safeCollateral = 1;
     uint256 _safeDebt = (2 ** 255) + 1;
-    uint256 _accumulatedRate = 1;
-    uint256 _onAuctionSystemCoinLimit = (2 ** 255) / (WAD - 1);
-    uint256 _liquidationQuantity = (2 ** 255) + 1;
+    uint256 _onAuctionSystemCoinLimit = type(uint256).max;
+    uint256 _liquidationQuantity = type(uint256).max / WAD;
 
     _mockValues(
       Liquidation({
-        accumulatedRate: _accumulatedRate,
+        accumulatedRate: 1,
         debtFloor: 1,
         liquidationPrice: 1,
-        safeCollateral: _safeCollateral,
+        safeCollateral: 1,
         safeDebt: _safeDebt,
         onAuctionSystemCoinLimit: _onAuctionSystemCoinLimit,
         currentOnAuctionSystemCoins: 1,

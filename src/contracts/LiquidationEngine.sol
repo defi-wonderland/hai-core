@@ -174,6 +174,14 @@ contract LiquidationEngine is
         if (_limitAdjustedDebt == 0) revert LiqEng_NullAuction();
 
         if (_collateralToSell == 0) revert LiqEng_NullCollateralToSell();
+
+        if (currentOnAuctionSystemCoins + _limitAdjustedDebt > _params.onAuctionSystemCoinLimit) {
+          revert LiqEng_ExceededCapacity();
+        }
+
+        if ((_safeData.generatedDebt - _limitAdjustedDebt) * _safeEngCData.accumulatedRate < _debtFloor) {
+          _limitAdjustedDebt = _safeData.generatedDebt;
+        }
       }
 
       safeEngine.confiscateSAFECollateralAndDebt({

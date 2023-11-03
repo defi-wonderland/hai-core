@@ -92,6 +92,8 @@ interface ILiquidationEngine is IAuthorizable, IDisableable, IModifiable, IModif
   error LiqEng_NullAuction();
   /// @notice Throws when trying to liquidate a SAFE with a null amount of collateral to sell
   error LiqEng_NullCollateralToSell();
+  /// @notice Throws when trying to liquidate a SAFE and liquidation capacity is exceeded
+  error LiqEng_ExceededCapacity();
   /// @notice Throws when trying to call a function only the liquidator is allowed to call
   error LiqEng_OnlyLiqEng();
 
