@@ -179,7 +179,10 @@ contract LiquidationEngine is
           revert LiqEng_ExceededCapacity();
         }
 
-        if ((_safeData.generatedDebt - _limitAdjustedDebt) * _safeEngCData.accumulatedRate < _debtFloor) {
+        if (
+          _limitAdjustedDebt != _safeData.generatedDebt
+            && (_safeData.generatedDebt - _limitAdjustedDebt) * _safeEngCData.accumulatedRate < _debtFloor
+        ) {
           _limitAdjustedDebt = _safeData.generatedDebt;
         }
       }
