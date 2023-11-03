@@ -1276,7 +1276,7 @@ contract SingleLiquidationTest is DSTest {
     liquidationEngine.liquidateSAFE('gold', address(this));
 
     ISAFEEngine.SAFE memory _safe = safeEngine.safes('gold', address(this));
-    assertEq(_safe.lockedCollateral, 99_333_333_333_333_333_334);
+    assertEq(_safe.lockedCollateral, 0);
     assertEq(_safe.generatedDebt, 0);
   }
 

@@ -165,6 +165,11 @@ contract LiquidationEngine is
         ) / __cParams.liquidationPenalty
       );
 
+      _limitAdjustedDebt = _limitAdjustedDebt != _safeData.generatedDebt
+        && (_safeData.generatedDebt - _limitAdjustedDebt) * _safeEngCData.accumulatedRate < _debtFloor
+        ? _safeData.generatedDebt
+        : _limitAdjustedDebt;
+
       uint256 _collateralToSell =
         Math.min(_safeData.lockedCollateral, _safeData.lockedCollateral * _limitAdjustedDebt / _safeData.generatedDebt);
       uint256 _amountToRaise = (_limitAdjustedDebt * _safeEngCData.accumulatedRate).wmul(__cParams.liquidationPenalty);
@@ -177,13 +182,6 @@ contract LiquidationEngine is
 
         if (currentOnAuctionSystemCoins + _limitAdjustedDebt > _params.onAuctionSystemCoinLimit) {
           revert LiqEng_ExceededCapacity();
-        }
-
-        if (
-          _limitAdjustedDebt != _safeData.generatedDebt
-            && (_safeData.generatedDebt - _limitAdjustedDebt) * _safeEngCData.accumulatedRate < _debtFloor
-        ) {
-          _limitAdjustedDebt = _safeData.generatedDebt;
         }
       }
 
