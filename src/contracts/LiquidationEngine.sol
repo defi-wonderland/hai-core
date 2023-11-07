@@ -155,9 +155,7 @@ contract LiquidationEngine is
 
       uint256 _limitAdjustedDebt = Math.min(
         _safeData.generatedDebt,
-        Math.min(__cParams.liquidationQuantity, _params.onAuctionSystemCoinLimit - currentOnAuctionSystemCoins).wdiv(
-          _safeEngCData.accumulatedRate
-        ) / __cParams.liquidationPenalty
+        __cParams.liquidationQuantity.wdiv(_safeEngCData.accumulatedRate) / __cParams.liquidationPenalty
       );
 
       uint256 _collateralToSell = _safeData.lockedCollateral * _limitAdjustedDebt / _safeData.generatedDebt;
