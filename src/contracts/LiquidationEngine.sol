@@ -155,8 +155,14 @@ contract LiquidationEngine is
 
       uint256 _limitAdjustedDebt = Math.min(
         _safeData.generatedDebt,
-        __cParams.liquidationQuantity.wdiv(_safeEngCData.accumulatedRate) / __cParams.liquidationPenalty
+        __cParams.liquidationQuantity.wdiv(__cParams.liquidationPenalty) / _safeEngCData.accumulatedRate
       );
+
+      // If the SAFE is dusty we liquidate the whole debt
+      _limitAdjustedDebt = _limitAdjustedDebt != _safeData.generatedDebt
+        && (_safeData.generatedDebt - _limitAdjustedDebt) * _safeEngCData.accumulatedRate < _debtFloor
+        ? _safeData.generatedDebt
+        : _limitAdjustedDebt;
 
       uint256 _collateralToSell = _safeData.lockedCollateral * _limitAdjustedDebt / _safeData.generatedDebt;
       uint256 _amountToRaise = (_limitAdjustedDebt * _safeEngCData.accumulatedRate).wmul(__cParams.liquidationPenalty);
@@ -167,11 +173,7 @@ contract LiquidationEngine is
 
         if (_collateralToSell == 0) revert LiqEng_NullCollateralToSell();
 
-        if (
-          _limitAdjustedDebt != _safeData.generatedDebt
-            && (_safeData.generatedDebt - _limitAdjustedDebt) * _safeEngCData.accumulatedRate < _debtFloor
-        ) revert LiqEng_DustySAFE();
-
+        // TODO: change for if(currentOnAuctionSystemCoins + limitAdjustedDebt > onAuctionSystemCoinLimit)
         if (
           currentOnAuctionSystemCoins >= _params.onAuctionSystemCoinLimit
             || _params.onAuctionSystemCoinLimit - currentOnAuctionSystemCoins < _debtFloor

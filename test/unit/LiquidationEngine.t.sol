@@ -1408,6 +1408,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
+  // TODO: fix test, when Dusty should liquidate the whole debt (not revert)
   function test_Revert_DustySafe_LiquidationQuantity(Liquidation memory _liquidation) public {
     vm.assume(_notZeroDivision(_liquidation.accumulatedRate, _liquidation.liquidationPenalty));
     vm.assume(
