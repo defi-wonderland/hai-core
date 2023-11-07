@@ -912,46 +912,33 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
   }
 
   function _assumeHappyPathPartialLiquidation(Liquidation memory _liquidation) internal pure {
-    vm.assume(_notZeroDivision(_liquidation.accumulatedRate, _liquidation.liquidationPenalty));
+    _assumeHappyNumbers(_liquidation);
+
+    // not-null
+    vm.assume(_liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty > _liquidation.accumulatedRate);
+    vm.assume(_liquidation.safeDebt > 0);
     vm.assume(
-      _notSafe(
-        _liquidation.liquidationPrice, _liquidation.safeCollateral, _liquidation.safeDebt, _liquidation.accumulatedRate
-      )
-    );
-    vm.assume(
-      _notHitLimit(
-        _liquidation.onAuctionSystemCoinLimit, _liquidation.currentOnAuctionSystemCoins, _liquidation.debtFloor
-      )
-    );
-    vm.assume(
-      _notNullAuction(_liquidation.liquidationQuantity, _liquidation.liquidationPenalty, _liquidation.accumulatedRate)
-    );
-    _limitByLiquidationQuantity(
-      _liquidation.safeDebt,
-      _liquidation.liquidationQuantity,
-      _liquidation.onAuctionSystemCoinLimit,
-      _liquidation.currentOnAuctionSystemCoins,
-      _liquidation.accumulatedRate,
-      _liquidation.liquidationPenalty
-    );
-    vm.assume(
-      _notDusty(
-        _liquidation.safeDebt,
-        _liquidation.liquidationQuantity,
-        _liquidation.liquidationPenalty,
-        _liquidation.debtFloor,
-        _liquidation.accumulatedRate
-      )
-    );
-    vm.assume(
-      _notNullCollateralToSell(
-        _liquidation.safeDebt,
+      notOverflowMul(
         _liquidation.safeCollateral,
-        _liquidation.liquidationQuantity,
-        _liquidation.accumulatedRate,
-        _liquidation.liquidationPenalty,
-        _liquidation.currentOnAuctionSystemCoins
+        _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate
       )
+    );
+    vm.assume(
+      _liquidation.safeCollateral
+        * (_liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate)
+        > _liquidation.safeDebt
+    );
+
+    // unsafe
+    vm.assume(_liquidation.liquidationPrice > 0);
+    vm.assume(
+      _liquidation.safeCollateral * _liquidation.liquidationPrice < _liquidation.safeDebt * _liquidation.accumulatedRate
+    );
+
+    // partial-liquidation
+    vm.assume(
+      _liquidation.safeDebt
+        > _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate
     );
   }
 
