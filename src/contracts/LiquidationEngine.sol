@@ -252,6 +252,8 @@ contract LiquidationEngine is
 
   // --- Getters ---
 
+  // TODO: fix this method accordingly to liquidateSAFE calculations
+
   /// @inheritdoc ILiquidationEngine
   function getLimitAdjustedDebtToCover(
     bytes32 _cType,
