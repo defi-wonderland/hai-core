@@ -743,8 +743,8 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     uint256 liquidationPrice;
     uint256 safeCollateral;
     uint256 safeDebt;
-    uint256 onAuctionSystemCoinLimit;
-    uint256 currentOnAuctionSystemCoins;
+    uint256 onAuctionSystemCoinLimit; // inf
+    uint256 currentOnAuctionSystemCoins; // 0
     uint256 liquidationPenalty;
     uint256 liquidationQuantity;
   }
@@ -988,6 +988,42 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
 
     _mockOnAuctionSystemCoinLimit(_liquidation.onAuctionSystemCoinLimit);
     _mockCurrentOnAuctionSystemCoins(_liquidation.currentOnAuctionSystemCoins);
+  }
+
+  modifier happyPath(Liquidation memory _liquidation) {
+    vm.assume(notOverflowMul(_liquidation.safeCollateral, _liquidation.liquidationPrice));
+    vm.assume(notOverflowMul(_liquidation.safeDebt, _liquidation.accumulatedRate));
+    vm.assume(notOverflowMul(_liquidation.liquidationQuantity, WAD));
+    vm.assume(_liquidation.liquidationPenalty > 0);
+    vm.assume(_liquidation.accumulatedRate > 0);
+
+    // not-null
+    vm.assume(_liquidation.safeDebt > 0);
+    vm.assume(_liquidation.safeCollateral > 0);
+    vm.assume(_liquidation.liquidationPrice > 0);
+
+    // unsafe
+    vm.assume(
+      _liquidation.safeCollateral * _liquidation.liquidationPrice < _liquidation.safeDebt * _liquidation.accumulatedRate
+    );
+
+    // full-liquidation
+    vm.assume(
+      _liquidation.safeDebt
+        <= _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate
+    );
+    vm.assume(notOverflowMul(_liquidation.safeCollateral, _liquidation.safeDebt));
+
+    _;
+  }
+
+  function test_HappyPath(Liquidation memory _liquidation) public happyPath(_liquidation) {
+    // TODO: rm from liquidation struct?
+    _liquidation.currentOnAuctionSystemCoins = 0;
+    _liquidation.onAuctionSystemCoinLimit = type(uint256).max;
+    _mockValues(_liquidation);
+
+    liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
   modifier happyPathFullLiquidation(Liquidation memory _liquidation) {
