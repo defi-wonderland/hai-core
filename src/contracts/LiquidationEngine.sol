@@ -173,11 +173,9 @@ contract LiquidationEngine is
 
         if (_collateralToSell == 0) revert LiqEng_NullCollateralToSell();
 
-        // TODO: change for if(currentOnAuctionSystemCoins + limitAdjustedDebt > onAuctionSystemCoinLimit)
-        if (
-          currentOnAuctionSystemCoins >= _params.onAuctionSystemCoinLimit
-            || _params.onAuctionSystemCoinLimit - currentOnAuctionSystemCoins < _debtFloor
-        ) revert LiqEng_LiquidationLimitHit();
+        if (currentOnAuctionSystemCoins + _amountToRaise > _params.onAuctionSystemCoinLimit) {
+          revert LiqEng_LiquidationLimitHit();
+        }
       }
 
       safeEngine.confiscateSAFECollateralAndDebt({
