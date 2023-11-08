@@ -257,16 +257,21 @@ contract LiquidationEngine is
     bytes32 _cType,
     address _safe
   ) external view returns (uint256 _limitAdjustedDebtToCover) {
+    uint256 _debtFloor = safeEngine.cParams(_cType).debtFloor;
     uint256 _accumulatedRate = safeEngine.cData(_cType).accumulatedRate;
     uint256 _generatedDebt = safeEngine.safes(_cType, _safe).generatedDebt;
     LiquidationEngineCollateralParams memory __cParams = _cParams[_cType];
 
-    return Math.min(
-      _generatedDebt,
-      Math.min(__cParams.liquidationQuantity, _params.onAuctionSystemCoinLimit - currentOnAuctionSystemCoins).wdiv(
-        _accumulatedRate
-      ) / __cParams.liquidationPenalty
-    );
+    _limitAdjustedDebtToCover =
+      Math.min(_generatedDebt, __cParams.liquidationQuantity.wdiv(__cParams.liquidationPenalty) / _accumulatedRate);
+
+    // NOTE: If the SAFE is dusty afterwards, we liquidate the whole debt
+    _limitAdjustedDebtToCover = _limitAdjustedDebtToCover != _generatedDebt
+      && _generatedDebt - _limitAdjustedDebtToCover < _debtFloor / _accumulatedRate
+      ? _generatedDebt
+      : _limitAdjustedDebtToCover;
+
+    return _limitAdjustedDebtToCover;
   }
 
   // --- Administration ---
