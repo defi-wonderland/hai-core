@@ -1160,7 +1160,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
-  /// forge-config: default.fuzz.runs = 64
   function test_Revert_LiquidationLimitHit_PartialLiquidation(
     Liquidation memory _liquidation,
     uint256 _currentOnAuctionSystemCoins,
@@ -1381,7 +1380,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
-  /// forge-config: default.fuzz.runs = 64
   function test_NotRevert_NewSafeIsNotUnsafe(
     Liquidation memory _initialLiquidation,
     uint256 _newSafeCollateral,
