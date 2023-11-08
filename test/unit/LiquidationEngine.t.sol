@@ -743,8 +743,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     uint256 liquidationPrice;
     uint256 safeCollateral;
     uint256 safeDebt;
-    uint256 onAuctionSystemCoinLimit; // inf
-    uint256 currentOnAuctionSystemCoins; // 0
     uint256 liquidationPenalty;
     uint256 liquidationQuantity;
   }
@@ -843,22 +841,17 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _generatedDebt: _liquidation.safeDebt
     });
 
-    _mockOnAuctionSystemCoinLimit(_liquidation.onAuctionSystemCoinLimit);
-    _mockCurrentOnAuctionSystemCoins(_liquidation.currentOnAuctionSystemCoins);
+    _mockOnAuctionSystemCoinLimit(type(uint256).max);
   }
 
   modifier happyPathFullLiquidation(Liquidation memory _liquidation) {
     _assumeHappyPathFullLiquidation(_liquidation);
-    _liquidation.currentOnAuctionSystemCoins = 0;
-    _liquidation.onAuctionSystemCoinLimit = type(uint256).max;
     _mockValues(_liquidation);
     _;
   }
 
   modifier happyPathPartialLiquidation(Liquidation memory _liquidation) {
     _assumeHappyPathPartialLiquidation(_liquidation);
-    _liquidation.currentOnAuctionSystemCoins = 0;
-    _liquidation.onAuctionSystemCoinLimit = type(uint256).max;
     _mockValues(_liquidation);
     _;
   }
@@ -1016,50 +1009,66 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
-  function test_Set_CurrentOnAuctionSystemCoins(Liquidation memory _liquidation)
+  function test_Set_CurrentOnAuctionSystemCoins(Liquidation memory _liquidation, uint256 _currentOnAuctionSystemCoins)
     public
     happyPathFullLiquidation(_liquidation)
   {
+    _mockCurrentOnAuctionSystemCoins(_currentOnAuctionSystemCoins);
+
     uint256 _amountToRaise =
       _liquidation.safeDebt * _liquidation.accumulatedRate * _liquidation.liquidationPenalty / WAD;
+    vm.assume(notOverflowAdd(_currentOnAuctionSystemCoins, _amountToRaise));
+
     liquidationEngine.liquidateSAFE(collateralType, safe);
 
-    assertEq(liquidationEngine.currentOnAuctionSystemCoins(), _liquidation.currentOnAuctionSystemCoins + _amountToRaise);
+    assertEq(liquidationEngine.currentOnAuctionSystemCoins(), _currentOnAuctionSystemCoins + _amountToRaise);
   }
 
-  function test_Set_CurrentOnAuctionSystemCoins_PartialLiquidation(Liquidation memory _liquidation)
+  function test_Set_CurrentOnAuctionSystemCoins_PartialLiquidation(Liquidation memory _liquidation, uint256 _currentOnAuctionSystemCoins)
     public
     happyPathPartialLiquidation(_liquidation)
   {
+    _mockCurrentOnAuctionSystemCoins(_currentOnAuctionSystemCoins);
+
     uint256 _limitAdjustedDebt =
       _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate;
     uint256 _amountToRaise = _limitAdjustedDebt * _liquidation.accumulatedRate * _liquidation.liquidationPenalty / WAD;
+    vm.assume(notOverflowAdd(_currentOnAuctionSystemCoins, _amountToRaise));
+
     liquidationEngine.liquidateSAFE(collateralType, safe);
 
-    assertEq(liquidationEngine.currentOnAuctionSystemCoins(), _liquidation.currentOnAuctionSystemCoins + _amountToRaise);
+    assertEq(liquidationEngine.currentOnAuctionSystemCoins(), _currentOnAuctionSystemCoins + _amountToRaise);
   }
 
-  function test_Emit_UpdateCurrentOnAuctionSystemCoins(Liquidation memory _liquidation)
+  function test_Emit_UpdateCurrentOnAuctionSystemCoins(Liquidation memory _liquidation, uint256 _currentOnAuctionSystemCoins)
     public
     happyPathFullLiquidation(_liquidation)
   {
+    _mockCurrentOnAuctionSystemCoins(_currentOnAuctionSystemCoins);
+
     uint256 _amountToRaise =
       _liquidation.safeDebt * _liquidation.accumulatedRate * _liquidation.liquidationPenalty / WAD;
+    vm.assume(notOverflowAdd(_currentOnAuctionSystemCoins, _amountToRaise));
+
     vm.expectEmit();
-    emit UpdateCurrentOnAuctionSystemCoins(_liquidation.currentOnAuctionSystemCoins + _amountToRaise);
+    emit UpdateCurrentOnAuctionSystemCoins(_currentOnAuctionSystemCoins + _amountToRaise);
 
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
-  function test_Emit_UpdateCurrentOnAuctionSystemCoins_PartialLiquidation(Liquidation memory _liquidation)
+  function test_Emit_UpdateCurrentOnAuctionSystemCoins_PartialLiquidation(Liquidation memory _liquidation, uint256 _currentOnAuctionSystemCoins)
     public
     happyPathPartialLiquidation(_liquidation)
   {
+    _mockCurrentOnAuctionSystemCoins(_currentOnAuctionSystemCoins);
+
     uint256 _limitAdjustedDebt =
       _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate;
     uint256 _amountToRaise = _limitAdjustedDebt * _liquidation.accumulatedRate * _liquidation.liquidationPenalty / WAD;
+    vm.assume(notOverflowAdd(_currentOnAuctionSystemCoins, _amountToRaise));
+
     vm.expectEmit();
-    emit UpdateCurrentOnAuctionSystemCoins(_liquidation.currentOnAuctionSystemCoins + _amountToRaise);
+    emit UpdateCurrentOnAuctionSystemCoins(_currentOnAuctionSystemCoins + _amountToRaise);
 
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
@@ -1105,7 +1114,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
 
   function test_Revert_ContractIsDisabled() public {
     // We don't care about any of these values just mocking for call to work when calling safe engine
-    _mockValues(Liquidation(0, 0, 0, 0, 0, 0, 0, 0, 0));
+    _mockValues(Liquidation(0, 0, 0, 0, 0, 0, 0));
     _mockContractEnabled(false);
 
     vm.expectRevert(IDisableable.ContractIsDisabled.selector);
@@ -1130,28 +1139,34 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
-  function test_Revert_LiquidationLimitHit(Liquidation memory _liquidation) public {
+  function test_Revert_LiquidationLimitHit(Liquidation memory _liquidation, uint256 _currentOnAuctionSystemCoins, uint256 _onAuctionSystemCoinLimit) public {
     _assumeHappyPathFullLiquidation(_liquidation);
+    _mockValues(_liquidation);
+
     uint256 _amountToRaise =
       (_liquidation.safeDebt * _liquidation.accumulatedRate) * _liquidation.liquidationPenalty / WAD;
-    vm.assume(notOverflowAdd(_liquidation.currentOnAuctionSystemCoins, _amountToRaise));
-    vm.assume(_liquidation.currentOnAuctionSystemCoins + _amountToRaise > _liquidation.onAuctionSystemCoinLimit);
-    _mockValues(_liquidation);
+    vm.assume(notOverflowAdd(_currentOnAuctionSystemCoins, _amountToRaise));
+    vm.assume(_currentOnAuctionSystemCoins + _amountToRaise > _onAuctionSystemCoinLimit);
+    _mockCurrentOnAuctionSystemCoins(_currentOnAuctionSystemCoins);
+    _mockOnAuctionSystemCoinLimit(_onAuctionSystemCoinLimit);
 
     vm.expectRevert(ILiquidationEngine.LiqEng_LiquidationLimitHit.selector);
 
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
-  // TODO: improve test, reaching max rejections
-  function test_Revert_LiquidationLimitHit_PartialLiquidation(Liquidation memory _liquidation) public {
+  /// forge-config: default.fuzz.runs = 64
+  function test_Revert_LiquidationLimitHit_PartialLiquidation(Liquidation memory _liquidation, uint256 _currentOnAuctionSystemCoins, uint256 _onAuctionSystemCoinLimit) public {
     _assumeHappyPathPartialLiquidation(_liquidation);
-    vm.assume(notOverflowAdd(_liquidation.currentOnAuctionSystemCoins, _liquidation.liquidationQuantity));
-    vm.assume(
-      _liquidation.currentOnAuctionSystemCoins + _liquidation.liquidationQuantity
-        > _liquidation.onAuctionSystemCoinLimit
-    );
     _mockValues(_liquidation);
+
+    vm.assume(notOverflowAdd(_currentOnAuctionSystemCoins, _liquidation.liquidationQuantity));
+    vm.assume(
+      _currentOnAuctionSystemCoins + _liquidation.liquidationQuantity
+        > _onAuctionSystemCoinLimit
+    );
+    _mockCurrentOnAuctionSystemCoins(_currentOnAuctionSystemCoins);
+    _mockOnAuctionSystemCoinLimit(_onAuctionSystemCoinLimit);
 
     vm.expectRevert(ILiquidationEngine.LiqEng_LiquidationLimitHit.selector);
 
@@ -1174,9 +1189,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
 
     // ! null action
     vm.assume(_liquidation.liquidationQuantity < _liquidation.accumulatedRate);
-
-    _liquidation.currentOnAuctionSystemCoins = 0;
-    _liquidation.onAuctionSystemCoinLimit = type(uint256).max;
 
     _mockValues(_liquidation);
 
@@ -1204,8 +1216,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     vm.assume(_liquidation.safeDebt > 0);
 
     _liquidation.safeCollateral = 0; // null collateral to sell (full liquidation)
-    _liquidation.currentOnAuctionSystemCoins = 0;
-    _liquidation.onAuctionSystemCoinLimit = type(uint256).max;
     _mockValues(_liquidation);
 
     vm.expectRevert(ILiquidationEngine.LiqEng_NullCollateralToSell.selector);
@@ -1232,8 +1242,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     vm.assume(notOverflowMul(_liquidation.safeCollateral, _limitAdjustedDebt));
     vm.assume(_liquidation.safeCollateral * _limitAdjustedDebt < _liquidation.safeDebt); // null collateral to sell (partial liquidation)
 
-    _liquidation.currentOnAuctionSystemCoins = 0;
-    _liquidation.onAuctionSystemCoinLimit = type(uint256).max;
     _mockValues(_liquidation);
 
     vm.expectRevert(ILiquidationEngine.LiqEng_NullCollateralToSell.selector);
@@ -1295,7 +1303,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
   function test_Revert_CollateralOverflow() public {
     uint256 _safeCollateral = (2 ** 255) + 1;
     uint256 _accumulatedRate = _safeCollateral + 1;
-    uint256 _onAuctionSystemCoinLimit = _accumulatedRate / (WAD - 1);
     uint256 _liquidationQuantity = _accumulatedRate / (WAD - 1);
 
     _mockValues(
@@ -1305,8 +1312,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
         liquidationPrice: 1,
         safeCollateral: _safeCollateral,
         safeDebt: 1,
-        onAuctionSystemCoinLimit: _onAuctionSystemCoinLimit,
-        currentOnAuctionSystemCoins: 1,
         liquidationPenalty: 1,
         liquidationQuantity: _liquidationQuantity
       })
@@ -1419,6 +1424,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
+  /// forge-config: default.fuzz.runs = 64
   function test_NotRevert_NewSafeIsNotUnsafe(
     Liquidation memory _initialLiquidation,
     uint256 _newSafeCollateral,
