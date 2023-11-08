@@ -764,6 +764,8 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
   }
 
   function _assumeHappyNumbers(Liquidation memory _liquidation) internal pure {
+    vm.assume(_liquidation.safeDebt > 0);
+    vm.assume(_liquidation.safeCollateral > 0);
     vm.assume(_liquidation.liquidationPenalty > WAD);
     vm.assume(_liquidation.accumulatedRate > 0);
     vm.assume(notOverflowMul(_liquidation.liquidationQuantity, WAD));
@@ -788,10 +790,6 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     // full-liquidation
     vm.assume(notOverflowAdd(_limitAdjustedDebt, _liquidation.debtFloor / _liquidation.accumulatedRate));
     vm.assume(_liquidation.safeDebt <= _limitAdjustedDebt + _liquidation.debtFloor / _liquidation.accumulatedRate);
-
-    // not-null
-    vm.assume(_liquidation.safeDebt > 0);
-    vm.assume(_liquidation.safeCollateral > 0);
   }
 
   function _assumeHappyPathPartialLiquidation(Liquidation memory _liquidation) internal pure {
