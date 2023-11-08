@@ -158,7 +158,7 @@ contract LiquidationEngine is
         __cParams.liquidationQuantity.wdiv(__cParams.liquidationPenalty) / _safeEngCData.accumulatedRate
       );
 
-      // TODO: If the SAFE is dusty we liquidate the whole debt
+      // NOTE: If the SAFE is dusty afterwards, we liquidate the whole debt
       _limitAdjustedDebt = _limitAdjustedDebt != _safeData.generatedDebt
         && _safeData.generatedDebt - _limitAdjustedDebt < _debtFloor / _safeEngCData.accumulatedRate
         ? _safeData.generatedDebt

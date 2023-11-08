@@ -1192,6 +1192,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
 
     // ! null action
     vm.assume(_liquidation.liquidationQuantity < _liquidation.accumulatedRate);
+    vm.assume(_liquidation.safeDebt >= _liquidation.debtFloor / _liquidation.accumulatedRate);
 
     _mockValues(_liquidation);
 
@@ -1239,7 +1240,8 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate;
 
     // partial-liquidation
-    vm.assume(_liquidation.safeDebt > _limitAdjustedDebt);
+    vm.assume(notOverflowAdd(_limitAdjustedDebt, _liquidation.debtFloor / _liquidation.accumulatedRate));
+    vm.assume(_liquidation.safeDebt > _limitAdjustedDebt + _liquidation.debtFloor / _liquidation.accumulatedRate);
 
     vm.assume(_limitAdjustedDebt > 0);
     vm.assume(notOverflowMul(_liquidation.safeCollateral, _limitAdjustedDebt));
