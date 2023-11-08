@@ -153,16 +153,13 @@ contract LiquidationEngine is
     ) {
       LiquidationEngineCollateralParams memory __cParams = _cParams[_cType];
 
-      uint256 _limitAdjustedDebt = Math.min(
+      uint256 _limitAdjustedDebt = _getLimitAdjustedDebt(
         _safeData.generatedDebt,
-        __cParams.liquidationQuantity.wdiv(__cParams.liquidationPenalty) / _safeEngCData.accumulatedRate
+        _safeEngCData.accumulatedRate,
+        __cParams.liquidationQuantity,
+        __cParams.liquidationPenalty,
+        _debtFloor
       );
-
-      // NOTE: If the SAFE is dusty afterwards, we liquidate the whole debt
-      _limitAdjustedDebt = _limitAdjustedDebt != _safeData.generatedDebt
-        && _safeData.generatedDebt - _limitAdjustedDebt < _debtFloor / _safeEngCData.accumulatedRate
-        ? _safeData.generatedDebt
-        : _limitAdjustedDebt;
 
       uint256 _collateralToSell = _safeData.lockedCollateral * _limitAdjustedDebt / _safeData.generatedDebt;
       uint256 _amountToRaise = (_limitAdjustedDebt * _safeEngCData.accumulatedRate).wmul(__cParams.liquidationPenalty);
@@ -250,8 +247,6 @@ contract LiquidationEngine is
 
   // --- Getters ---
 
-  // TODO: fix this method accordingly to liquidateSAFE calculations
-
   /// @inheritdoc ILiquidationEngine
   function getLimitAdjustedDebtToCover(
     bytes32 _cType,
@@ -262,16 +257,31 @@ contract LiquidationEngine is
     uint256 _generatedDebt = safeEngine.safes(_cType, _safe).generatedDebt;
     LiquidationEngineCollateralParams memory __cParams = _cParams[_cType];
 
-    _limitAdjustedDebtToCover =
-      Math.min(_generatedDebt, __cParams.liquidationQuantity.wdiv(__cParams.liquidationPenalty) / _accumulatedRate);
+    return _getLimitAdjustedDebt(
+      _generatedDebt,
+      _accumulatedRate,
+      __cParams.liquidationQuantity,
+      __cParams.liquidationPenalty,
+      _debtFloor
+      );
+  }
+
+  function _getLimitAdjustedDebt(
+    uint256 _generatedDebt,
+    uint256 _accumulatedRate,
+    uint256 _liquidationQuantity,
+    uint256 _liquidationPenalty,
+    uint256 _debtFloor
+  ) internal pure returns (uint256 _limitAdjustedDebt) {
+    _limitAdjustedDebt = Math.min(_generatedDebt, _liquidationQuantity.wdiv(_liquidationPenalty) / _accumulatedRate);
 
     // NOTE: If the SAFE is dusty afterwards, we liquidate the whole debt
-    _limitAdjustedDebtToCover = _limitAdjustedDebtToCover != _generatedDebt
-      && _generatedDebt - _limitAdjustedDebtToCover < _debtFloor / _accumulatedRate
+    _limitAdjustedDebt = _limitAdjustedDebt != _generatedDebt
+      && _generatedDebt - _limitAdjustedDebt < _debtFloor / _accumulatedRate
       ? _generatedDebt
-      : _limitAdjustedDebtToCover;
+      : _limitAdjustedDebt;
 
-    return _limitAdjustedDebtToCover;
+    return _limitAdjustedDebt;
   }
 
   // --- Administration ---
