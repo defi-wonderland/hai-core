@@ -159,10 +159,10 @@ contract LiquidationEngine is
       );
 
       // TODO: If the SAFE is dusty we liquidate the whole debt
-      // _limitAdjustedDebt = _limitAdjustedDebt != _safeData.generatedDebt
-      //   && (_safeData.generatedDebt - _limitAdjustedDebt) * _safeEngCData.accumulatedRate < _debtFloor
-      //   ? _safeData.generatedDebt
-      //   : _limitAdjustedDebt;
+      _limitAdjustedDebt = _limitAdjustedDebt != _safeData.generatedDebt
+        && _safeData.generatedDebt - _limitAdjustedDebt < _debtFloor / _safeEngCData.accumulatedRate
+        ? _safeData.generatedDebt
+        : _limitAdjustedDebt;
 
       uint256 _collateralToSell = _safeData.lockedCollateral * _limitAdjustedDebt / _safeData.generatedDebt;
       uint256 _amountToRaise = (_limitAdjustedDebt * _safeEngCData.accumulatedRate).wmul(__cParams.liquidationPenalty);

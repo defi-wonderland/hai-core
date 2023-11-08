@@ -772,6 +772,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     vm.assume(notOverflowMul(_liquidation.safeCollateral, _liquidation.liquidationPrice));
     vm.assume(notOverflowMul(_liquidation.safeCollateral, _liquidation.safeDebt));
     vm.assume(notOverflowMul(_liquidation.safeDebt, _liquidation.accumulatedRate));
+    vm.assume(notOverflowMul(_liquidation.safeDebt * _liquidation.accumulatedRate, _liquidation.liquidationPenalty));
   }
 
   function _assumeHappyPathFullLiquidation(Liquidation memory _liquidation) internal pure {
@@ -787,7 +788,8 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate;
 
     // full-liquidation
-    vm.assume(_liquidation.safeDebt <= _limitAdjustedDebt);
+    vm.assume(notOverflowAdd(_limitAdjustedDebt, _liquidation.debtFloor / _liquidation.accumulatedRate));
+    vm.assume(_liquidation.safeDebt <= _limitAdjustedDebt + _liquidation.debtFloor / _liquidation.accumulatedRate);
 
     // not-null
     vm.assume(_liquidation.safeDebt > 0);
@@ -807,7 +809,8 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate;
 
     // partial-liquidation
-    vm.assume(_liquidation.safeDebt > _limitAdjustedDebt);
+    vm.assume(notOverflowAdd(_limitAdjustedDebt, _liquidation.debtFloor / _liquidation.accumulatedRate));
+    vm.assume(_liquidation.safeDebt > _limitAdjustedDebt + _liquidation.debtFloor / _liquidation.accumulatedRate);
 
     // not-null
     vm.assume(_limitAdjustedDebt > 0);
