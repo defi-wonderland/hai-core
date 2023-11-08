@@ -258,12 +258,8 @@ contract LiquidationEngine is
     LiquidationEngineCollateralParams memory __cParams = _cParams[_cType];
 
     return _getLimitAdjustedDebt(
-      _generatedDebt,
-      _accumulatedRate,
-      __cParams.liquidationQuantity,
-      __cParams.liquidationPenalty,
-      _debtFloor
-      );
+      _generatedDebt, _accumulatedRate, __cParams.liquidationQuantity, __cParams.liquidationPenalty, _debtFloor
+    );
   }
 
   function _getLimitAdjustedDebt(
@@ -277,9 +273,7 @@ contract LiquidationEngine is
 
     // NOTE: If the SAFE is dusty afterwards, we liquidate the whole debt
     _limitAdjustedDebt = _limitAdjustedDebt != _generatedDebt
-      && _generatedDebt - _limitAdjustedDebt < _debtFloor / _accumulatedRate
-      ? _generatedDebt
-      : _limitAdjustedDebt;
+      && _generatedDebt - _limitAdjustedDebt < _debtFloor / _accumulatedRate ? _generatedDebt : _limitAdjustedDebt;
 
     return _limitAdjustedDebt;
   }
