@@ -768,12 +768,12 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
   }
 
   function _assumeHappyNumbers(Liquidation memory _liquidation) internal pure {
-    vm.assume(_liquidation.accumulatedRate > 0);
     vm.assume(_liquidation.liquidationPenalty > WAD);
+    vm.assume(_liquidation.accumulatedRate > 0);
+    vm.assume(notOverflowMul(_liquidation.liquidationQuantity, WAD));
     vm.assume(notOverflowMul(_liquidation.safeCollateral, _liquidation.liquidationPrice));
     vm.assume(notOverflowMul(_liquidation.safeCollateral, _liquidation.safeDebt));
     vm.assume(notOverflowMul(_liquidation.safeDebt, _liquidation.accumulatedRate));
-    vm.assume(notOverflowMul(_liquidation.liquidationQuantity, WAD));
   }
 
   function _assumeHappyPathFullLiquidation(Liquidation memory _liquidation) internal pure {
@@ -785,11 +785,11 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _liquidation.safeCollateral * _liquidation.liquidationPrice < _liquidation.safeDebt * _liquidation.accumulatedRate
     );
 
+    uint256 _limitAdjustedDebt =
+      _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate;
+
     // full-liquidation
-    vm.assume(
-      _liquidation.safeDebt
-        <= _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate
-    );
+    vm.assume(_liquidation.safeDebt <= _limitAdjustedDebt);
 
     // not-null
     vm.assume(_liquidation.safeDebt > 0);
@@ -814,7 +814,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     // not-null
     vm.assume(_limitAdjustedDebt > 0);
     vm.assume(notOverflowMul(_liquidation.safeCollateral, _limitAdjustedDebt));
-    vm.assume(_liquidation.safeCollateral * _limitAdjustedDebt > _liquidation.safeDebt);
+    vm.assume(_liquidation.safeCollateral * _limitAdjustedDebt >= _liquidation.safeDebt);
   }
 
   function _mockValues(Liquidation memory _liquidation) internal {
@@ -861,6 +861,20 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     _liquidation.onAuctionSystemCoinLimit = type(uint256).max;
     _mockValues(_liquidation);
     _;
+  }
+
+  function test_HappyPath_FullLiquidation(Liquidation memory _liquidation)
+    public
+    happyPathFullLiquidation(_liquidation)
+  {
+    liquidationEngine.liquidateSAFE(collateralType, safe);
+  }
+
+  function test_HappyPath_PartialLiquidation(Liquidation memory _liquidation)
+    public
+    happyPathPartialLiquidation(_liquidation)
+  {
+    liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
   function test_Call_SafeEngine_CData(Liquidation memory _liquidation) public happyPathFullLiquidation(_liquidation) {
@@ -1422,7 +1436,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     );
 
     ISAFESaviour _testSaveSaviour =
-      new SAFESaviourCollateralTypeModifier(_initialLiquidation.accumulatedRate, _initialLiquidation.liquidationPrice, _newSafeCollateral, _newSafeDebt);
+    new SAFESaviourCollateralTypeModifier(_initialLiquidation.accumulatedRate, _initialLiquidation.liquidationPrice, _newSafeCollateral, _newSafeDebt);
     _mockChosenSafeSaviour(collateralType, safe, address(_testSaveSaviour));
     _mockSafeSaviours(address(_testSaveSaviour), 1);
 
