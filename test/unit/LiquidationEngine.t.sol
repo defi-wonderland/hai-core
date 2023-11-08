@@ -1405,28 +1405,29 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 
-  // TODO: fix this test
   function test_NotRevert_NewSafeIsNotUnsafe(
     Liquidation memory _initialLiquidation,
-    uint256 _newAccumulatedRate,
-    uint256 _newLiquidationPrice,
     uint256 _newSafeCollateral,
     uint256 _newSafeDebt
   ) public happyPathFullLiquidation(_initialLiquidation) {
-    // vm.assume(notOverflowMul(_newSafeCollateral, _newLiquidationPrice));
-    // vm.assume(notOverflowMul(_newSafeDebt, _newAccumulatedRate));
-    // vm.assume(_newSafeDebt < _initialLiquidation.safeDebt);
-    // vm.assume(_newSafeCollateral > _initialLiquidation.safeCollateral);
+    // not-invalid saviour
+    vm.assume(_newSafeDebt <= _initialLiquidation.safeDebt);
+    vm.assume(_newSafeCollateral >= _initialLiquidation.safeCollateral);
 
-    // vm.assume(!_notSafe(_newLiquidationPrice, _newSafeCollateral, _newSafeDebt, _newAccumulatedRate));
+    // not-unsafe after saviour
+    vm.assume(notOverflowMul(_newSafeCollateral, _initialLiquidation.liquidationPrice));
+    vm.assume(notOverflowMul(_newSafeDebt, _initialLiquidation.accumulatedRate));
+    vm.assume(
+      _newSafeCollateral * _initialLiquidation.liquidationPrice >= _newSafeDebt * _initialLiquidation.accumulatedRate
+    );
 
-    // ISAFESaviour _testSaveSaviour =
-    //   new SAFESaviourCollateralTypeModifier(_newAccumulatedRate, _newLiquidationPrice, _newSafeCollateral, _newSafeDebt);
-    // _mockChosenSafeSaviour(collateralType, safe, address(_testSaveSaviour));
-    // _mockSafeSaviours(address(_testSaveSaviour), 1);
+    ISAFESaviour _testSaveSaviour =
+      new SAFESaviourCollateralTypeModifier(_initialLiquidation.accumulatedRate, _initialLiquidation.liquidationPrice, _newSafeCollateral, _newSafeDebt);
+    _mockChosenSafeSaviour(collateralType, safe, address(_testSaveSaviour));
+    _mockSafeSaviours(address(_testSaveSaviour), 1);
 
-    // vm.prank(user);
-    // liquidationEngine.liquidateSAFE(collateralType, safe);
+    vm.prank(user);
+    liquidationEngine.liquidateSAFE(collateralType, safe);
   }
 }
 
