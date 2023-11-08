@@ -13,6 +13,7 @@ contract HaiSafeManagerForTest is HaiSafeManager {
       owner: __safeData.owner,
       pendingOwner: __safeData.pendingOwner,
       safeHandler: __safeData.safeHandler,
+      safeSaviour: __safeData.safeSaviour,
       collateralType: __safeData.collateralType
     });
     _usrSafes[__safeData.owner].add(_safe);

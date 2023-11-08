@@ -11,7 +11,8 @@ The SAFE Manager Contract serves as an interface for interacting with the SAFE E
 ### Key Methods:
 
 - `openSAFE`: Deploys a new SAFE Handler contract and registers it in the SAFE Manager.
-- `transferSAFEOwnership`: Transfers ownership of a SAFE to another address.
+- `transferSAFEOwnership`: Transfers ownership of a SAFE to another address, which is required to accept it.
+- `acceptSAFEOwnership`: Accepts ownership of a SAFE, unprotecting it in the process.
 - `modifySAFECollateralization`: Modifies the collateralization ratio of a SAFE (lock/free collateral and/or generate/repay debt).
 - `transferCollateral`: Transfers collateral from one account to another.
 - `transferInternalCoins`: Transfers internal coins from one account to another.

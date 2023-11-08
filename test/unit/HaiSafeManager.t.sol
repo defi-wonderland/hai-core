@@ -1,20 +1,25 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.20;
 
-import {HaiSafeManager, IHaiSafeManager, ISAFEEngine} from '@contracts/proxies/HaiSafeManager.sol';
+import {HaiSafeManager, IHaiSafeManager, ISAFEEngine, ILiquidationEngine} from '@contracts/proxies/HaiSafeManager.sol';
 
 import {HaiSafeManagerForTest} from '@test/mocks/HaiSafeManagerForTest.sol';
 import {HaiTest} from '@test/utils/HaiTest.t.sol';
 
 abstract contract Base is HaiTest {
   address deployer = label('deployer');
-  ISAFEEngine safeEngine = ISAFEEngine(mockContract('safeEngine'));
+
+  ISAFEEngine mockSafeEngine = ISAFEEngine(mockContract('SAFEEngine'));
+  ILiquidationEngine mockLiquidationEngine = ILiquidationEngine(mockContract('LiquidationEngine'));
 
   HaiSafeManager safeManager;
 
   function setUp() public virtual {
     vm.startPrank(deployer);
-    safeManager = new HaiSafeManagerForTest(address(safeEngine));
+
+    safeManager = new HaiSafeManagerForTest(address(mockSafeEngine));
+    label(address(safeManager), 'HaiSafeManager');
+
     vm.stopPrank();
   }
 
@@ -104,22 +109,31 @@ contract Unit_HaiSafeManager_AcceptSAFEOwnership is Base {
   function test_AcceptTransferOwnership(uint256 _safe, IHaiSafeManager.SAFEData memory _safeData) external {
     vm.assume(_safeData.owner != _safeData.pendingOwner);
     vm.assume(_safeData.pendingOwner != address(0));
+    vm.assume(_safeData.safeSaviour != address(0));
     _mockSAFE(_safe, _safeData);
 
     vm.expectEmit();
     emit TransferSAFEOwnership(_safeData.owner, _safe, _safeData.pendingOwner);
 
-    vm.startPrank(_safeData.pendingOwner);
-    safeManager.acceptSAFEOwnership(_safe);
+    if (_safeData.safeSaviour != address(0)) {
+      vm.expectCall(
+        address(mockLiquidationEngine),
+        abi.encodeCall(ILiquidationEngine.protectSAFE, (_safeData.collateralType, _safeData.safeHandler, address(0)))
+      );
+    }
 
-    assertEq(safeManager.safeData(_safe).pendingOwner, address(0));
+    vm.startPrank(_safeData.pendingOwner);
+    safeManager.acceptSAFEOwnership(_safe, address(mockLiquidationEngine));
+
     assertEq(safeManager.safeData(_safe).owner, _safeData.pendingOwner);
+    assertEq(safeManager.safeData(_safe).pendingOwner, address(0));
+    assertEq(safeManager.safeData(_safe).safeSaviour, address(0));
 
     // Check that the enumerables were updated
     assertEq(safeManager.getSafes(_safeData.owner).length, 0);
     assertEq(safeManager.getSafes(_safeData.pendingOwner).length, 1);
 
-    // Check that the colletaral enumerables were updated
+    // Check that the collateral enumerables were updated
     assertEq(safeManager.getSafes(_safeData.owner, _safeData.collateralType).length, 0);
     assertEq(safeManager.getSafes(_safeData.pendingOwner, _safeData.collateralType).length, 1);
   }
@@ -135,6 +149,6 @@ contract Unit_HaiSafeManager_AcceptSAFEOwnership is Base {
     vm.expectRevert(IHaiSafeManager.SafeNotAllowed.selector);
 
     vm.startPrank(_sender);
-    safeManager.acceptSAFEOwnership(_safe);
+    safeManager.acceptSAFEOwnership(_safe, address(mockLiquidationEngine));
   }
 }

@@ -55,6 +55,8 @@ interface IHaiSafeManager {
     address pendingOwner;
     // Address of the safe handler
     address safeHandler;
+    // Address of the safe saviour
+    address safeSaviour;
     // Collateral type of the safe
     bytes32 collateralType;
   }
@@ -142,7 +144,7 @@ interface IHaiSafeManager {
    * @notice Accept the transfer of the ownership of a safe
    * @param  _safe Id of the SAFE
    */
-  function acceptSAFEOwnership(uint256 _safe) external;
+  function acceptSAFEOwnership(uint256 _safe, address _liquidationEngine) external;
 
   /**
    * @notice Modify a SAFE's collateralization ratio while keeping the generated COIN or collateral freed in the safe handler address

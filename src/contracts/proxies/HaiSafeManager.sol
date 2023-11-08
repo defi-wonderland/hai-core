@@ -126,8 +126,13 @@ contract HaiSafeManager is IHaiSafeManager {
     ++_safeId;
     address _safeHandler = address(new SAFEHandler(safeEngine));
 
-    _safeData[_safeId] =
-      SAFEData({owner: _usr, pendingOwner: address(0), safeHandler: _safeHandler, collateralType: _cType});
+    _safeData[_safeId] = SAFEData({
+      owner: _usr,
+      pendingOwner: address(0),
+      safeHandler: _safeHandler,
+      safeSaviour: address(0),
+      collateralType: _cType
+    });
 
     _usrSafes[_usr].add(_safeId);
     _usrSafesPerCollat[_usr][_cType].add(_safeId);
@@ -146,7 +151,7 @@ contract HaiSafeManager is IHaiSafeManager {
   }
 
   /// @inheritdoc IHaiSafeManager
-  function acceptSAFEOwnership(uint256 _safe) external {
+  function acceptSAFEOwnership(uint256 _safe, address _liquidationEngine) external {
     SAFEData memory _sData = _safeData[_safe];
     address _newOwner = _sData.pendingOwner;
     address _prevOwner = _sData.owner;
@@ -161,6 +166,11 @@ contract HaiSafeManager is IHaiSafeManager {
 
     _safeData[_safe].owner = _newOwner;
     _safeData[_safe].pendingOwner = address(0);
+
+    if (_sData.safeSaviour != address(0)) {
+      _safeData[_safe].safeSaviour = address(0);
+      ILiquidationEngine(_liquidationEngine).protectSAFE(_sData.collateralType, _sData.safeHandler, address(0));
+    }
 
     emit TransferSAFEOwnership(_prevOwner, _safe, _newOwner);
   }
@@ -262,6 +272,7 @@ contract HaiSafeManager is IHaiSafeManager {
   /// @inheritdoc IHaiSafeManager
   function protectSAFE(uint256 _safe, address _liquidationEngine, address _saviour) external safeAllowed(_safe) {
     SAFEData memory _sData = _safeData[_safe];
+    _safeData[_safe].safeSaviour = _saviour;
     ILiquidationEngine(_liquidationEngine).protectSAFE(_sData.collateralType, _sData.safeHandler, _saviour);
     emit ProtectSAFE(msg.sender, _safe, _liquidationEngine, _saviour);
   }
