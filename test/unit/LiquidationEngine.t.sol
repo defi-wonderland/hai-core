@@ -767,9 +767,8 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     vm.assume(_liquidation.safeDebt > 0);
     vm.assume(_liquidation.safeCollateral > 0);
     vm.assume(_liquidation.liquidationPenalty > WAD);
-    // NOTE: liquidationPenalty is not supposed to be greater than 2e18
+    // NOTE: liquidationPenalty is not supposed to be greater than 2e18 (100% penalty)
     vm.assume(_liquidation.liquidationPenalty < 1e64); 
-    vm.assume(_liquidation.liquidationQuantity > 0);
     vm.assume(_liquidation.accumulatedRate > 0);
     vm.assume(notOverflowMul(_liquidation.liquidationQuantity, WAD));
     vm.assume(notOverflowMul(_liquidation.safeCollateral, _liquidation.liquidationPrice));
@@ -797,6 +796,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
 
   function _assumeHappyPathPartialLiquidation(Liquidation memory _liquidation) internal pure {
     _assumeHappyNumbers(_liquidation);
+    vm.assume(_liquidation.liquidationQuantity > _liquidation.liquidationPenalty);
 
     // unsafe
     vm.assume(_liquidation.liquidationPrice > 0);
