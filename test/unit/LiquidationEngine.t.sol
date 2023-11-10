@@ -784,6 +784,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _liquidation.safeCollateral * _liquidation.liquidationPrice < _liquidation.safeDebt * _liquidation.accumulatedRate
     );
 
+    vm.assume(_liquidation.liquidationQuantity * WAD > _liquidation.liquidationQuantity);
     uint256 _limitAdjustedDebt =
       _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate;
 
@@ -801,6 +802,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
       _liquidation.safeCollateral * _liquidation.liquidationPrice < _liquidation.safeDebt * _liquidation.accumulatedRate
     );
 
+    vm.assume(_liquidation.liquidationQuantity * WAD > _liquidation.liquidationQuantity);
     uint256 _limitAdjustedDebt =
       _liquidation.liquidationQuantity * WAD / _liquidation.liquidationPenalty / _liquidation.accumulatedRate;
 
