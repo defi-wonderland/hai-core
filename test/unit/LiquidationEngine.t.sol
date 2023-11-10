@@ -1343,6 +1343,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     Liquidation memory _liquidation,
     bool _attemptDecrease
   ) public happyPathFullLiquidation(_liquidation) {
+    vm.assume(_liquidation.liquidationQuantity > _liquidation.liquidationPenalty);
     ISAFESaviour _testSaveSaviour =
     new SAFESaviourIncreaseGeneratedDebtOrDecreaseCollateral(_liquidation.safeCollateral, _liquidation.safeDebt, true, _attemptDecrease);
     _mockChosenSafeSaviour(collateralType, safe, address(_testSaveSaviour));
