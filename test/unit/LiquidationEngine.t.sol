@@ -767,6 +767,8 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     vm.assume(_liquidation.safeDebt > 0);
     vm.assume(_liquidation.safeCollateral > 0);
     vm.assume(_liquidation.liquidationPenalty > WAD);
+    // NOTE: liquidationPenalty is not supposed to be greater than 2e18
+    vm.assume(_liquidation.liquidationPenalty < 1e64); 
     vm.assume(_liquidation.liquidationQuantity > 0);
     vm.assume(_liquidation.accumulatedRate > 0);
     vm.assume(notOverflowMul(_liquidation.liquidationQuantity, WAD));
