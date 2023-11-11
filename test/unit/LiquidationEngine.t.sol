@@ -684,7 +684,7 @@ contract Unit_LiquidationEngine_GetLimitAdjustedDebtToCover is Base {
     assertEq(_returnValue, _limitAdjustedDebt);
   }
 
-  function test_Call_SafeEngineCollateralParams(
+  function test_Call_SafeEngine_CParams(
     uint256 _safeDebt,
     uint256 _accumulatedRate,
     uint256 _liquidationPenalty,
@@ -699,7 +699,7 @@ contract Unit_LiquidationEngine_GetLimitAdjustedDebtToCover is Base {
     liquidationEngine.getLimitAdjustedDebtToCover(collateralType, safe);
   }
 
-  function test_Call_SafeEngineCollateralTypes(
+  function test_Call_SafeEngine_CData(
     uint256 _safeDebt,
     uint256 _accumulatedRate,
     uint256 _liquidationPenalty,
@@ -714,7 +714,7 @@ contract Unit_LiquidationEngine_GetLimitAdjustedDebtToCover is Base {
     liquidationEngine.getLimitAdjustedDebtToCover(collateralType, safe);
   }
 
-  function test_Call_SafeEngineSafes(
+  function test_Call_SafeEngine_Safes(
     uint256 _safeDebt,
     uint256 _accumulatedRate,
     uint256 _liquidationPenalty,
@@ -768,7 +768,7 @@ contract Unit_LiquidationEngine_LiquidateSafe is Base {
     vm.assume(_liquidation.safeCollateral > 0);
     vm.assume(_liquidation.liquidationPenalty > WAD);
     // NOTE: liquidationPenalty is not supposed to be greater than 2e18 (100% penalty)
-    vm.assume(_liquidation.liquidationPenalty < 1e64); 
+    vm.assume(_liquidation.liquidationPenalty < 1e64);
     vm.assume(_liquidation.accumulatedRate > 0);
     vm.assume(notOverflowMul(_liquidation.liquidationQuantity, WAD));
     vm.assume(notOverflowMul(_liquidation.safeCollateral, _liquidation.liquidationPrice));
