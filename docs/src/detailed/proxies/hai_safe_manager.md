@@ -11,7 +11,8 @@ The SAFE Manager Contract serves as an interface for interacting with the SAFE E
 ### Key Methods:
 
 - `openSAFE`: Deploys a new SAFE Handler contract and registers it in the SAFE Manager.
-- `transferSAFEOwnership`: Transfers ownership of a SAFE to another address (doesn't reset SAFE protection).
+- `transferSAFEOwnership`: Initiates the ownership transfer of a SAFE to another address (doesn't reset SAFE protection).
+- `acceptSAFEOwnership`: Commits to the ownership transfer of a SAFE to another address (needs to be called by the new SAFE owner).
 - `modifySAFECollateralization`: Modifies the collateralization ratio of a SAFE (lock/free collateral and/or generate/repay debt).
 - `transferCollateral`: Transfers collateral from one account to another.
 - `transferInternalCoins`: Transfers internal coins from one account to another.
@@ -42,9 +43,9 @@ By providing a more accessible interface to the underlying SAFE Engine, the SAFE
 
 ### SAFE Protection
 
-SAFE owners can choose to connect a SafeSaviour position in order to improve the SAFE health and protect it from liquidation. When the SAFE is on the process of being liquidated, the SafeSaviour contract will unwind the user's position, in order to either reduce the SAFE debt, or increase it's collateral, to improve the SAFE health and try to prevent liquidation.
+SAFE owners can choose to connect a SafeSaviour position in order to improve the SAFE health and protect it from liquidation. When the SAFE is on the process of being liquidated, the SafeSaviour contract will unwind the user's position, in order to either reduce the SAFE debt, or increase its collateral, to improve the SAFE health and try to prevent liquidation.
 
-SAFE owners need to account that the SafeSaviour position is connected to the SAFE id, so when transferring ownership to another account, it is responsability of the previous owner to disconnect any liquidity deposited in the SafeSaviour contract.
+SAFE owners need to account that the SafeSaviour position is connected to the SAFE id, so when transferring ownership to another account, it is responsibility of the previous owner to disconnect any liquidity deposited in the SafeSaviour contract.
 
 ## 4. Gotchas
 
