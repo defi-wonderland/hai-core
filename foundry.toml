@@ -20,7 +20,7 @@ test = 'test'
 out = 'out'
 libs = ['lib']
 fuzz_runs = 1000
-optimizer_runs = 10_000
+optimizer_runs = 0
 block_timestamp = 1675855961
 fs_permissions = [{ access = "write", path = "./test/simulations"}]
 
@@ -30,8 +30,8 @@ out = 'out-via-ir'
 fuzz_runs = 5000
 
 [profile.test]
-via_ir = true
-out = 'out-via-ir'
+via_ir = false
+out = 'out'
 fuzz_runs = 5000
 src = 'test'
 

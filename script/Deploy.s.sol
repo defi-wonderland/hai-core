@@ -110,9 +110,34 @@ contract DeployMainnet is MainnetParams, Deploy {
       _feeTier: HAI_POOL_FEE_TIER,
       _quotePeriod: 1 days
     });
+    
+    // Deploy governance contracts
+    // TODO: verify parameters and store them in MainnetParams.sol
+    // TODO: add test for the correct set-up of these contracts
+    timelock = new TimelockController(1, new address[](0), new address[](0), address(0));
+    haiGovernor = new HaiGovernor(
+      protocolToken,
+      timelock,
+      'GOVERNOR_NAME', // TODO: add to MainnetParams
+      1, // votingDelay
+      2, // votingPeriod
+      3  // proposalThreshold
+    );
   }
 
-  function setupPostEnvironment() public virtual override updateParams {}
+  function setupPostEnvironment() public virtual override updateParams {
+    // Deploy aidrop distributor contract
+    tokenDistributor = new TokenDistributor({
+    _root: bytes32(0), // TODO: add merkle root
+    _token: ERC20Votes(address(protocolToken)),
+    _totalClaimable: 1_000_000e18, // TODO: add to params and test
+    _claimPeriodStart: block.timestamp + 1, // TODO: use block.timestamp + x hs
+    _claimPeriodEnd: block.timestamp + 864000 // TODO: use block.timestamp + 1 month
+    });
+
+    // Mint initial supply to the distributor
+    protocolToken.mint(address(tokenDistributor), 1_000_000e18);
+  }
 }
 
 contract DeployGoerli is GoerliParams, Deploy {
@@ -122,6 +147,9 @@ contract DeployGoerli is GoerliParams, Deploy {
   }
 
   function setupEnvironment() public virtual override updateParams {
+    governor = 0xA6A772CCaa47eA3A6f267d31D782e8Ac5a5Ed743; // Tally TimelockController
+    delegate = 0x8125aAa8F7912aEb500553a5b1710BB16f7A6C65; // Reflexer EOA
+
     // Deploy oracle factories
     chainlinkRelayerFactory = new ChainlinkRelayerFactory(OP_GOERLI_CHAINLINK_SEQUENCER_UPTIME_FEED);
     uniV3RelayerFactory = new UniV3RelayerFactory();
@@ -179,7 +207,7 @@ contract DeployGoerli is GoerliParams, Deploy {
   function setupPostEnvironment() public virtual override updateParams {
     // Setup deviated oracle
     systemCoinOracle = new DeviatedOracle({
-      _symbol: 'HAI/USD',
+      _symbol: 'HAI / USD',
       _oracleRelayer: address(oracleRelayer),
       _deviation: OP_GOERLI_HAI_PRICE_DEVIATION
     });
