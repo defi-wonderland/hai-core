@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import {IHaiGovernor} from '@interfaces/governance/IHaiGovernor.sol';
+
 import {Governor} from '@openzeppelin/contracts/governance/Governor.sol';
 import {GovernorSettings} from '@openzeppelin/contracts/governance/extensions/GovernorSettings.sol';
 import {GovernorCountingSimple} from '@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol';
@@ -24,12 +26,10 @@ contract HaiGovernor is
     IVotes _token,
     TimelockController _timelock,
     string memory _governorName,
-    uint48 _votingDelay,
-    uint32 _votingPeriod,
-    uint256 _proposalThreshold
+    IHaiGovernor.HaiGovernorParams memory _params
   )
     Governor(_governorName)
-    GovernorSettings(_votingDelay, _votingPeriod, _proposalThreshold)
+    GovernorSettings(_params.votingDelay, _params.votingPeriod, _params.proposalThreshold)
     GovernorVotes(_token)
     GovernorVotesQuorumFraction(1) // TODO: set quorum
     GovernorTimelockControl(_timelock)

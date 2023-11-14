@@ -139,6 +139,24 @@ abstract contract Common is Contracts, Params {
     protocolToken = new ProtocolToken('Protocol Token', 'KITE');
   }
 
+  function deployGovernance() public updateParams {
+    // TODO: verify parameters and store them in MainnetParams.sol
+    // TODO: add test for the correct set-up of these contracts
+    timelock = new TimelockController(
+      _timelockControllerParams.minDelay, // minDelay
+      _timelockControllerParams.proposers, // proposers
+      _timelockControllerParams.executors, // executors
+      _timelockControllerParams.admin // admin
+      );
+
+    haiGovernor = new HaiGovernor(
+      protocolToken,
+      timelock,
+      'HaiGovernor',
+      _governorParams
+    );
+  }
+
   function deployContracts() public updateParams {
     // deploy Base contracts
     safeEngine = new SAFEEngine(_safeEngineParams);

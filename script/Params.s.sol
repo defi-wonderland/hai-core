@@ -18,6 +18,8 @@ import {
   ITaxCollector,
   IGlobalSettlement,
   IPostSettlementSurplusAuctionHouse,
+  ITimelockController,
+  IHaiGovernor,
   IModifiable
 } from '@script/Contracts.s.sol';
 
@@ -88,6 +90,10 @@ abstract contract Params {
 
   IGlobalSettlement.GlobalSettlementParams _globalSettlementParams;
   IPostSettlementSurplusAuctionHouse.PostSettlementSAHParams _postSettlementSAHParams;
+
+  // --- Governor params ---
+  ITimelockController.TimelockControllerParams _timelockControllerParams;
+  IHaiGovernor.HaiGovernorParams _governorParams;
 }
 
 /**

@@ -139,5 +139,21 @@ abstract contract GoerliParams is Contracts, Params {
 
     _liquidationEngineCParams[OP].liquidationPenalty = 1.2e18; // 20%
     _collateralAuctionHouseParams[OP].maxDiscount = 0.5e18; // -50%
+
+    // --- Governance Params ---
+    governor = address(timelock);
+
+    _timelockControllerParams = ITimelockController.TimelockControllerParams({
+      minDelay: 3600, // 1 hour
+      proposers: new address[](0),
+      executors: new address[](0),
+      admin: address(0)
+    });
+
+    _governorParams = IHaiGovernor.HaiGovernorParams({
+      votingDelay: 25, // 5 minutes
+      votingPeriod: 100, // 20 minutes
+      proposalThreshold: 460_000e18 // 460k
+    });
   }
 }

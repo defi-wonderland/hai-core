@@ -21,6 +21,9 @@ abstract contract Deploy is Common, Script {
     // Deploy tokens used to setup the environment
     deployTokens();
 
+    // Deploy governance contracts
+    deployGovernance();
+
     // Environment may be different for each network
     setupEnvironment();
 
@@ -110,19 +113,6 @@ contract DeployMainnet is MainnetParams, Deploy {
       _feeTier: HAI_POOL_FEE_TIER,
       _quotePeriod: 1 days
     });
-    
-    // Deploy governance contracts
-    // TODO: verify parameters and store them in MainnetParams.sol
-    // TODO: add test for the correct set-up of these contracts
-    timelock = new TimelockController(1, new address[](0), new address[](0), address(0));
-    haiGovernor = new HaiGovernor(
-      protocolToken,
-      timelock,
-      'GOVERNOR_NAME', // TODO: add to MainnetParams
-      1, // votingDelay
-      2, // votingPeriod
-      3  // proposalThreshold
-    );
   }
 
   function setupPostEnvironment() public virtual override updateParams {
