@@ -57,6 +57,9 @@ abstract contract Deploy is Common, Script {
     // Deploy and setup contracts that rely on deployed environment
     setupPostEnvironment();
 
+    // Deploy Merkle tree claim contract and mint protocol tokens to it
+    deployTokenDistributor();
+
     if (delegate == address(0)) {
       _revokeAllTo(governor);
     } else if (delegate == deployer) {
@@ -115,19 +118,7 @@ contract DeployMainnet is MainnetParams, Deploy {
     });
   }
 
-  function setupPostEnvironment() public virtual override updateParams {
-    // Deploy aidrop distributor contract
-    tokenDistributor = new TokenDistributor({
-    _root: bytes32(0), // TODO: add merkle root
-    _token: ERC20Votes(address(protocolToken)),
-    _totalClaimable: 1_000_000e18, // TODO: add to params and test
-    _claimPeriodStart: block.timestamp + 1, // TODO: use block.timestamp + x hs
-    _claimPeriodEnd: block.timestamp + 864000 // TODO: use block.timestamp + 1 month
-    });
-
-    // Mint initial supply to the distributor
-    protocolToken.mint(address(tokenDistributor), 1_000_000e18);
-  }
+  function setupPostEnvironment() public virtual override updateParams {}
 }
 
 contract DeployGoerli is GoerliParams, Deploy {
@@ -137,8 +128,7 @@ contract DeployGoerli is GoerliParams, Deploy {
   }
 
   function setupEnvironment() public virtual override updateParams {
-    governor = 0xA6A772CCaa47eA3A6f267d31D782e8Ac5a5Ed743; // Tally TimelockController
-    delegate = 0x8125aAa8F7912aEb500553a5b1710BB16f7A6C65; // Reflexer EOA
+    delegate = 0x8125aAa8F7912aEb500553a5b1710BB16f7A6C65; // EOA
 
     // Deploy oracle factories
     chainlinkRelayerFactory = new ChainlinkRelayerFactory(OP_GOERLI_CHAINLINK_SEQUENCER_UPTIME_FEED);

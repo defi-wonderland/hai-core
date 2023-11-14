@@ -74,6 +74,9 @@ abstract contract Common is Contracts, Params {
     _revoke(accountingJob, _governor);
     _revoke(liquidationJob, _governor);
     _revoke(oracleJob, _governor);
+
+    // token distributor
+    _revoke(tokenDistributor, _governor);
   }
 
   function _revoke(IAuthorizable _contract, address _target) internal {
@@ -124,6 +127,9 @@ abstract contract Common is Contracts, Params {
     _delegate(accountingJob, __delegate);
     _delegate(liquidationJob, __delegate);
     _delegate(oracleJob, __delegate);
+
+    // token distributor
+    _delegate(tokenDistributor, __delegate);
   }
 
   function _delegate(IAuthorizable _contract, address _target) internal {
@@ -236,6 +242,20 @@ abstract contract Common is Contracts, Params {
             address(accountingEngine),
             address(postSettlementSurplusAuctionHouse)
         );
+  }
+
+  function deployTokenDistributor() public updateParams {
+    // Deploy aidrop distributor contract
+    tokenDistributor = new TokenDistributor({
+    _root: bytes32(0), // TODO: add merkle root
+    _token: ERC20Votes(address(protocolToken)),
+    _totalClaimable: 1_000_000e18, // TODO: add to params and test
+    _claimPeriodStart: block.timestamp + 1, // TODO: use block.timestamp + x hs
+    _claimPeriodEnd: block.timestamp + 864000 // TODO: use block.timestamp + 1 month
+    });
+
+    // Mint initial supply to the distributor
+    protocolToken.mint(address(tokenDistributor), 1_000_000e18);
   }
 
   function _setupGlobalSettlement() internal {

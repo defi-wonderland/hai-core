@@ -8,11 +8,15 @@ import {ParamChecker, WETH, WSTETH, OP} from '@script/Params.s.sol';
 import {OP_OPTIMISM} from '@script/Registry.s.sol';
 import {ERC20Votes} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 
-import {Contracts, IPIDRateSetter, IUniV3Relayer} from '@script/Contracts.s.sol';
+import '@script/Contracts.s.sol';
 import {GoerliDeployment} from '@script/GoerliDeployment.s.sol';
 
 abstract contract CommonDeploymentTest is HaiTest, Deploy {
   // SAFEEngine
+  function test_SAFEEngine_Bytecode() public {
+    assertEq(address(safeEngine).code, type(SAFEEngine).runtimeCode);
+  }
+
   function test_SAFEEngine_Auth() public {
     assertEq(safeEngine.authorizedAccounts(address(oracleRelayer)), true);
     assertEq(safeEngine.authorizedAccounts(address(taxCollector)), true);
@@ -27,11 +31,19 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   }
 
   // OracleRelayer
+  function test_OracleRelayer_Bytecode() public {
+    assertEq(address(oracleRelayer).code, type(OracleRelayer).runtimeCode);
+  }
+
   function test_OracleRelayer_Auth() public {
     assertEq(oracleRelayer.authorizedAccounts(address(pidRateSetter)), true);
   }
 
   // AccountingEngine
+  function test_AccountingEngine_Bytecode() public {
+    assertEq(address(accountingEngine).code, type(AccountingEngine).runtimeCode);
+  }
+
   function test_AccountingEngine_Auth() public {
     assertEq(accountingEngine.authorizedAccounts(address(liquidationEngine)), true);
   }
@@ -41,16 +53,30 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   }
 
   // SystemCoin
+  function test_SystemCoin_Bytecode_MANUAL_CHECK() public {
+    // Not possible to check bytecode because it has immutable storage
+    // Needs to be manually checked
+  }
+
   function test_SystemCoin_Auth() public {
     assertEq(systemCoin.authorizedAccounts(address(coinJoin)), true);
   }
 
   // ProtocolToken
+  function test_ProtocolToken_Bytecode_MANUAL_CHECK() public {
+    // Not possible to check bytecode because it has immutable storage
+    // Needs to be manually checked
+  }
+
   function test_ProtocolToken_Auth() public {
     assertEq(protocolToken.authorizedAccounts(address(debtAuctionHouse)), true);
   }
 
   // SurplusAuctionHouse
+  function test_SurplusAuctionHouse_Bytecode() public {
+    assertEq(address(surplusAuctionHouse).code, type(SurplusAuctionHouse).runtimeCode);
+  }
+
   function test_SurplusAuctionHouse_Auth() public {
     assertEq(surplusAuctionHouse.authorizedAccounts(address(accountingEngine)), true);
   }
@@ -60,6 +86,10 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   }
 
   // DebtAuctionHouse
+  function test_DebtAuctionHouse_Bytecode() public {
+    assertEq(address(debtAuctionHouse).code, type(DebtAuctionHouse).runtimeCode);
+  }
+
   function test_DebtAuctionHouse_Auth() public {
     assertEq(debtAuctionHouse.authorizedAccounts(address(accountingEngine)), true);
   }
@@ -69,6 +99,10 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   }
 
   // CollateralAuctionHouse
+  function test_CollateralAuctionHouseFactory_Bytecode() public {
+    assertEq(address(collateralAuctionHouseFactory).code, type(CollateralAuctionHouseFactory).runtimeCode);
+  }
+
   function test_CollateralAuctionHouse_Auth() public {
     for (uint256 _i; _i < collateralTypes.length; _i++) {
       bytes32 _cType = collateralTypes[_i];
@@ -85,10 +119,118 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     }
   }
 
+  // LiquidationEngine
+  function test_LiquidationEngine_Bytecode() public {
+    assertEq(address(liquidationEngine).code, type(LiquidationEngine).runtimeCode);
+  }
+
+  function test_LiquidationEngine_Auth() public {
+    assertEq(liquidationEngine.authorizedAccounts(address(globalSettlement)), true);
+  }
+
+  function test_LiquidationEngine_Params() public view {
+    ParamChecker._checkParams(address(liquidationEngine), abi.encode(_liquidationEngineParams));
+  }
+
+  // PIDController
+  function test_PIDController_Bytecode() public {
+    assertEq(address(pidController).code, type(PIDController).runtimeCode);
+  }
+
+  function test_PIDController_Auth() public {
+    // TODO
+  }
+
+  function test_PIDController_Params() public view {
+    ParamChecker._checkParams(address(pidController), abi.encode(_pidControllerParams));
+  }
+
+  // PIDRateSetter
+  function test_PIDRateSetter_Bytecode() public {
+    assertEq(address(pidRateSetter).code, type(PIDRateSetter).runtimeCode);
+  }
+
+  function test_PIDRateSetter_Auth() public {
+    // TODO: count external auths for each contract
+  }
+
+  function test_PIDRateSetter_Params() public view {
+    ParamChecker._checkParams(address(pidRateSetter), abi.encode(_pidRateSetterParams));
+  }
+
+  // GlobalSettlement
+  function test_GlobalSettlement_Bytecode() public {
+    assertEq(address(globalSettlement).code, type(GlobalSettlement).runtimeCode);
+  }
+
+  function test_GlobalSettlement_Auth() public {
+    // assertEq(globalSettlement.authorizedAccounts(address(governor)), true);
+  }
+
+  function test_GlobalSettlement_Params() public view {
+    ParamChecker._checkParams(address(globalSettlement), abi.encode(_globalSettlementParams));
+  }
+
+  // PostSettlementSurplusAuctionHouse
+  function test_PostSettlementSurplusAuctionHouse_Bytecode() public {
+    assertEq(address(postSettlementSurplusAuctionHouse).code, type(PostSettlementSurplusAuctionHouse).runtimeCode);
+  }
+
+  function test_PostSettlementSurplusAuctionHouse_Params() public view {
+    ParamChecker._checkParams(address(postSettlementSurplusAuctionHouse), abi.encode(_postSettlementSAHParams));
+  }
+
+  // PostSettlementAuctioneer
+  function test_PostSettlementAuctioneer_Bytecode() public {
+    assertEq(address(settlementSurplusAuctioneer).code, type(SettlementSurplusAuctioneer).runtimeCode);
+  }
+
+  function test_PostSettlementAuctioneer_Auth() public {
+    assertEq(settlementSurplusAuctioneer.authorizedAccounts(governor), true);
+  }
+
+  // Governance checks
   function test_Grant_Auth() public {
     _test_Authorizations(governor, true);
     if (delegate != address(0)) _test_Authorizations(delegate, true);
     _test_Authorizations(deployer, false);
+  }
+
+  function test_Timelock_Bytecode() public {
+    assertEq(address(timelock).code, type(TimelockController).runtimeCode);
+  }
+
+  function test_Timelock_Params_MANUAL_CHECK() public {
+    assertEq(timelock.getMinDelay(), _timelockControllerParams.minDelay);
+    // Proposers, Executors, and Admin cannot be checked
+    // Needs to be manually checked
+  }
+
+  function test_HaiGovernor_Bytecode_MANUAL_CHECK() public {
+    // Not possible to check bytecode because it has immutable storage
+    // Needs to be manually checked
+  }
+
+  function test_HaiGovernor_Params() public {
+    assertEq(haiGovernor.votingDelay(), _governorParams.votingDelay);
+    assertEq(haiGovernor.votingPeriod(), _governorParams.votingPeriod);
+    assertEq(haiGovernor.proposalThreshold(), _governorParams.proposalThreshold);
+
+    assertEq(address(haiGovernor.token()), address(protocolToken));
+    assertEq(address(haiGovernor.timelock()), address(timelock));
+  }
+
+  // TokenDistributor
+  function test_TokenDistributor() public {
+    assertEq(address(tokenDistributor).code, type(TokenDistributor).runtimeCode);
+
+    assertEq(protocolToken.balanceOf(address(tokenDistributor)), 1_000_000e18);
+    assertEq(protocolToken.totalSupply(), 1_000_000e18);
+
+    assertEq(tokenDistributor.root(), bytes32(0));
+    assertEq(tokenDistributor.totalClaimable(), 1_000_000e18);
+    // assertEq claimPeriodStart
+    // assertEq claimPeriodEnd
   }
 
   function _test_Authorizations(address _target, bool _permission) internal {
@@ -127,6 +269,9 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(accountingJob.authorizedAccounts(_target), _permission);
     assertEq(liquidationJob.authorizedAccounts(_target), _permission);
     assertEq(oracleJob.authorizedAccounts(_target), _permission);
+
+    // token distributor
+    assertEq(tokenDistributor.authorizedAccounts(_target), _permission);
   }
 }
 
