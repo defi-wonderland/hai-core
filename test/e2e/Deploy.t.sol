@@ -329,6 +329,7 @@ contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
   }
 }
 
+/** TODO: uncomment after Goerli deployment
 contract GoerliDeploymentTest is GoerliDeployment, CommonDeploymentTest {
   function setUp() public {
     vm.createSelectFork(vm.rpcUrl('goerli'), GOERLI_DEPLOYMENT_BLOCK);
@@ -339,3 +340,4 @@ contract GoerliDeploymentTest is GoerliDeployment, CommonDeploymentTest {
     assertEq(ERC20Votes(OP_OPTIMISM).delegates(address(collateralJoin[OP])), governor);
   }
 }
+ */

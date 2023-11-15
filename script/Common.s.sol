@@ -5,6 +5,8 @@ import '@script/Contracts.s.sol';
 import '@script/Params.s.sol';
 import '@script/Registry.s.sol';
 
+import {TickMath} from '@uniswap/v3-core/contracts/libraries/TickMath.sol';
+
 abstract contract Common is Contracts, Params {
   uint256 internal _deployerPk = 69; // for tests
   uint256 internal _governorPK;
@@ -369,20 +371,22 @@ abstract contract Common is Contracts, Params {
     rewardedActions = new RewardedActions();
   }
 
-  function _deployUniV3Pool() internal {
-    address _uniV3Pool = IUniswapV3Factory(UNISWAP_V3_FACTORY).createPool({
-      tokenA: address(systemCoin),
-      tokenB: address(collateral[WETH]),
-      fee: HAI_POOL_FEE_TIER
-    });
+  function _deployUniV3Pool(
+    address _tokenA,
+    address _tokenB,
+    uint24 _fee,
+    uint16 _cardinality,
+    int24 _initialTick
+  ) internal {
+    address _uniV3Pool = IUniswapV3Factory(UNISWAP_V3_FACTORY).createPool({tokenA: _tokenA, tokenB: _tokenB, fee: _fee});
 
     address _token0 = IUniswapV3Pool(_uniV3Pool).token0();
     uint160 _sqrtPriceX96 =
-      _token0 == address(systemCoin) ? HAI_INITIAL_SQRT_PRICE_X96 : HAI_INITIAL_SQRT_PRICE_X96_INVERSE;
+      _token0 == address(_tokenA) ? TickMath.getSqrtRatioAtTick(_initialTick) : TickMath.getSqrtRatioAtTick(-_initialTick);
 
     IUniswapV3Pool(_uniV3Pool).initialize(_sqrtPriceX96);
 
-    for (uint256 _i; _i < HAI_POOL_OBSERVATION_CARDINALITY;) {
+    for (uint256 _i; _i < _cardinality;) {
       IUniswapV3Pool(_uniV3Pool).increaseObservationCardinalityNext(500);
       _i += 500;
     }

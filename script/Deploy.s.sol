@@ -107,7 +107,13 @@ contract DeployMainnet is MainnetParams, Deploy {
     collateralTypes.push(WSTETH);
 
     // Deploy HAI/WETH UniV3 pool
-    _deployUniV3Pool();
+    _deployUniV3Pool(
+      address(collateral[WETH]),
+      address(systemCoin),
+      HAI_POOL_FEE_TIER,
+      HAI_POOL_OBSERVATION_CARDINALITY,
+      HAI_ETH_INITIAL_TICK
+    );
 
     // Setup HAI oracle feed
     systemCoinOracle = uniV3RelayerFactory.deployUniV3Relayer({
@@ -139,7 +145,7 @@ contract DeployGoerli is GoerliParams, Deploy {
     // Setup oracle feeds
 
     // HAI
-    systemCoinOracle = new HardcodedOracle('HAI / USD', HAI_INITIAL_PRICE); // 1 HAI = 1 USD
+    systemCoinOracle = new HardcodedOracle('HAI / USD', HAI_USD_INITIAL_PRICE); // 1 HAI = 1 USD
 
     // WETH
     collateral[WETH] = IERC20Metadata(OP_WETH);
