@@ -151,8 +151,8 @@ abstract contract GoerliParams is Contracts, Params {
     });
 
     _governorParams = IHaiGovernor.HaiGovernorParams({
-      votingDelay: 25, // 5 minutes
-      votingPeriod: 100, // 20 minutes
+      votingDelay: 300, // 5 minutes
+      votingPeriod: 1200, // 20 minutes
       proposalThreshold: 460_000e18 // 460k
     });
   }

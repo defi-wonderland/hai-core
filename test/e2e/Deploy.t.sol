@@ -336,7 +336,7 @@ contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
  *     vm.createSelectFork(vm.rpcUrl('goerli'), GOERLI_DEPLOYMENT_BLOCK);
  *     _getEnvironmentParams();
  *   }
- * 
+ *
  *   function test_Delegated_OP() public {
  *     assertEq(ERC20Votes(OP_OPTIMISM).delegates(address(collateralJoin[OP])), governor);
  *   }

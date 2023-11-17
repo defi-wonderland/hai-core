@@ -142,8 +142,8 @@ abstract contract MainnetParams is Contracts, Params {
 
     // TODO: verify that 3600 = 12hs is the correct value (OP Mainnet)
     _governorParams = IHaiGovernor.HaiGovernorParams({
-      votingDelay: 3600, // 12 hours
-      votingPeriod: 10_800, // 36 hours
+      votingDelay: 43_200, // 12 hours
+      votingPeriod: 129_600, // 36 hours
       proposalThreshold: 5000e18 // 5k
     });
   }

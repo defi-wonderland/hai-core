@@ -6,7 +6,7 @@ import {IHaiGovernor} from '@interfaces/governance/IHaiGovernor.sol';
 import {Governor} from '@openzeppelin/contracts/governance/Governor.sol';
 import {GovernorSettings} from '@openzeppelin/contracts/governance/extensions/GovernorSettings.sol';
 import {GovernorCountingSimple} from '@openzeppelin/contracts/governance/extensions/GovernorCountingSimple.sol';
-import {GovernorVotes, IVotes} from '@openzeppelin/contracts/governance/extensions/GovernorVotes.sol';
+import {GovernorVotes, IVotes, Time} from '@openzeppelin/contracts/governance/extensions/GovernorVotes.sol';
 import {GovernorVotesQuorumFraction} from
   '@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol';
 import {
@@ -36,8 +36,20 @@ contract HaiGovernor is
   {}
 
   /**
+   * Set the clock to block timestamp, as opposed to the default block number.
+   */
+
+  function clock() public view override(Governor, GovernorVotes) returns (uint48) {
+    return Time.timestamp();
+  }
+
+  // solhint-disable-next-line func-name-mixedcase
+  function CLOCK_MODE() public view virtual override(Governor, GovernorVotes) returns (string memory) {
+    return 'mode=timestamp';
+  }
+
+  /**
    * The following functions are overrides required by Solidity
-   * Overrides are chosen priority-wise from most to least specific
    */
 
   function _cancel(
