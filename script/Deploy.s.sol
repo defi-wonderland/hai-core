@@ -166,11 +166,25 @@ contract DeployGoerli is GoerliParams, Deploy {
     collateral[STONES] = new MintableERC20('Stones', 'STN', 3);
     collateral[TOTEM] = new MintableERC20('Totem', 'TTM', 0);
 
+    // Deploy STN / WBTC UniV3 pool
+    _deployUniV3Pool(
+      address(collateral[STONES]),
+      address(collateral[WBTC]),
+      HAI_POOL_FEE_TIER,
+      HAI_POOL_OBSERVATION_CARDINALITY,
+      HAI_ETH_INITIAL_TICK // 2000 STN = 1 wBTC
+    );
+
     // BTC: live feed
     IBaseOracle _wbtcUsdOracle =
       chainlinkRelayerFactory.deployChainlinkRelayer(OP_GOERLI_CHAINLINK_BTC_USD_FEED, 1 hours);
-    // STN: denominated feed (1000 STN = 1 wBTC)
-    IBaseOracle _stonesWbtcOracle = new HardcodedOracle('STN / BTC', 0.001e18);
+    // STN: uniswap denominated feed 
+    IBaseOracle _stonesWbtcOracle = uniV3RelayerFactory.deployUniV3Relayer({
+      _baseToken: address(collateral[STONES]),
+      _quoteToken: address(collateral[WBTC]),
+      _feeTier: HAI_POOL_FEE_TIER,
+      _quotePeriod: 1 days
+    });
     IBaseOracle _stonesOracle =
       denominatedOracleFactory.deployDenominatedOracle(_stonesWbtcOracle, _wbtcUsdOracle, false);
     // TTM: hardcoded feed (TTM price is 1)

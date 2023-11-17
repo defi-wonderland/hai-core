@@ -152,8 +152,8 @@ abstract contract GoerliParams is Contracts, Params {
     _tokenDistributorParams = ITokenDistributor.TokenDistributorParams({
       root: 0x1c7788eabca460b90a129ae875a0e7fad60103a3fa45f97e6b512999f37f7688,
       totalClaimable: 1_000_000e18,
-      claimPeriodStart: 1_700_230_000,
-      claimPeriodEnd: 1_700_330_000
+      claimPeriodStart: 1_700_262_000, // 18/11/23
+      claimPeriodEnd: 1_702_854_000 // 18/12/23
     });
   }
 }
