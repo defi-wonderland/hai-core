@@ -16,7 +16,7 @@ contract UniV3Relayer is IBaseOracle, IUniV3Relayer {
   // --- Registry ---
 
   /// @notice Address of the UniswapV3Factory used to fetch the pool address
-  address internal constant _UNI_V3_FACTORY = address(0x1F98431c8aD98523631AE4a59f267346ea31F984);
+  address internal immutable _UNI_V3_FACTORY;
 
   /// @inheritdoc IUniV3Relayer
   address public uniV3Pool;
@@ -45,7 +45,9 @@ contract UniV3Relayer is IBaseOracle, IUniV3Relayer {
    * @param  _feeTier Fee tier of the pool used to consult the quote
    * @param  _quotePeriod Length in seconds of the TWAP used to consult the pool
    */
-  constructor(address _baseToken, address _quoteToken, uint24 _feeTier, uint32 _quotePeriod) {
+  constructor(address _uniV3Factory, address _baseToken, address _quoteToken, uint24 _feeTier, uint32 _quotePeriod) {
+    _UNI_V3_FACTORY = _uniV3Factory;
+
     uniV3Pool = IUniswapV3Factory(_UNI_V3_FACTORY).getPool(_baseToken, _quoteToken, _feeTier);
     if (uniV3Pool == address(0)) revert UniV3Relayer_InvalidPool();
 

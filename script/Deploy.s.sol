@@ -82,7 +82,7 @@ contract DeployMainnet is MainnetParams, Deploy {
   function setupEnvironment() public virtual override updateParams {
     // Deploy oracle factories
     chainlinkRelayerFactory = new ChainlinkRelayerFactory(OP_CHAINLINK_SEQUENCER_UPTIME_FEED);
-    uniV3RelayerFactory = new UniV3RelayerFactory();
+    uniV3RelayerFactory = new UniV3RelayerFactory(UNISWAP_V3_FACTORY);
     denominatedOracleFactory = new DenominatedOracleFactory();
     delayedOracleFactory = new DelayedOracleFactory();
 
@@ -108,6 +108,7 @@ contract DeployMainnet is MainnetParams, Deploy {
 
     // Deploy HAI/WETH UniV3 pool
     _deployUniV3Pool(
+      UNISWAP_V3_FACTORY,
       address(collateral[WETH]),
       address(systemCoin),
       HAI_POOL_FEE_TIER,
@@ -138,7 +139,7 @@ contract DeployGoerli is GoerliParams, Deploy {
 
     // Deploy oracle factories
     chainlinkRelayerFactory = new ChainlinkRelayerFactory(OP_GOERLI_CHAINLINK_SEQUENCER_UPTIME_FEED);
-    uniV3RelayerFactory = new UniV3RelayerFactory();
+    uniV3RelayerFactory = new UniV3RelayerFactory(OP_GOERLI_UNISWAP_V3_FACTORY);
     denominatedOracleFactory = new DenominatedOracleFactory();
     delayedOracleFactory = new DelayedOracleFactory();
 
@@ -168,6 +169,7 @@ contract DeployGoerli is GoerliParams, Deploy {
 
     // Deploy STN / WBTC UniV3 pool
     _deployUniV3Pool(
+      OP_GOERLI_UNISWAP_V3_FACTORY,
       address(collateral[STONES]),
       address(collateral[WBTC]),
       HAI_POOL_FEE_TIER,
