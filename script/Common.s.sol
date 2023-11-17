@@ -381,8 +381,9 @@ abstract contract Common is Contracts, Params {
     address _uniV3Pool = IUniswapV3Factory(UNISWAP_V3_FACTORY).createPool({tokenA: _tokenA, tokenB: _tokenB, fee: _fee});
 
     address _token0 = IUniswapV3Pool(_uniV3Pool).token0();
-    uint160 _sqrtPriceX96 =
-      _token0 == address(_tokenA) ? TickMath.getSqrtRatioAtTick(_initialTick) : TickMath.getSqrtRatioAtTick(-_initialTick);
+    uint160 _sqrtPriceX96 = _token0 == address(_tokenA)
+      ? TickMath.getSqrtRatioAtTick(_initialTick)
+      : TickMath.getSqrtRatioAtTick(-_initialTick);
 
     IUniswapV3Pool(_uniV3Pool).initialize(_sqrtPriceX96);
 

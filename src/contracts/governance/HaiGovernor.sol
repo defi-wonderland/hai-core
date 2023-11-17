@@ -45,7 +45,7 @@ contract HaiGovernor is
     uint256[] memory _values,
     bytes[] memory _calldatas,
     bytes32 _descriptionHash
-  ) internal override(GovernorTimelockControl, Governor) returns (uint256) {
+  ) internal override(Governor, GovernorTimelockControl) returns (uint256) {
     return super._cancel(_targets, _values, _calldatas, _descriptionHash);
   }
 
@@ -55,11 +55,11 @@ contract HaiGovernor is
     uint256[] memory _values,
     bytes[] memory _calldatas,
     bytes32 _descriptionHash
-  ) internal override(GovernorTimelockControl, Governor) {
+  ) internal override(Governor, GovernorTimelockControl) {
     super._executeOperations(_proposalId, _targets, _values, _calldatas, _descriptionHash);
   }
 
-  function _executor() internal view override(GovernorTimelockControl, Governor) returns (address) {
+  function _executor() internal view override(Governor, GovernorTimelockControl) returns (address) {
     return super._executor();
   }
 
@@ -69,24 +69,24 @@ contract HaiGovernor is
     uint256[] memory _values,
     bytes[] memory _calldatas,
     bytes32 _descriptionHash
-  ) internal override(GovernorTimelockControl, Governor) returns (uint48) {
+  ) internal override(Governor, GovernorTimelockControl) returns (uint48) {
     return super._queueOperations(_proposalId, _targets, _values, _calldatas, _descriptionHash);
   }
 
   function proposalNeedsQueuing(uint256 _proposalId)
     public
     view
-    override(GovernorTimelockControl, Governor)
+    override(Governor, GovernorTimelockControl)
     returns (bool)
   {
     return super.proposalNeedsQueuing(_proposalId);
   }
 
-  function proposalThreshold() public view override(GovernorSettings, Governor) returns (uint256) {
+  function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
     return super.proposalThreshold();
   }
 
-  function state(uint256 _proposalId) public view override(GovernorTimelockControl, Governor) returns (ProposalState) {
+  function state(uint256 _proposalId) public view override(Governor, GovernorTimelockControl) returns (ProposalState) {
     return super.state(_proposalId);
   }
 }
