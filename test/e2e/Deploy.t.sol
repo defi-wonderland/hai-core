@@ -148,7 +148,7 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     for (uint256 _i; _i < collateralTypes.length; _i++) {
       bytes32 _cType = collateralTypes[_i];
       assertEq(collateralAuctionHouse[_cType].authorizedAccounts(address(collateralAuctionHouseFactory)), true);
-      
+
       assertEq(collateralAuctionHouse[_cType].authorizedAccounts(address(liquidationEngine)), true);
       assertEq(collateralAuctionHouse[_cType].authorizedAccounts(address(governor)), true);
 
@@ -319,13 +319,13 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   function test_TokenDistributor() public {
     assertEq(address(tokenDistributor).code, type(TokenDistributor).runtimeCode);
 
-    assertEq(protocolToken.balanceOf(address(tokenDistributor)), 1_000_000e18);
-    assertEq(protocolToken.totalSupply(), 1_000_000e18);
+    assertEq(protocolToken.balanceOf(address(tokenDistributor)), _tokenDistributorParams.totalClaimable);
+    assertEq(protocolToken.totalSupply(), _tokenDistributorParams.totalClaimable);
 
-    assertEq(tokenDistributor.root(), bytes32(0));
-    assertEq(tokenDistributor.totalClaimable(), 1_000_000e18);
-    // assertEq claimPeriodStart
-    // assertEq claimPeriodEnd
+    assertEq(tokenDistributor.root(), _tokenDistributorParams.root);
+    assertEq(tokenDistributor.totalClaimable(), _tokenDistributorParams.totalClaimable);
+    assertEq(tokenDistributor.claimPeriodStart(), _tokenDistributorParams.claimPeriodStart);
+    assertEq(tokenDistributor.claimPeriodEnd(), _tokenDistributorParams.claimPeriodEnd);
   }
 
   function _test_Authorizations(address _target, bool _permission) internal {

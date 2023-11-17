@@ -148,5 +148,12 @@ abstract contract GoerliParams is Contracts, Params {
       quorumNumeratorValue: 1, // 1%
       timelockMinDelay: 3600 // 1 hour
     });
+
+    _tokenDistributorParams = ITokenDistributor.TokenDistributorParams({
+      root: 0x1c7788eabca460b90a129ae875a0e7fad60103a3fa45f97e6b512999f37f7688,
+      totalClaimable: 1_000_000e18,
+      claimPeriodStart: 1_700_230_000,
+      claimPeriodEnd: 1_700_330_000
+    });
   }
 }

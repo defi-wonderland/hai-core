@@ -5,6 +5,19 @@ import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 import {ERC20Votes} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 
 interface ITokenDistributor is IAuthorizable {
+  // --- Structs ---
+
+  struct TokenDistributorParams {
+    // Bytes32 representation of the merkle root
+    bytes32 root;
+    // Total amount of tokens to be distributed
+    uint256 totalClaimable;
+    // Timestamp when the claim period starts
+    uint256 claimPeriodStart;
+    // Timestamp when the claim period ends
+    uint256 claimPeriodEnd;
+  }
+
   // --- Events ---
 
   /**

@@ -78,7 +78,7 @@ abstract contract Common is Contracts, Params {
     _revoke(oracleJob, _governor);
 
     // token distributor
-    _revoke(tokenDistributor, _governor);
+    if (address(tokenDistributor) != address(0)) _revoke(tokenDistributor, _governor);
   }
 
   function _revoke(IAuthorizable _contract, address _target) internal {
@@ -131,7 +131,7 @@ abstract contract Common is Contracts, Params {
     _delegate(oracleJob, __delegate);
 
     // token distributor
-    _delegate(tokenDistributor, __delegate);
+    if (address(tokenDistributor) != address(0)) _delegate(tokenDistributor, __delegate);
   }
 
   function _delegate(IAuthorizable _contract, address _target) internal {
@@ -251,17 +251,18 @@ abstract contract Common is Contracts, Params {
   }
 
   function deployTokenDistributor() public updateParams {
-    // Deploy aidrop distributor contract
-    tokenDistributor = new TokenDistributor({
-    _root: bytes32(0), // TODO: add merkle root
-    _token: ERC20Votes(address(protocolToken)),
-    _totalClaimable: 1_000_000e18, // TODO: add to params and test
-    _claimPeriodStart: block.timestamp + 1, // TODO: use block.timestamp + x hs
-    _claimPeriodEnd: block.timestamp + 864000 // TODO: use block.timestamp + 1 month
-    });
+    ITokenDistributor.TokenDistributorParams memory _emptyTokenDistributorParams;
+    // if token distributor params are not empty, deploy token distributor
+    if (keccak256(abi.encode(_tokenDistributorParams)) != keccak256(abi.encode(_emptyTokenDistributorParams))) {
+      // Deploy aidrop distributor contract
+      tokenDistributor = new TokenDistributor(
+        ERC20Votes(address(protocolToken)),
+        _tokenDistributorParams
+        );
 
-    // Mint initial supply to the distributor
-    protocolToken.mint(address(tokenDistributor), 1_000_000e18);
+      // Mint initial supply to the distributor
+      protocolToken.mint(address(tokenDistributor), _tokenDistributorParams.totalClaimable);
+    }
   }
 
   function _setupGlobalSettlement() internal {

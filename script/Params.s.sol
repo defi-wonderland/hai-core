@@ -19,6 +19,7 @@ import {
   IGlobalSettlement,
   IPostSettlementSurplusAuctionHouse,
   IHaiGovernor,
+  ITokenDistributor,
   IModifiable
 } from '@script/Contracts.s.sol';
 
@@ -93,6 +94,7 @@ abstract contract Params {
 
   // --- Governor params ---
   IHaiGovernor.HaiGovernorParams _governorParams;
+  ITokenDistributor.TokenDistributorParams _tokenDistributorParams;
 }
 
 /**

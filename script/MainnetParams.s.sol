@@ -138,5 +138,12 @@ abstract contract MainnetParams is Contracts, Params {
       quorumNumeratorValue: 1, // 1%
       timelockMinDelay: 86_400 // 1 day
     });
+
+    _tokenDistributorParams = ITokenDistributor.TokenDistributorParams({
+      root: bytes32(keccak256('420')),
+      totalClaimable: 1_000_000e18,
+      claimPeriodStart: 1_700_230_000,
+      claimPeriodEnd: 1_700_330_000
+    });
   }
 }
