@@ -5,8 +5,9 @@ import {HaiTest} from '@test/utils/HaiTest.t.sol';
 import {Deploy, DeployMainnet, DeployGoerli} from '@script/Deploy.s.sol';
 
 import {ParamChecker, WETH, WSTETH, OP, WBTC, STONES} from '@script/Params.s.sol';
-import {OP_OPTIMISM} from '@script/Registry.s.sol';
+import {OP_OPTIMISM, OP_CHAINLINK_ETH_USD_FEED} from '@script/Registry.s.sol';
 import {ERC20Votes} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
+import {IChainlinkOracle} from '@interfaces/oracles/IChainlinkOracle.sol';
 
 import '@script/Contracts.s.sol';
 import {GoerliDeployment} from '@script/GoerliDeployment.s.sol';
@@ -389,11 +390,21 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
   }
 
   function test_pid_update_rate() public {
+    vm.mockCall(
+      OP_CHAINLINK_ETH_USD_FEED,
+      abi.encodeWithSelector(IChainlinkOracle.latestRoundData.selector),
+      abi.encode(uint80(1), uint256(2000e8), uint256(0), uint256(block.timestamp - 1), uint64(0))
+    );
+
     vm.expectRevert(IPIDRateSetter.PIDRateSetter_InvalidPriceFeed.selector);
     pidRateSetter.updateRate();
 
-    uint256 _quotePeriod = IUniV3Relayer(address(systemCoinOracle)).quotePeriod();
-    skip(_quotePeriod);
+    skip(1 days);
+    vm.mockCall(
+      OP_CHAINLINK_ETH_USD_FEED,
+      abi.encodeWithSelector(IChainlinkOracle.latestRoundData.selector),
+      abi.encode(uint80(1), uint256(2000e8), uint256(0), uint256(block.timestamp - 1), uint64(0))
+    );
 
     pidRateSetter.updateRate();
 
@@ -402,6 +413,12 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
 
     uint256 _updateRateDelay = pidRateSetter.params().updateRateDelay;
     skip(_updateRateDelay);
+
+    vm.mockCall(
+      OP_CHAINLINK_ETH_USD_FEED,
+      abi.encodeWithSelector(IChainlinkOracle.latestRoundData.selector),
+      abi.encode(uint80(1), uint256(2000e8), uint256(0), uint256(block.timestamp - 1), uint64(0))
+    );
 
     pidRateSetter.updateRate();
   }
@@ -416,7 +433,7 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
 }
 
 contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
-  uint256 FORK_BLOCK = 17_000_000;
+  uint256 FORK_BLOCK = 17_400_000;
 
   function setUp() public override {
     vm.createSelectFork(vm.rpcUrl('goerli'), FORK_BLOCK);
