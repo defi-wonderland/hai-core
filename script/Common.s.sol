@@ -150,7 +150,7 @@ abstract contract Common is Contracts, Params {
   function deployGovernance() public updateParams {
     IHaiGovernor.HaiGovernorParams memory _emptyGovernorParams;
     // if governor params are not empty, deploy governor
-    if(keccak256(abi.encode(_governorParams)) != keccak256(abi.encode(_emptyGovernorParams))) {
+    if (keccak256(abi.encode(_governorParams)) != keccak256(abi.encode(_emptyGovernorParams))) {
       haiGovernor = new HaiGovernor(
         protocolToken,
         'HaiGovernor',

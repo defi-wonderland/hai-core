@@ -12,6 +12,8 @@ import '@script/Contracts.s.sol';
 import {GoerliDeployment} from '@script/GoerliDeployment.s.sol';
 
 abstract contract CommonDeploymentTest is HaiTest, Deploy {
+  uint256 _governorAccounts;
+
   // SAFEEngine
   function test_SAFEEngine_Bytecode() public {
     assertEq(address(safeEngine).code, type(SAFEEngine).runtimeCode);
@@ -24,10 +26,17 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(safeEngine.authorizedAccounts(address(liquidationEngine)), true);
     assertEq(safeEngine.authorizedAccounts(address(globalSettlement)), true);
 
+    assertEq(safeEngine.authorizedAccounts(address(coinJoin)), true);
+    assertEq(safeEngine.authorizedAccounts(address(collateralJoinFactory)), true);
+
+    for (uint256 _i; _i < collateralTypes.length; _i++) {
+      assertEq(safeEngine.authorizedAccounts(address(collateralJoin[collateralTypes[_i]])), true);
+    }
+
     assertTrue(safeEngine.canModifySAFE(address(accountingEngine), address(surplusAuctionHouse)));
 
-    // 5 contracts + 2 for each collateral type (cJoin, CAH) + 1 for governor
-    assertEq(safeEngine.authorizedAccounts().length, 5 + 2 * collateralTypes.length + 1);
+    // 7 contracts + 1 for each collateral type (cJoin) + governor accounts
+    assertEq(safeEngine.authorizedAccounts().length, 7 + collateralTypes.length + _governorAccounts);
   }
 
   function test_SAFEEngine_Params() public view {
@@ -43,8 +52,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(oracleRelayer.authorizedAccounts(address(pidRateSetter)), true);
     assertEq(oracleRelayer.authorizedAccounts(address(globalSettlement)), true);
 
-    // 2 contracts + 1 for governor
-    assertEq(oracleRelayer.authorizedAccounts().length, 2 + 1);
+    // 2 contracts + governor accounts
+    assertEq(oracleRelayer.authorizedAccounts().length, 2 + _governorAccounts);
   }
 
   // AccountingEngine
@@ -56,8 +65,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(accountingEngine.authorizedAccounts(address(liquidationEngine)), true);
     assertEq(accountingEngine.authorizedAccounts(address(globalSettlement)), true);
 
-    // 2 contracts + 1 for governor
-    assertEq(accountingEngine.authorizedAccounts().length, 2 + 1);
+    // 2 contracts + governor accounts
+    assertEq(accountingEngine.authorizedAccounts().length, 2 + _governorAccounts);
   }
 
   function test_AccountingEntine_Params() public view {
@@ -73,8 +82,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   function test_SystemCoin_Auth() public {
     assertEq(systemCoin.authorizedAccounts(address(coinJoin)), true);
 
-    // 1 contract + 1 for governor
-    assertEq(systemCoin.authorizedAccounts().length, 1 + 1);
+    // 1 contract + governor accounts
+    assertEq(systemCoin.authorizedAccounts().length, 1 + _governorAccounts);
   }
 
   // ProtocolToken
@@ -86,8 +95,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   function test_ProtocolToken_Auth() public {
     assertEq(protocolToken.authorizedAccounts(address(debtAuctionHouse)), true);
 
-    // 1 contract + 1 for governor
-    assertEq(protocolToken.authorizedAccounts().length, 1 + 1);
+    // 1 contract + governor accounts
+    assertEq(protocolToken.authorizedAccounts().length, 1 + _governorAccounts);
   }
 
   // SurplusAuctionHouse
@@ -98,8 +107,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   function test_SurplusAuctionHouse_Auth() public {
     assertEq(surplusAuctionHouse.authorizedAccounts(address(accountingEngine)), true);
 
-    // 1 contract + 1 for governor
-    assertEq(surplusAuctionHouse.authorizedAccounts().length, 1 + 1);
+    // 1 contract + governor accounts
+    assertEq(surplusAuctionHouse.authorizedAccounts().length, 1 + _governorAccounts);
   }
 
   function test_SurplusAuctionHouse_Params() public view {
@@ -114,8 +123,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   function test_DebtAuctionHouse_Auth() public {
     assertEq(debtAuctionHouse.authorizedAccounts(address(accountingEngine)), true);
 
-    // 1 contract + 1 for governor
-    assertEq(debtAuctionHouse.authorizedAccounts().length, 1 + 1);
+    // 1 contract + governor accounts
+    assertEq(debtAuctionHouse.authorizedAccounts().length, 1 + _governorAccounts);
   }
 
   function test_DebtAuctionHouse_Params() public view {
@@ -131,17 +140,19 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(collateralAuctionHouseFactory.authorizedAccounts(address(liquidationEngine)), true);
     assertEq(collateralAuctionHouseFactory.authorizedAccounts(address(globalSettlement)), true);
 
-    // 2 contracts + 1 for governor
-    assertEq(collateralAuctionHouseFactory.authorizedAccounts().length, 2 + 1);
+    // 2 contracts + governor accounts
+    assertEq(collateralAuctionHouseFactory.authorizedAccounts().length, 2 + _governorAccounts);
   }
 
   function test_CollateralAuctionHouse_Auth() public {
     for (uint256 _i; _i < collateralTypes.length; _i++) {
       bytes32 _cType = collateralTypes[_i];
+      assertEq(collateralAuctionHouse[_cType].authorizedAccounts(address(collateralAuctionHouseFactory)), true);
+      
       assertEq(collateralAuctionHouse[_cType].authorizedAccounts(address(liquidationEngine)), true);
       assertEq(collateralAuctionHouse[_cType].authorizedAccounts(address(governor)), true);
 
-      // 1 contract (governor is authorized in the factory)
+      // 1 contract (liquidation engine and governor are authorized in the factory)
       assertEq(collateralAuctionHouse[_cType].authorizedAccounts().length, 1);
     }
   }
@@ -163,8 +174,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   function test_LiquidationEngine_Auth() public {
     assertEq(liquidationEngine.authorizedAccounts(address(globalSettlement)), true);
 
-    // 1 contract + 1 per collateralType + 1 for governor
-    assertEq(liquidationEngine.authorizedAccounts().length, 1 + collateralTypes.length + 1);
+    // 1 contract + 1 per collateralType + governor accounts
+    assertEq(liquidationEngine.authorizedAccounts().length, 1 + collateralTypes.length + _governorAccounts);
   }
 
   function test_LiquidationEngine_Params() public view {
@@ -178,7 +189,7 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_PIDController_Auth() public {
     // only governor
-    assertEq(pidController.authorizedAccounts().length, 1);
+    assertEq(pidController.authorizedAccounts().length, _governorAccounts);
   }
 
   function test_PIDController_Params() public view {
@@ -192,7 +203,7 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_PIDRateSetter_Auth() public {
     // only governor
-    assertEq(pidRateSetter.authorizedAccounts().length, 1);
+    assertEq(pidRateSetter.authorizedAccounts().length, _governorAccounts);
   }
 
   function test_PIDRateSetter_Params() public view {
@@ -206,7 +217,7 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_TaxCollector_Auth() public {
     // only governor
-    assertEq(taxCollector.authorizedAccounts().length, 1);
+    assertEq(taxCollector.authorizedAccounts().length, _governorAccounts);
   }
 
   function test_TaxCollector_Params() public view {
@@ -221,8 +232,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   function test_StabilityFeeTreasury_Auth() public {
     assertEq(stabilityFeeTreasury.authorizedAccounts(address(globalSettlement)), true);
 
-    // 1 contract + 1 for governor
-    assertEq(stabilityFeeTreasury.authorizedAccounts().length, 1 + 1);
+    // 1 contract + governor accounts
+    assertEq(stabilityFeeTreasury.authorizedAccounts().length, 1 + _governorAccounts);
   }
 
   function test_StabilityFeeTreasury_Params() public view {
@@ -236,7 +247,7 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_GlobalSettlement_Auth() public {
     // only governor
-    assertEq(globalSettlement.authorizedAccounts().length, 1);
+    assertEq(globalSettlement.authorizedAccounts().length, _governorAccounts);
   }
 
   function test_GlobalSettlement_Params() public view {
@@ -251,8 +262,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   function test_PostSettlementSurplusAuctionHouse_Auth() public {
     assertEq(postSettlementSurplusAuctionHouse.authorizedAccounts(address(settlementSurplusAuctioneer)), true);
 
-    // 1 contract + 1 for governor
-    assertEq(postSettlementSurplusAuctionHouse.authorizedAccounts().length, 1 + 1);
+    // 1 contract + governor accounts
+    assertEq(postSettlementSurplusAuctionHouse.authorizedAccounts().length, 1 + _governorAccounts);
   }
 
   function test_PostSettlementSurplusAuctionHouse_Params() public view {
@@ -266,7 +277,7 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_PostSettlementAuctioneer_Auth() public {
     // only governor
-    assertEq(settlementSurplusAuctioneer.authorizedAccounts().length, 1);
+    assertEq(settlementSurplusAuctioneer.authorizedAccounts().length, _governorAccounts);
   }
 
   // Governance checks
@@ -365,6 +376,8 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
     governor = address(69);
     super.setUp();
     run();
+
+    _governorAccounts = 1; // no delegate on production
   }
 
   function setupEnvironment() public override(DeployMainnet, Deploy) {
@@ -395,13 +408,16 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
 }
 
 contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
-  uint256 FORK_BLOCK = 10_000_000;
+  uint256 FORK_BLOCK = 17_000_000;
 
   function setUp() public override {
     vm.createSelectFork(vm.rpcUrl('goerli'), FORK_BLOCK);
     governor = address(69);
     super.setUp();
     run();
+
+    // if there is a delegate, there are 2 governor accounts
+    _governorAccounts = delegate == address(0) ? 1 : 2;
   }
 
   function setupEnvironment() public override(DeployGoerli, Deploy) {
