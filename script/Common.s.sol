@@ -148,16 +148,20 @@ abstract contract Common is Contracts, Params {
   }
 
   function deployGovernance() public updateParams {
-    haiGovernor = new HaiGovernor(
-      protocolToken,
-      'HaiGovernor',
-      _governorParams
-    );
+    IHaiGovernor.HaiGovernorParams memory _emptyGovernorParams;
+    // if governor params are not empty, deploy governor
+    if(keccak256(abi.encode(_governorParams)) != keccak256(abi.encode(_emptyGovernorParams))) {
+      haiGovernor = new HaiGovernor(
+        protocolToken,
+        'HaiGovernor',
+        _governorParams
+      );
 
-    timelock = TimelockController(payable(haiGovernor.timelock()));
+      timelock = TimelockController(payable(haiGovernor.timelock()));
 
-    // sets timelock as protocol governor
-    governor = address(timelock);
+      // sets timelock as protocol governor
+      governor = address(timelock);
+    }
   }
 
   function deployContracts() public updateParams {
