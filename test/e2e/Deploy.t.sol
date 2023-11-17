@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 import {HaiTest} from '@test/utils/HaiTest.t.sol';
 import {Deploy, DeployMainnet, DeployGoerli} from '@script/Deploy.s.sol';
 
-import {ParamChecker, WETH, WSTETH, OP} from '@script/Params.s.sol';
+import {ParamChecker, WETH, WSTETH, OP, WBTC, STONES} from '@script/Params.s.sol';
 import {OP_OPTIMISM} from '@script/Registry.s.sol';
 import {ERC20Votes} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 
@@ -405,6 +405,14 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
 
     pidRateSetter.updateRate();
   }
+
+  function test_system_coin_oracle() public {
+    vm.warp(block.timestamp + 1 days);
+    (uint256 _quote,) = systemCoinOracle.getResultWithValidity();
+
+    assertEq(systemCoinOracle.symbol(), '(HAI / WETH) * (ETH / USD)');
+    assertEq(1e18 / _quote, 1); // HAI = USD
+  }
 }
 
 contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
@@ -426,6 +434,21 @@ contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
 
   function setupPostEnvironment() public override(DeployGoerli, Deploy) {
     super.setupPostEnvironment();
+  }
+
+  function test_stones_wbtc_oracle() public {
+    vm.warp(block.timestamp + 1 hours);
+    delayedOracle[WBTC].updateResult();
+    delayedOracle[STONES].updateResult();
+    vm.warp(block.timestamp + 1 hours);
+    delayedOracle[WBTC].updateResult();
+    delayedOracle[STONES].updateResult();
+
+    (uint256 _quoteStn,) = delayedOracle[STONES].getResultWithValidity(); // STN / USD
+    (uint256 _quoteBtc,) = delayedOracle[WBTC].getResultWithValidity(); // BTC / USD
+
+    assertEq(delayedOracle[STONES].symbol(), '(STN / wBTC) * (BTC / USD)');
+    assertEq(_quoteBtc / _quoteStn, 1000); // 1000 STN = BTC
   }
 }
 

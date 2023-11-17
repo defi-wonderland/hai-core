@@ -137,7 +137,7 @@ contract E2EOracleSetup is HaiTest {
   function test_DenominatedOracleInvertedSymbol() public {
     IDenominatedOracle usdPriceSource = new DenominatedOracle(wethUsdPriceSource, wethUsdPriceSource, true);
 
-    assertEq(usdPriceSource.symbol(), '(ETH / USD)^-1 / (ETH / USD)');
+    assertEq(usdPriceSource.symbol(), '(ETH / USD)^-1 * (ETH / USD)'); // USD / USD
   }
 
   // --- Delayed ---

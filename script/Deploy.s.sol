@@ -113,15 +113,21 @@ contract DeployMainnet is MainnetParams, Deploy {
       address(systemCoin),
       HAI_POOL_FEE_TIER,
       HAI_POOL_OBSERVATION_CARDINALITY,
-      HAI_ETH_INITIAL_TICK
+      HAI_ETH_INITIAL_TICK // 2000 HAI = 1 ETH
     );
 
     // Setup HAI oracle feed
-    systemCoinOracle = uniV3RelayerFactory.deployUniV3Relayer({
+    IBaseOracle _haiWethOracle = uniV3RelayerFactory.deployUniV3Relayer({
       _baseToken: address(systemCoin),
       _quoteToken: address(collateral[WETH]),
       _feeTier: HAI_POOL_FEE_TIER,
       _quotePeriod: 1 days
+    });
+
+    systemCoinOracle = denominatedOracleFactory.deployDenominatedOracle({
+      _priceSource: _haiWethOracle,
+      _denominationPriceSource: _ethUSDPriceFeed,
+      _inverted: false
     });
   }
 
@@ -174,21 +180,23 @@ contract DeployGoerli is GoerliParams, Deploy {
       address(collateral[WBTC]),
       HAI_POOL_FEE_TIER,
       HAI_POOL_OBSERVATION_CARDINALITY,
-      HAI_ETH_INITIAL_TICK // 2000 STN = 1 wBTC
+      46_054 // 1000.000 STN = 1.00000000 wBTC
     );
 
     // BTC: live feed
     IBaseOracle _wbtcUsdOracle =
       chainlinkRelayerFactory.deployChainlinkRelayer(OP_GOERLI_CHAINLINK_BTC_USD_FEED, 1 hours);
+
     // STN: uniswap denominated feed
     IBaseOracle _stonesWbtcOracle = uniV3RelayerFactory.deployUniV3Relayer({
       _baseToken: address(collateral[STONES]),
       _quoteToken: address(collateral[WBTC]),
-      _feeTier: HAI_POOL_FEE_TIER,
-      _quotePeriod: 1 days
+      _feeTier: HAI_POOL_FEE_TIER, // 2000 STN = 1 wBTC
+      _quotePeriod: 1 hours
     });
     IBaseOracle _stonesOracle =
       denominatedOracleFactory.deployDenominatedOracle(_stonesWbtcOracle, _wbtcUsdOracle, false);
+
     // TTM: hardcoded feed (TTM price is 1)
     IBaseOracle _totemOracle = new HardcodedOracle('TTM', 1e18);
 
