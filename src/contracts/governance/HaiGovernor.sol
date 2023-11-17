@@ -34,7 +34,7 @@ contract HaiGovernor is
     GovernorTimelockControl(
       new TimelockController({
           minDelay: _params.timelockMinDelay,
-          proposers: new address[](1),
+          proposers: new address[](0),
           executors: new address[](0),
           admin: address(this)
         })
