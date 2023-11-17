@@ -469,16 +469,16 @@ contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
   }
 }
 
-/**
- * TODO: uncomment after Goerli deployment
- * contract GoerliDeploymentTest is GoerliDeployment, CommonDeploymentTest {
- *   function setUp() public {
- *     vm.createSelectFork(vm.rpcUrl('goerli'), GOERLI_DEPLOYMENT_BLOCK);
- *     _getEnvironmentParams();
- *   }
- *
- *   function test_Delegated_OP() public {
- *     assertEq(ERC20Votes(OP_OPTIMISM).delegates(address(collateralJoin[OP])), governor);
- *   }
- * }
- */
+contract GoerliDeploymentTest is GoerliDeployment, CommonDeploymentTest {
+  function setUp() public {
+    vm.createSelectFork(vm.rpcUrl('goerli'), GOERLI_DEPLOYMENT_BLOCK);
+    _getEnvironmentParams();
+
+    // if there is a delegate, there are 2 governor accounts
+    _governorAccounts = 2;
+  }
+
+  function test_Delegated_OP() public {
+    assertEq(ERC20Votes(OP_OPTIMISM).delegates(address(collateralJoin[OP])), governor);
+  }
+}
