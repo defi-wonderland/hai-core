@@ -22,8 +22,12 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(safeEngine.authorizedAccounts(address(taxCollector)), true);
     assertEq(safeEngine.authorizedAccounts(address(debtAuctionHouse)), true);
     assertEq(safeEngine.authorizedAccounts(address(liquidationEngine)), true);
+    assertEq(safeEngine.authorizedAccounts(address(globalSettlement)), true);
 
     assertTrue(safeEngine.canModifySAFE(address(accountingEngine), address(surplusAuctionHouse)));
+
+    // 5 contracts + 2 for each collateral type (cJoin, CAH) + 1 for governor
+    assertEq(safeEngine.authorizedAccounts().length, 5 + 2 * collateralTypes.length + 1);
   }
 
   function test_SAFEEngine_Params() public view {
@@ -37,6 +41,10 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_OracleRelayer_Auth() public {
     assertEq(oracleRelayer.authorizedAccounts(address(pidRateSetter)), true);
+    assertEq(oracleRelayer.authorizedAccounts(address(globalSettlement)), true);
+
+    // 2 contracts + 1 for governor
+    assertEq(oracleRelayer.authorizedAccounts().length, 2 + 1);
   }
 
   // AccountingEngine
@@ -46,6 +54,10 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_AccountingEngine_Auth() public {
     assertEq(accountingEngine.authorizedAccounts(address(liquidationEngine)), true);
+    assertEq(accountingEngine.authorizedAccounts(address(globalSettlement)), true);
+
+    // 2 contracts + 1 for governor
+    assertEq(accountingEngine.authorizedAccounts().length, 2 + 1);
   }
 
   function test_AccountingEntine_Params() public view {
@@ -60,6 +72,9 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_SystemCoin_Auth() public {
     assertEq(systemCoin.authorizedAccounts(address(coinJoin)), true);
+
+    // 1 contract + 1 for governor
+    assertEq(systemCoin.authorizedAccounts().length, 1 + 1);
   }
 
   // ProtocolToken
@@ -70,6 +85,9 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_ProtocolToken_Auth() public {
     assertEq(protocolToken.authorizedAccounts(address(debtAuctionHouse)), true);
+
+    // 1 contract + 1 for governor
+    assertEq(protocolToken.authorizedAccounts().length, 1 + 1);
   }
 
   // SurplusAuctionHouse
@@ -79,6 +97,9 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_SurplusAuctionHouse_Auth() public {
     assertEq(surplusAuctionHouse.authorizedAccounts(address(accountingEngine)), true);
+
+    // 1 contract + 1 for governor
+    assertEq(surplusAuctionHouse.authorizedAccounts().length, 1 + 1);
   }
 
   function test_SurplusAuctionHouse_Params() public view {
@@ -92,6 +113,9 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_DebtAuctionHouse_Auth() public {
     assertEq(debtAuctionHouse.authorizedAccounts(address(accountingEngine)), true);
+
+    // 1 contract + 1 for governor
+    assertEq(debtAuctionHouse.authorizedAccounts().length, 1 + 1);
   }
 
   function test_DebtAuctionHouse_Params() public view {
@@ -103,10 +127,22 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(address(collateralAuctionHouseFactory).code, type(CollateralAuctionHouseFactory).runtimeCode);
   }
 
+  function test_CollateralAuctionHouseFactory_Auth() public {
+    assertEq(collateralAuctionHouseFactory.authorizedAccounts(address(liquidationEngine)), true);
+    assertEq(collateralAuctionHouseFactory.authorizedAccounts(address(globalSettlement)), true);
+
+    // 2 contracts + 1 for governor
+    assertEq(collateralAuctionHouseFactory.authorizedAccounts().length, 2 + 1);
+  }
+
   function test_CollateralAuctionHouse_Auth() public {
     for (uint256 _i; _i < collateralTypes.length; _i++) {
       bytes32 _cType = collateralTypes[_i];
       assertEq(collateralAuctionHouse[_cType].authorizedAccounts(address(liquidationEngine)), true);
+      assertEq(collateralAuctionHouse[_cType].authorizedAccounts(address(governor)), true);
+
+      // 1 contract (governor is authorized in the factory)
+      assertEq(collateralAuctionHouse[_cType].authorizedAccounts().length, 1);
     }
   }
 
@@ -126,6 +162,9 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_LiquidationEngine_Auth() public {
     assertEq(liquidationEngine.authorizedAccounts(address(globalSettlement)), true);
+
+    // 1 contract + 1 per collateralType + 1 for governor
+    assertEq(liquidationEngine.authorizedAccounts().length, 1 + collateralTypes.length + 1);
   }
 
   function test_LiquidationEngine_Params() public view {
@@ -138,7 +177,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   }
 
   function test_PIDController_Auth() public {
-    // TODO
+    // only governor
+    assertEq(pidController.authorizedAccounts().length, 1);
   }
 
   function test_PIDController_Params() public view {
@@ -151,11 +191,42 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   }
 
   function test_PIDRateSetter_Auth() public {
-    // TODO: count external auths for each contract
+    // only governor
+    assertEq(pidRateSetter.authorizedAccounts().length, 1);
   }
 
   function test_PIDRateSetter_Params() public view {
     ParamChecker._checkParams(address(pidRateSetter), abi.encode(_pidRateSetterParams));
+  }
+
+  // TaxCollector
+  function test_TaxCollector_Bytecode() public {
+    assertEq(address(taxCollector).code, type(TaxCollector).runtimeCode);
+  }
+
+  function test_TaxCollector_Auth() public {
+    // only governor
+    assertEq(taxCollector.authorizedAccounts().length, 1);
+  }
+
+  function test_TaxCollector_Params() public view {
+    ParamChecker._checkParams(address(taxCollector), abi.encode(_taxCollectorParams));
+  }
+
+  // StabilityFeeTreasury
+  function test_StabilityFeeTreasury_Bytecode() public {
+    assertEq(address(stabilityFeeTreasury).code, type(StabilityFeeTreasury).runtimeCode);
+  }
+
+  function test_StabilityFeeTreasury_Auth() public {
+    assertEq(stabilityFeeTreasury.authorizedAccounts(address(globalSettlement)), true);
+
+    // 1 contract + 1 for governor
+    assertEq(stabilityFeeTreasury.authorizedAccounts().length, 1 + 1);
+  }
+
+  function test_StabilityFeeTreasury_Params() public view {
+    ParamChecker._checkParams(address(stabilityFeeTreasury), abi.encode(_stabilityFeeTreasuryParams));
   }
 
   // GlobalSettlement
@@ -164,7 +235,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   }
 
   function test_GlobalSettlement_Auth() public {
-    // assertEq(globalSettlement.authorizedAccounts(address(governor)), true);
+    // only governor
+    assertEq(globalSettlement.authorizedAccounts().length, 1);
   }
 
   function test_GlobalSettlement_Params() public view {
@@ -174,6 +246,13 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   // PostSettlementSurplusAuctionHouse
   function test_PostSettlementSurplusAuctionHouse_Bytecode() public {
     assertEq(address(postSettlementSurplusAuctionHouse).code, type(PostSettlementSurplusAuctionHouse).runtimeCode);
+  }
+
+  function test_PostSettlementSurplusAuctionHouse_Auth() public {
+    assertEq(postSettlementSurplusAuctionHouse.authorizedAccounts(address(settlementSurplusAuctioneer)), true);
+
+    // 1 contract + 1 for governor
+    assertEq(postSettlementSurplusAuctionHouse.authorizedAccounts().length, 1 + 1);
   }
 
   function test_PostSettlementSurplusAuctionHouse_Params() public view {
@@ -186,7 +265,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   }
 
   function test_PostSettlementAuctioneer_Auth() public {
-    assertEq(settlementSurplusAuctioneer.authorizedAccounts(governor), true);
+    // only governor
+    assertEq(settlementSurplusAuctioneer.authorizedAccounts().length, 1);
   }
 
   // Governance checks
@@ -200,11 +280,14 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(address(timelock).code, type(TimelockController).runtimeCode);
   }
 
-  function test_Timelock_Params() public {
-    assertEq(timelock.getMinDelay(), _governorParams.timelockMinDelay);
+  function test_Timelock_Auth() public {
     assertEq(timelock.hasRole(keccak256('PROPOSER_ROLE'), address(haiGovernor)), true);
     assertEq(timelock.hasRole(keccak256('CANCELLER_ROLE'), address(haiGovernor)), true);
     assertEq(timelock.hasRole(keccak256('EXECUTOR_ROLE'), address(0)), true);
+  }
+
+  function test_Timelock_Params() public {
+    assertEq(timelock.getMinDelay(), _governorParams.timelockMinDelay);
   }
 
   function test_HaiGovernor_Bytecode_MANUAL_CHECK() public {

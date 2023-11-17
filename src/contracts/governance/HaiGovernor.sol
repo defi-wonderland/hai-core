@@ -33,11 +33,11 @@ contract HaiGovernor is
     GovernorVotesQuorumFraction(_params.quorumNumeratorValue)
     GovernorTimelockControl(
       new TimelockController({
-          minDelay: _params.timelockMinDelay,
-          proposers: new address[](0),
-          executors: new address[](0),
-          admin: address(this)
-        })
+                minDelay: _params.timelockMinDelay,
+                proposers: new address[](0),
+                executors: new address[](0),
+                admin: address(this)
+              })
     )
   {
     TimelockController _timelock = TimelockController(payable(timelock()));

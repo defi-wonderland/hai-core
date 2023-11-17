@@ -155,6 +155,8 @@ abstract contract Common is Contracts, Params {
     );
 
     timelock = TimelockController(payable(haiGovernor.timelock()));
+
+    // sets timelock as protocol governor
     governor = address(timelock);
   }
 
@@ -173,6 +175,7 @@ abstract contract Common is Contracts, Params {
             address(protocolToken),
             _surplusAuctionHouseParams
         );
+
     debtAuctionHouse = new DebtAuctionHouse(
             address(safeEngine),
             address(protocolToken),
@@ -192,11 +195,15 @@ abstract contract Common is Contracts, Params {
             _liquidationEngineParams
         );
 
-    collateralAuctionHouseFactory =
-      new CollateralAuctionHouseFactory(address(safeEngine), address(liquidationEngine), address(oracleRelayer));
+    collateralAuctionHouseFactory = new CollateralAuctionHouseFactory(
+        address(safeEngine), 
+        address(liquidationEngine), 
+        address(oracleRelayer)
+        );
 
     // deploy Token adapters
     coinJoin = new CoinJoin(address(safeEngine), address(systemCoin));
+
     collateralJoinFactory = new CollateralJoinFactory(address(safeEngine));
   }
 
