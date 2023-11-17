@@ -142,8 +142,8 @@ abstract contract MainnetParams is Contracts, Params {
     _tokenDistributorParams = ITokenDistributor.TokenDistributorParams({
       root: bytes32(keccak256('420')),
       totalClaimable: 1_000_000e18,
-      claimPeriodStart: 1_700_230_000,
-      claimPeriodEnd: 1_700_330_000
+      claimPeriodStart: 1_704_063_600, // 1/1/24
+      claimPeriodEnd: 1_706_742_000 // 1/2/24
     });
   }
 }

@@ -178,7 +178,7 @@ contract DeployGoerli is GoerliParams, Deploy {
     // BTC: live feed
     IBaseOracle _wbtcUsdOracle =
       chainlinkRelayerFactory.deployChainlinkRelayer(OP_GOERLI_CHAINLINK_BTC_USD_FEED, 1 hours);
-    // STN: uniswap denominated feed 
+    // STN: uniswap denominated feed
     IBaseOracle _stonesWbtcOracle = uniV3RelayerFactory.deployUniV3Relayer({
       _baseToken: address(collateral[STONES]),
       _quoteToken: address(collateral[WBTC]),
