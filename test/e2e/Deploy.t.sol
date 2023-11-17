@@ -200,10 +200,11 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(address(timelock).code, type(TimelockController).runtimeCode);
   }
 
-  function test_Timelock_Params_MANUAL_CHECK() public {
-    assertEq(timelock.getMinDelay(), _timelockControllerParams.minDelay);
-    // Proposers, Executors, and Admin cannot be checked
-    // Needs to be manually checked
+  function test_Timelock_Params() public {
+    assertEq(timelock.getMinDelay(), _governorParams.timelockMinDelay);
+    assertEq(timelock.hasRole(keccak256('PROPOSER_ROLE'), address(haiGovernor)), true);
+    assertEq(timelock.hasRole(keccak256('CANCELLER_ROLE'), address(haiGovernor)), true);
+    assertEq(timelock.hasRole(keccak256('EXECUTOR_ROLE'), address(0)), true);
   }
 
   function test_HaiGovernor_Bytecode_MANUAL_CHECK() public {

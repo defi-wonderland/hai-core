@@ -24,19 +24,31 @@ contract HaiGovernor is
 {
   constructor(
     IVotes _token,
-    TimelockController _timelock,
     string memory _governorName,
     IHaiGovernor.HaiGovernorParams memory _params
   )
     Governor(_governorName)
     GovernorSettings(_params.votingDelay, _params.votingPeriod, _params.proposalThreshold)
     GovernorVotes(_token)
-    GovernorVotesQuorumFraction(1) // TODO: set quorum
-    GovernorTimelockControl(_timelock)
-  {}
+    GovernorVotesQuorumFraction(_params.quorumNumeratorValue)
+    GovernorTimelockControl(
+      new TimelockController({
+          minDelay: _params.timelockMinDelay,
+          proposers: new address[](1),
+          executors: new address[](0),
+          admin: address(this)
+        })
+    )
+  {
+    TimelockController _timelock = TimelockController(payable(timelock()));
+    _timelock.grantRole(keccak256('PROPOSER_ROLE'), address(this));
+    _timelock.grantRole(keccak256('CANCELLER_ROLE'), address(this));
+
+    _timelock.grantRole(keccak256('EXECUTOR_ROLE'), address(0));
+  }
 
   /**
-   * Set the clock to block timestamp, as opposed to the default block number.
+   * Set the clock to block timestamp, as opposed to the default block number
    */
 
   function clock() public view override(Governor, GovernorVotes) returns (uint48) {

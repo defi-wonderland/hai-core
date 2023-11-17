@@ -131,20 +131,12 @@ abstract contract MainnetParams is Contracts, Params {
     _liquidationEngineCParams[WSTETH].liquidationPenalty = 1.15e18; // WAD
 
     // --- Governance Params ---
-    governor = address(timelock);
-
-    _timelockControllerParams = ITimelockController.TimelockControllerParams({
-      minDelay: 86_400, // 1 day
-      proposers: new address[](0),
-      executors: new address[](0),
-      admin: address(0)
-    });
-
-    // TODO: verify that 3600 = 12hs is the correct value (OP Mainnet)
     _governorParams = IHaiGovernor.HaiGovernorParams({
       votingDelay: 43_200, // 12 hours
       votingPeriod: 129_600, // 36 hours
-      proposalThreshold: 5000e18 // 5k
+      proposalThreshold: 5000e18, // 5k
+      quorumNumeratorValue: 1, // 1%
+      timelockMinDelay: 86_400 // 1 day
     });
   }
 }

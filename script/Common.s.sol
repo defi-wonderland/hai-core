@@ -148,21 +148,14 @@ abstract contract Common is Contracts, Params {
   }
 
   function deployGovernance() public updateParams {
-    // TODO: verify parameters and store them in MainnetParams.sol
-    // TODO: add test for the correct set-up of these contracts
-    timelock = new TimelockController(
-      _timelockControllerParams.minDelay, // minDelay
-      _timelockControllerParams.proposers, // proposers
-      _timelockControllerParams.executors, // executors
-      _timelockControllerParams.admin // admin
-      );
-
     haiGovernor = new HaiGovernor(
       protocolToken,
-      timelock,
       'HaiGovernor',
       _governorParams
     );
+
+    timelock = TimelockController(payable(haiGovernor.timelock()));
+    governor = address(timelock);
   }
 
   function deployContracts() public updateParams {

@@ -6,5 +6,7 @@ interface IHaiGovernor {
     uint48 votingDelay;
     uint32 votingPeriod;
     uint256 proposalThreshold;
+    uint256 quorumNumeratorValue;
+    uint256 timelockMinDelay;
   }
 }

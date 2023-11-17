@@ -79,7 +79,6 @@ import {HaiProxyFactory} from '@contracts/proxies/HaiProxyFactory.sol';
 import {HaiSafeManager} from '@contracts/proxies/HaiSafeManager.sol';
 
 // --- Governance Contracts ---
-import {ITimelockController} from '@interfaces/governance/ITimelockController.sol';
 import {TimelockController} from '@openzeppelin/contracts/governance/TimelockController.sol';
 import {HaiGovernor, IHaiGovernor} from '@contracts/governance/HaiGovernor.sol';
 import {TokenDistributor} from '@contracts/tokens/TokenDistributor.sol';

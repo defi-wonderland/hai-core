@@ -141,19 +141,12 @@ abstract contract GoerliParams is Contracts, Params {
     _collateralAuctionHouseParams[OP].maxDiscount = 0.5e18; // -50%
 
     // --- Governance Params ---
-    governor = address(timelock);
-
-    _timelockControllerParams = ITimelockController.TimelockControllerParams({
-      minDelay: 3600, // 1 hour
-      proposers: new address[](0),
-      executors: new address[](0),
-      admin: address(0)
-    });
-
     _governorParams = IHaiGovernor.HaiGovernorParams({
       votingDelay: 300, // 5 minutes
       votingPeriod: 1200, // 20 minutes
-      proposalThreshold: 460_000e18 // 460k
+      proposalThreshold: 460_000e18, // 460k
+      quorumNumeratorValue: 1, // 1%
+      timelockMinDelay: 3600 // 1 hour
     });
   }
 }

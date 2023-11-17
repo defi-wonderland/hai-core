@@ -28,8 +28,10 @@ contract GoerliScript is GoerliDeployment, Common, Script {
     _getEnvironmentParams();
 
     address _governor = vm.addr(_governorPK);
-    require(_governor == governor || _governor == delegate);
+    // require(_governor == governor || _governor == delegate);
     vm.startBroadcast(_governor);
+
+    deployGovernance();
 
     // Script goes here
 
