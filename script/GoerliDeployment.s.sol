@@ -7,7 +7,7 @@ import {OP_WETH, OP_OPTIMISM} from '@script/Registry.s.sol';
 
 abstract contract GoerliDeployment is Contracts, GoerliParams {
   // NOTE: The last significant change in the Goerli deployment, to be used in the test scenarios
-  uint256 constant GOERLI_DEPLOYMENT_BLOCK = 17_405_091;
+  uint256 constant GOERLI_DEPLOYMENT_BLOCK = 17_538_871;
 
   /**
    * @notice All the addresses that were deployed in the Goerli deployment, in order of creation
@@ -22,7 +22,7 @@ abstract contract GoerliDeployment is Contracts, GoerliParams {
     collateralTypes.push(TOTEM);
 
     // --- utils ---
-    governor = 0xF33D1C467C89fbf3707Ed06ccE1F4dc9Ac67fcdd;
+    governor = 0x5bc1c8783b729eaCeEBfe01C220A12A8Dd704C15;
     delegatee[OP] = governor;
 
     // --- ERC20s ---
@@ -32,80 +32,80 @@ abstract contract GoerliDeployment is Contracts, GoerliParams {
     collateral[STONES] = IERC20Metadata(0x0769cf3aB738805feEc6446671f29b629a6Eb007);
     collateral[TOTEM] = IERC20Metadata(0xea0E4f32286B220426924AD8bAc34011aC398CD5);
 
-    systemCoin = SystemCoin(0x8b3ABC94912E2c0AdED158a8a1a4625b059B7013);
-    protocolToken = ProtocolToken(0x3782a19B5dE99AC4bf2dBfA8696eFeE03b852ad7);
+    systemCoin = SystemCoin(0xb2d541BDd0037e03d6B43490c9A72594a6c37A0f);
+    protocolToken = ProtocolToken(0x05CBD1C19Af83Ab7929C8cA5000076cc0D3CeD62);
 
     // --- base contracts ---
-    safeEngine = SAFEEngine(0xa556E818D0267972f26875E438B876E5eA899DE5);
-    oracleRelayer = OracleRelayer(0x71F6Ea7e58BF7865c884e653ee267F33e25A1bDB);
-    surplusAuctionHouse = SurplusAuctionHouse(0xa4Be6131fCe3aeEb4eec37B9CBe308E778BD0Ca5);
-    debtAuctionHouse = DebtAuctionHouse(0x79Ca8dBDc7B6d4DC74De1D395BC5115b97B158b9);
-    accountingEngine = AccountingEngine(0x139831976569dc9EA6e6ed3DBcE1552DdD23d0a2);
-    liquidationEngine = LiquidationEngine(0xF4FEE3168C6893cfb3c88b955db3B7176138AC3a);
-    coinJoin = CoinJoin(0x2C168911825c73Ebe7bbaa8e9392a3Fd6110572E);
-    taxCollector = TaxCollector(0x7DFDBA00D9268f4BbcDDA05d20D2352BcCcE3B73);
-    stabilityFeeTreasury = StabilityFeeTreasury(0xe1E5984d9d43B88F57ef0958A10804c2E3930d2b);
-    pidController = PIDController(0x859aeBC5E08e628D87151bF6751A51A41E1e6c65);
-    pidRateSetter = PIDRateSetter(0x68F4088d742cb05305F44FBD2e1475A9783965fb);
+    safeEngine = SAFEEngine(0x8CD47C308BE756F3721D2B25d73D372312fC58e3);
+    oracleRelayer = OracleRelayer(0xC87db8Fc544b9d12c10CA68e0D396598ecECF310);
+    surplusAuctionHouse = SurplusAuctionHouse(0x80e05a7ade7C1D0f82635764C6a90c6473Fc3a9c);
+    debtAuctionHouse = DebtAuctionHouse(0x2b6227a6ee0DD1C51AD849675E688195cE9bB203);
+    accountingEngine = AccountingEngine(0xeeD607FC8c614f75B12524e7a04f62B8257fAB33);
+    liquidationEngine = LiquidationEngine(0x602F40EC23763994d5a6Dd26b240f4BeC39C7001);
+    coinJoin = CoinJoin(0xf439248215b6668018272bcF4B03E6E172472b52);
+    taxCollector = TaxCollector(0x4d551Fb5132bfDf04f4e3742b244989A70F6098d);
+    stabilityFeeTreasury = StabilityFeeTreasury(0x1411F0833Bc05DA16a959b3De21D5Fb7f1E0881f);
+    pidController = PIDController(0xb5559E17879225eAe5001de5Bc998123A1503DA6);
+    pidRateSetter = PIDRateSetter(0x35448044AA20592F10Bef31e4aeD57E5A25B65Fc);
 
     // --- global settlement ---
-    globalSettlement = GlobalSettlement(0x2a9668714F0fD8C64C5CD7Aa609657D5c2e2068b);
-    postSettlementSurplusAuctionHouse = PostSettlementSurplusAuctionHouse(0xdFCD7C54C540bFA822f5426C3e31283A755b1d8d);
-    settlementSurplusAuctioneer = SettlementSurplusAuctioneer(0x19CfDb0a674F8C35C8fDC23FD6951B0b0C2F814f);
+    globalSettlement = GlobalSettlement(0xB9C85D0887d210fd39d22fB26EeC87705feA35a6);
+    postSettlementSurplusAuctionHouse = PostSettlementSurplusAuctionHouse(0x1b3D1a8A08d9d675A519E6B2fAbC56E553c90Fb5);
+    settlementSurplusAuctioneer = SettlementSurplusAuctioneer(0xAA36fd0627Ce73a338e60418DB392F3323B88372);
 
     // --- factories ---
-    chainlinkRelayerFactory = ChainlinkRelayerFactory(0x888179D6aBd0084623d072bf165a0EB2fdAfFaB9);
-    uniV3RelayerFactory = UniV3RelayerFactory(0x3564AbBDE84BA9Eab4FbA740f8A7E2DD4Fc62Ece);
-    denominatedOracleFactory = DenominatedOracleFactory(0x77F03A22ee1D89Bcc9f02B1C0b5108B48735f178);
-    delayedOracleFactory = DelayedOracleFactory(0x46F1d965cEec12ac0f60ff297392379035B3f515);
+    chainlinkRelayerFactory = ChainlinkRelayerFactory(0x6bcccebe4c1C7E7DDB30a6a1415553d008555c5a);
+    uniV3RelayerFactory = UniV3RelayerFactory(0x756d6fb87c5F5562Af55E72317A3aF44090f2796);
+    denominatedOracleFactory = DenominatedOracleFactory(0x56Ab7ddB91f40125Ed1DC93dDC77c33c9c88f5BA);
+    delayedOracleFactory = DelayedOracleFactory(0xDB1E529d264Be050EA9903Ff73f340479CDBc32A);
 
-    collateralJoinFactory = CollateralJoinFactory(0xc3769dD10048507C8a87bdfCD3b7de0aB42740d9);
-    collateralAuctionHouseFactory = CollateralAuctionHouseFactory(0x79843bc4EEaF06C1bAdF6Dd6812D919075dF1750);
+    collateralJoinFactory = CollateralJoinFactory(0xFCCdD4B18dD2Ab02D8F0721130195e8C9C394261);
+    collateralAuctionHouseFactory = CollateralAuctionHouseFactory(0xa4B2f6Cd5287bF04435C9a0Fb7B7aefF71b99eF1);
 
     // --- per token contracts ---
-    collateralJoin[WETH] = CollateralJoin(0x696d892DfA1E03D31B01a65d2D9893aCACfBe772);
-    collateralAuctionHouse[WETH] = CollateralAuctionHouse(0xcD94C23215ac0dbCE30B949b6fB38F23fD79Ea71);
+    collateralJoin[WETH] = CollateralJoin(0xC0888B3d49073E84A00FE341104FB0756d9142E6);
+    collateralAuctionHouse[WETH] = CollateralAuctionHouse(0xE3c748B71bc75FA8E188E487f03a0E2741a7cb77);
 
-    collateralJoin[OP] = CollateralJoin(0x6Ea34cDFCf7fA87630B462CbBBD92E014B8DD7e1);
-    collateralAuctionHouse[OP] = CollateralAuctionHouse(0x8D693413400dA88f55FAB8771B93b0Ab173ecC09);
+    collateralJoin[OP] = CollateralJoin(0xD11e8a5eB973E3b4b613171b5745261fcF83ec7B);
+    collateralAuctionHouse[OP] = CollateralAuctionHouse(0xbD2a307BBbd07e9E83BAf61BbB7f88F27B227C8C);
 
-    collateralJoin[WBTC] = CollateralJoin(0x61CCef8AEf3be98943056CFf3d89361663E1881D);
-    collateralAuctionHouse[WBTC] = CollateralAuctionHouse(0xAA6562cC1Bd46b5ed991e3a52b5d3226FB42EdFa);
+    collateralJoin[WBTC] = CollateralJoin(0x4A025ac49E92e8fC62871E56129b90612a7D8647);
+    collateralAuctionHouse[WBTC] = CollateralAuctionHouse(0xb5aFbD1f748F22D4EaC9e7F43c709942eE6F0500);
 
-    collateralJoin[STONES] = CollateralJoin(0xf9bE2f75AF6a5b1Ae0A3DA4A2a02259748B121A1);
-    collateralAuctionHouse[STONES] = CollateralAuctionHouse(0xED1a61e40354D6922Ef55517cB47eB42DBCA3642);
+    collateralJoin[STONES] = CollateralJoin(0xa192df7b5e9e67731b2dc2793749B36ef1f254fc);
+    collateralAuctionHouse[STONES] = CollateralAuctionHouse(0x37941361EA0769823811a2D95aA59158277Bc82A);
 
-    collateralJoin[TOTEM] = CollateralJoin(0x9E789a6989bd937f6901fEB334cB50FC0bE1d5ff);
-    collateralAuctionHouse[TOTEM] = CollateralAuctionHouse(0x1Ba14983E32D566aB8C87f1FbBCF0e7FD502b468);
+    collateralJoin[TOTEM] = CollateralJoin(0x93667E2b8437a747604caC0e3716605C8a37BAa8);
+    collateralAuctionHouse[TOTEM] = CollateralAuctionHouse(0xeb3AfaE71446FBac3d97F572cE56475Cbd5a33Bc);
 
     // --- jobs ---
-    accountingJob = AccountingJob(0xD06E74D1Ca748961c5d2159f7E80b9B0F3D159e9);
-    liquidationJob = LiquidationJob(0x1eEe34b42a6Fd0A547D4187fC969993FD5c9566E);
-    oracleJob = OracleJob(0xE12F549F0040853413D04bD9293821102b7d0141);
+    accountingJob = AccountingJob(0xCeCc0253fA03786031A4df8DB940728543D01Fb6);
+    liquidationJob = LiquidationJob(0x1Bea51CDcc5E5713A7b5eca4F1B27D90b3F0ddB5);
+    oracleJob = OracleJob(0x1F517889F899A3792c4ED0D6Ae8f1A69e89E3d40);
 
     // --- proxies ---
-    proxyFactory = HaiProxyFactory(0x4d91C8DD16971A7Ff754C7dDEeb79541aa2e5Ae8);
-    safeManager = HaiSafeManager(0xFAD5b78d71304824F5e63F22d0C55a41fe5fb421);
+    proxyFactory = HaiProxyFactory(0xCE03C307d005c26d3Ee83Ff2B5341179df380887);
+    safeManager = HaiSafeManager(0xd582Cb7e38503D584E7872B18B5451AbcA2527Ac);
 
-    basicActions = BasicActions(0x43F4Faf76A70278DFc956B8c7a3347D451545b1f);
-    debtBidActions = DebtBidActions(0x3c690f1A6b5EA9379437293Af814C24D2d28FEC7);
-    surplusBidActions = SurplusBidActions(0xa4aB2bDF232CFdC3c12b81B3d8eF01370b299e43);
-    collateralBidActions = CollateralBidActions(0x7bbDC53B7afd090E9CCED81aD8f5e5aA716981F4);
-    postSettlementSurplusBidActions = PostSettlementSurplusBidActions(0x0fa711A2F535B949C11FD6Ebd2d64a1f8103Ef33);
-    globalSettlementActions = GlobalSettlementActions(0xf4d4a68273205c6e0a34c7D83bab2D93cB84Bcd4);
-    rewardedActions = RewardedActions(0x54b469D98Df463b5df22CA872EAb74e56c8Ab8D7);
+    basicActions = BasicActions(0x61C2510325c89D6A244E2b5D84C2a2e66bFd067A);
+    debtBidActions = DebtBidActions(0xDeCCaAFEbfCF2C1210ac2d7115E5E043f27071E5);
+    surplusBidActions = SurplusBidActions(0xd1E276F8CEC64016e962a2c5B7D7B47aa611004b);
+    collateralBidActions = CollateralBidActions(0x81b52C669ce1751c73C50945d95bbAe27ee8180D);
+    postSettlementSurplusBidActions = PostSettlementSurplusBidActions(0x14976A0bF941e9e56779F3F1Ed699865A3AF5Ea5);
+    globalSettlementActions = GlobalSettlementActions(0x7ca73B3b9be083f5323804B5054BC4323ab383a3);
+    rewardedActions = RewardedActions(0xB07204A37722B929198ce22C7b8015e6e7601Da7);
 
     // --- oracles ---
-    systemCoinOracle = IBaseOracle(0x764082E1C0B2D117B422935Bfe5b715A2f85B37f);
-    delayedOracle[WETH] = IDelayedOracle(0xAfeAbb8ab930fD93ad32A749a02C2D5bCfFe55ac);
-    delayedOracle[OP] = IDelayedOracle(0x8F60bcb730aA56736c709ADc24A178BE02c0070E);
-    delayedOracle[WBTC] = IDelayedOracle(0x5eCd37849DB41d8F97181c371Ec1fc38b3c2d2d0);
-    delayedOracle[STONES] = IDelayedOracle(0x0F8B8744793a889Fa940454d4011B6057d927C76);
-    delayedOracle[TOTEM] = IDelayedOracle(0xaD7eb50C94B443f278715A85a8C39415bD2835c9);
+    systemCoinOracle = IBaseOracle(0x8D1E17E988C3ec01b54f9A70Cb2d446108910f78);
+    delayedOracle[WETH] = IDelayedOracle(0xde278930f3e971Bca639A5CF1096a884CD1E73fa);
+    delayedOracle[OP] = IDelayedOracle(0x159E808BE20173A3b983bE3B55EF0a0AC959f963);
+    delayedOracle[WBTC] = IDelayedOracle(0x224f560C3Eb3aaAF341f195198D07CF318E0D581);
+    delayedOracle[STONES] = IDelayedOracle(0x4ad29dC70770f5D9a847a4A248b9A56a9c7F860F);
+    delayedOracle[TOTEM] = IDelayedOracle(0x98007eDE26BFc17CABfA634C12D35D33D70ab8E1);
 
     // --- governance ---
-    timelock = TimelockController(payable(0xF33D1C467C89fbf3707Ed06ccE1F4dc9Ac67fcdd));
-    haiGovernor = HaiGovernor(payable(0x46E421874d55b85B144b3b531EE73d973c915f65));
-    tokenDistributor = TokenDistributor(0x489FEb7c82d9515455F62226A0c04aCe293B0693);
+    timelock = TimelockController(payable(0x5bc1c8783b729eaCeEBfe01C220A12A8Dd704C15));
+    haiGovernor = HaiGovernor(payable(0x894114C09E237A7e4Cc2E48E5ccA32C18D3917D9));
+    tokenDistributor = TokenDistributor(0xA81B4cf40Da3B25f0706983DAb8059257b11E75e);
   }
 }
