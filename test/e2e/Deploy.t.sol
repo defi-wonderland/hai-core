@@ -372,8 +372,10 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 }
 
 contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
+  uint256 FORK_BLOCK = 112_420_000;
+
   function setUp() public override {
-    vm.createSelectFork(vm.rpcUrl('mainnet'));
+    vm.createSelectFork(vm.rpcUrl('mainnet'), FORK_BLOCK);
     governor = address(69);
     super.setUp();
     run();
@@ -390,21 +392,13 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
   }
 
   function test_pid_update_rate() public {
-    vm.mockCall(
-      OP_CHAINLINK_ETH_USD_FEED,
-      abi.encodeWithSelector(IChainlinkOracle.latestRoundData.selector),
-      abi.encode(uint80(1), uint256(2000e8), uint256(0), uint256(block.timestamp - 1), uint64(0))
-    );
+    _refreshChainlinkFeed(OP_CHAINLINK_ETH_USD_FEED, 2000e8);
 
     vm.expectRevert(IPIDRateSetter.PIDRateSetter_InvalidPriceFeed.selector);
     pidRateSetter.updateRate();
 
     skip(1 days);
-    vm.mockCall(
-      OP_CHAINLINK_ETH_USD_FEED,
-      abi.encodeWithSelector(IChainlinkOracle.latestRoundData.selector),
-      abi.encode(uint80(1), uint256(2000e8), uint256(0), uint256(block.timestamp - 1), uint64(0))
-    );
+    _refreshChainlinkFeed(OP_CHAINLINK_ETH_USD_FEED, 2000e8);
 
     pidRateSetter.updateRate();
 
@@ -413,12 +407,7 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
 
     uint256 _updateRateDelay = pidRateSetter.params().updateRateDelay;
     skip(_updateRateDelay);
-
-    vm.mockCall(
-      OP_CHAINLINK_ETH_USD_FEED,
-      abi.encodeWithSelector(IChainlinkOracle.latestRoundData.selector),
-      abi.encode(uint80(1), uint256(2000e8), uint256(0), uint256(block.timestamp - 1), uint64(0))
-    );
+    _refreshChainlinkFeed(OP_CHAINLINK_ETH_USD_FEED, 2000e8);
 
     pidRateSetter.updateRate();
   }
@@ -428,9 +417,20 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
     (uint256 _quote,) = systemCoinOracle.getResultWithValidity();
 
     assertEq(systemCoinOracle.symbol(), '(HAI / WETH) * (ETH / USD)');
-    assertEq(1e18 / _quote, 1); // HAI = USD
+
+    assertEq(_quote > 1e18 ? _quote / 1e17 : 1e19 / _quote, 10); // 1.0 HAI = 1.0 USD
+  }
+
+  function _refreshChainlinkFeed(address _chainlinkFeed, uint256 _quote) internal {
+    vm.mockCall(
+      _chainlinkFeed,
+      abi.encodeWithSelector(IChainlinkOracle.latestRoundData.selector),
+      abi.encode(uint80(1), _quote, uint256(0), uint256(block.timestamp - 1), uint64(0))
+    );
   }
 }
+
+// TODO: contract OptimismDeploymentTest is OptimismDeployment, CommonDeploymentTest
 
 contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
   uint256 FORK_BLOCK = 17_400_000;

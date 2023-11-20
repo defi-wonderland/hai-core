@@ -120,6 +120,8 @@ contract Unit_UniV3RelayerFactory_DeployUniV3Relayer is Base {
   ) public happyPath(_feeTier, _symbol, _decimals) {
     uniV3RelayerFactory.deployUniV3Relayer(address(mockBaseToken), address(mockQuoteToken), _feeTier, _quotePeriod);
 
+    // bytecode
+    assertEq(address(uniV3RelayerChild).code, type(UniV3RelayerChild).runtimeCode);
     // params
     assertEq(uniV3RelayerChild.baseToken(), address(mockBaseToken));
     assertEq(uniV3RelayerChild.quoteToken(), address(mockQuoteToken));

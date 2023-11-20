@@ -191,7 +191,7 @@ contract DeployGoerli is GoerliParams, Deploy {
     IBaseOracle _stonesWbtcOracle = uniV3RelayerFactory.deployUniV3Relayer({
       _baseToken: address(collateral[STONES]),
       _quoteToken: address(collateral[WBTC]),
-      _feeTier: HAI_POOL_FEE_TIER, // 2000 STN = 1 wBTC
+      _feeTier: HAI_POOL_FEE_TIER,
       _quotePeriod: 1 hours
     });
     IBaseOracle _stonesOracle =

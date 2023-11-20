@@ -5,19 +5,6 @@ import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 import {ERC20Votes} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
 
 interface ITokenDistributor is IAuthorizable {
-  // --- Structs ---
-
-  struct TokenDistributorParams {
-    // Bytes32 representation of the merkle root
-    bytes32 root;
-    // Total amount of tokens to be distributed
-    uint256 totalClaimable;
-    // Timestamp when the claim period starts
-    uint256 claimPeriodStart;
-    // Timestamp when the claim period ends
-    uint256 claimPeriodEnd;
-  }
-
   // --- Events ---
 
   /**
@@ -40,6 +27,19 @@ interface ITokenDistributor is IAuthorizable {
   error TokenDistributor_ClaimPeriodNotEnded();
   /// @notice Throws when trying to claim but the claim is not valid
   error TokenDistributor_ClaimInvalid();
+
+  // --- Structs ---
+
+  struct TokenDistributorParams {
+    // Bytes32 representation of the merkle root
+    bytes32 root;
+    // Total amount of tokens to be distributed
+    uint256 /*  WAD */ totalClaimable;
+    // Timestamp when the claim period starts
+    uint256 /* UNIX */ claimPeriodStart;
+    // Timestamp when the claim period ends
+    uint256 /* UNIX */ claimPeriodEnd;
+  }
 
   /// @notice The merkle root of the token distribution
   function root() external view returns (bytes32 _root);
