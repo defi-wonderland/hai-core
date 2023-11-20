@@ -20,6 +20,8 @@ contract UniV3RelayerFactory is Authorizable, IUniV3RelayerFactory {
 
   // --- Data ---
 
+  /// @notice Address of the UniswapV3Factory used to fetch the pool address
+  // solhint-disable-next-line var-name-mixedcase
   address internal immutable _UNI_V3_FACTORY;
 
   /// @notice The enumerable set of deployed UniV3Relayer contracts

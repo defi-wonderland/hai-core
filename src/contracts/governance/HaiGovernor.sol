@@ -46,12 +46,12 @@ contract HaiGovernor is
    * Set the clock to block timestamp, as opposed to the default block number
    */
 
-  function clock() public view override(Governor, GovernorVotes) returns (uint48) {
+  function clock() public view override(Governor, GovernorVotes) returns (uint48 _timestamp) {
     return Time.timestamp();
   }
 
   // solhint-disable-next-line func-name-mixedcase
-  function CLOCK_MODE() public view virtual override(Governor, GovernorVotes) returns (string memory) {
+  function CLOCK_MODE() public view virtual override(Governor, GovernorVotes) returns (string memory _mode) {
     return 'mode=timestamp';
   }
 
@@ -64,7 +64,7 @@ contract HaiGovernor is
     uint256[] memory _values,
     bytes[] memory _calldatas,
     bytes32 _descriptionHash
-  ) internal override(Governor, GovernorTimelockControl) returns (uint256) {
+  ) internal override(Governor, GovernorTimelockControl) returns (uint256 _proposalId) {
     return super._cancel(_targets, _values, _calldatas, _descriptionHash);
   }
 
@@ -78,7 +78,7 @@ contract HaiGovernor is
     super._executeOperations(_proposalId, _targets, _values, _calldatas, _descriptionHash);
   }
 
-  function _executor() internal view override(Governor, GovernorTimelockControl) returns (address) {
+  function _executor() internal view override(Governor, GovernorTimelockControl) returns (address _addy) {
     return super._executor();
   }
 
@@ -88,7 +88,7 @@ contract HaiGovernor is
     uint256[] memory _values,
     bytes[] memory _calldatas,
     bytes32 _descriptionHash
-  ) internal override(Governor, GovernorTimelockControl) returns (uint48) {
+  ) internal override(Governor, GovernorTimelockControl) returns (uint48 _scheduledTime) {
     return super._queueOperations(_proposalId, _targets, _values, _calldatas, _descriptionHash);
   }
 
@@ -96,16 +96,21 @@ contract HaiGovernor is
     public
     view
     override(Governor, GovernorTimelockControl)
-    returns (bool)
+    returns (bool _needsQueuing)
   {
     return super.proposalNeedsQueuing(_proposalId);
   }
 
-  function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
+  function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256 _threshold) {
     return super.proposalThreshold();
   }
 
-  function state(uint256 _proposalId) public view override(Governor, GovernorTimelockControl) returns (ProposalState) {
+  function state(uint256 _proposalId)
+    public
+    view
+    override(Governor, GovernorTimelockControl)
+    returns (ProposalState _state)
+  {
     return super.state(_proposalId);
   }
 }
