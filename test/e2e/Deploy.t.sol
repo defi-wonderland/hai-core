@@ -44,6 +44,13 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     ParamChecker._checkParams(address(safeEngine), abi.encode(_safeEngineParams));
   }
 
+  function test_SAFEEngine_CParams() public view {
+    for (uint256 _i; _i < collateralTypes.length; _i++) {
+      bytes32 _cType = collateralTypes[_i];
+      ParamChecker._checkCParams(address(safeEngine), _cType, abi.encode(_safeEngineCParams[_cType]));
+    }
+  }
+
   // OracleRelayer
   function test_OracleRelayer_Bytecode() public {
     assertEq(address(oracleRelayer).code, type(OracleRelayer).runtimeCode);
@@ -55,6 +62,17 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
     // 2 contracts + governor accounts
     assertEq(oracleRelayer.authorizedAccounts().length, 2 + _governorAccounts);
+  }
+
+  function test_OracleRelayer_Params() public view {
+    ParamChecker._checkParams(address(oracleRelayer), abi.encode(_oracleRelayerParams));
+  }
+
+  function test_OracleRelayer_CParams() public view {
+    for (uint256 _i; _i < collateralTypes.length; _i++) {
+      bytes32 _cType = collateralTypes[_i];
+      ParamChecker._checkCParams(address(oracleRelayer), _cType, abi.encode(_oracleRelayerCParams[_cType]));
+    }
   }
 
   // AccountingEngine
@@ -183,6 +201,13 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     ParamChecker._checkParams(address(liquidationEngine), abi.encode(_liquidationEngineParams));
   }
 
+  function test_LiquidationEngine_CParams() public view {
+    for (uint256 _i; _i < collateralTypes.length; _i++) {
+      bytes32 _cType = collateralTypes[_i];
+      ParamChecker._checkCParams(address(liquidationEngine), _cType, abi.encode(_liquidationEngineCParams[_cType]));
+    }
+  }
+
   // PIDController
   function test_PIDController_Bytecode() public {
     assertEq(address(pidController).code, type(PIDController).runtimeCode);
@@ -223,6 +248,13 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_TaxCollector_Params() public view {
     ParamChecker._checkParams(address(taxCollector), abi.encode(_taxCollectorParams));
+  }
+
+  function test_TaxCollector_CParams() public view {
+    for (uint256 _i; _i < collateralTypes.length; _i++) {
+      bytes32 _cType = collateralTypes[_i];
+      ParamChecker._checkCParams(address(taxCollector), _cType, abi.encode(_taxCollectorCParams[_cType]));
+    }
   }
 
   // StabilityFeeTreasury
