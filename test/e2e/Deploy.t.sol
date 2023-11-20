@@ -185,6 +185,44 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     }
   }
 
+  // CollateralJoin
+
+  function test_CollateralJoinFactory_Bytecode() public {
+    assertEq(address(collateralAuctionHouseFactory).code, type(CollateralAuctionHouseFactory).runtimeCode);
+  }
+
+  function test_CollateralJoinFactory_Auth() public {
+    assertEq(collateralJoinFactory.authorizedAccounts(address(globalSettlement)), true);
+
+    // 1 contracts + governor accounts
+    assertEq(collateralJoinFactory.authorizedAccounts().length, 1 + _governorAccounts);
+  }
+
+  function test_CollateralJoin_Auth() public {
+    for (uint256 _i; _i < collateralTypes.length; _i++) {
+      bytes32 _cType = collateralTypes[_i];
+      assertEq(collateralJoin[_cType].authorizedAccounts(address(collateralJoinFactory)), true);
+
+      // 1 contract
+      assertEq(collateralJoin[_cType].authorizedAccounts().length, 1);
+    }
+  }
+
+  function test_CollateralJoin_Params() public {
+    for (uint256 _i; _i < collateralTypes.length; _i++) {
+      bytes32 _cType = collateralTypes[_i];
+      assertEq(address(collateralJoin[_cType].collateral()), address(collateral[_cType]));
+    }
+  }
+
+  // CoinJoin
+  function test_CoinJoin_Auth() public {
+    assertEq(coinJoin.authorizedAccounts(address(globalSettlement)), true);
+
+    // 1 contract + governor accounts
+    assertEq(coinJoin.authorizedAccounts().length, 1 + _governorAccounts);
+  }
+
   // LiquidationEngine
   function test_LiquidationEngine_Bytecode() public {
     assertEq(address(liquidationEngine).code, type(LiquidationEngine).runtimeCode);

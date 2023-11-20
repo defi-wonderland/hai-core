@@ -28,9 +28,9 @@ abstract contract GoerliDeployment is Contracts, GoerliParams {
     // --- ERC20s ---
     collateral[WETH] = IERC20Metadata(OP_WETH);
     collateral[OP] = IERC20Metadata(OP_OPTIMISM);
-    collateral[WBTC] = IERC20Metadata(0xce189bABB8ef4D6C8aCEECe15041B07aD285525c);
-    collateral[STONES] = IERC20Metadata(0x0769cf3aB738805feEc6446671f29b629a6Eb007);
-    collateral[TOTEM] = IERC20Metadata(0xea0E4f32286B220426924AD8bAc34011aC398CD5);
+    collateral[WBTC] = IERC20Metadata(0x72Bf28D2E3dfE44a7dD0BFE265fCc381fF8A74C8);
+    collateral[STONES] = IERC20Metadata(0x41944Bebe7Bfd3C708DBf96F4eE2d0c3b91843CA);
+    collateral[TOTEM] = IERC20Metadata(0xdCfd86628e5e5eC7f7c1d8Ae9894E57dDF86c1f1);
 
     systemCoin = SystemCoin(0xb2d541BDd0037e03d6B43490c9A72594a6c37A0f);
     protocolToken = ProtocolToken(0x05CBD1C19Af83Ab7929C8cA5000076cc0D3CeD62);
