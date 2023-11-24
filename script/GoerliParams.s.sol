@@ -18,7 +18,7 @@ abstract contract GoerliParams is Contracts, Params {
     });
 
     _accountingEngineParams = IAccountingEngine.AccountingEngineParams({
-      surplusIsTransferred: 0, // percent of surplus that is transfered
+      surplusTransferPercentage: 0, // percent of surplus that is transfered
       surplusDelay: 1800, // 30 minutes
       popDebtDelay: 1800, // 30 minutes
       disableCooldown: 3 days,

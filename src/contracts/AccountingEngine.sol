@@ -192,7 +192,7 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
 
   /// @inheritdoc IAccountingEngine
   function auctionSurplus() external returns (uint256 _id) {
-    if (_params.surplusIsTransferred == 100) revert AccEng_SurplusAuctionDisabled();
+    if (_params.surplusTransferPercentage == 100) revert AccEng_SurplusAuctionDisabled();
     if (_params.surplusAmount == 0) revert AccEng_NullAmount();
     if (block.timestamp < lastSurplusTime + _params.surplusDelay) revert AccEng_SurplusCooldown();
 
@@ -204,23 +204,23 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
       revert AccEng_InsufficientSurplus();
     }
 
-    _id = surplusAuctionHouse.startAuction({_amountToSell: _params.surplusAmount * (100 - _params.surplusIsTransferred) / 100, _initialBid: 0});
+    _id = surplusAuctionHouse.startAuction({_amountToSell: _params.surplusAmount * (100 - _params.surplusTransferPercentage) / 100, _initialBid: 0});
 
     lastSurplusTime = block.timestamp;
-    emit AuctionSurplus(_id, 0, _params.surplusAmount * (100 - _params.surplusIsTransferred) / 100);
+    emit AuctionSurplus(_id, 0, _params.surplusAmount * (100 - _params.surplusTransferPercentage) / 100);
 
     //Transfer remaining surplus percentage
-    if(_params.surplusIsTransferred > 0){
+    if(_params.surplusTransferPercentage > 0){
       if (extraSurplusReceiver == address(0)) revert AccEng_NullSurplusReceiver();
 
       safeEngine.transferInternalCoins({
         _source: address(this),
         _destination: extraSurplusReceiver,
-        _rad: _params.surplusAmount * _params.surplusIsTransferred / 100
+        _rad: _params.surplusAmount * _params.surplusTransferPercentage / 100
       });
 
       lastSurplusTime = block.timestamp;
-      emit TransferSurplus(extraSurplusReceiver, _params.surplusAmount * _params.surplusIsTransferred / 100);
+      emit TransferSurplus(extraSurplusReceiver, _params.surplusAmount * _params.surplusTransferPercentage / 100);
     }
   }
 
@@ -228,7 +228,7 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
 
   /// @inheritdoc IAccountingEngine
   function transferExtraSurplus() external {
-    if (_params.surplusIsTransferred <= 0) revert AccEng_SurplusTransferDisabled();
+    if (_params.surplusTransferPercentage <= 0) revert AccEng_SurplusTransferDisabled();
     if (extraSurplusReceiver == address(0)) revert AccEng_NullSurplusReceiver();
     if (_params.surplusAmount == 0) revert AccEng_NullAmount();
     if (block.timestamp < lastSurplusTime + _params.surplusDelay) revert AccEng_SurplusCooldown();
@@ -244,18 +244,18 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
     safeEngine.transferInternalCoins({
       _source: address(this),
       _destination: extraSurplusReceiver,
-      _rad: _params.surplusAmount * _params.surplusIsTransferred / 100
+      _rad: _params.surplusAmount * _params.surplusTransferPercentage / 100
     });
 
     lastSurplusTime = block.timestamp;
-    emit TransferSurplus(extraSurplusReceiver, _params.surplusAmount * _params.surplusIsTransferred / 100);
+    emit TransferSurplus(extraSurplusReceiver, _params.surplusAmount * _params.surplusTransferPercentage / 100);
 
     //auction remaining surplus percentage
-    if(_params.surplusIsTransferred < 100){
-      uint _id = surplusAuctionHouse.startAuction({_amountToSell: _params.surplusAmount * (100 - _params.surplusIsTransferred) / 100, _initialBid: 0});
+    if(_params.surplusTransferPercentage < 100){
+      uint _id = surplusAuctionHouse.startAuction({_amountToSell: _params.surplusAmount * (100 - _params.surplusTransferPercentage) / 100, _initialBid: 0});
 
       lastSurplusTime = block.timestamp;
-      emit AuctionSurplus(_id, 0, _params.surplusAmount * (100 - _params.surplusIsTransferred) / 100);
+      emit AuctionSurplus(_id, 0, _params.surplusAmount * (100 - _params.surplusTransferPercentage) / 100);
     }
   }
 
@@ -309,7 +309,7 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
     address _address = _data.toAddress();
 
     // params
-    if (_param == 'surplusIsTransferred') _params.surplusIsTransferred = _uint256;
+    if (_param == 'surplusTransferPercentage') _params.surplusTransferPercentage = _uint256;
     else if (_param == 'surplusDelay') _params.surplusDelay = _uint256;
     else if (_param == 'popDebtDelay') _params.popDebtDelay = _uint256;
     else if (_param == 'disableCooldown') _params.disableCooldown = _uint256;
