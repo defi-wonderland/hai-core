@@ -7,7 +7,8 @@ import {IHaiDelegatee} from '@interfaces/governance/IHaiDelegatee.sol';
 
 /**
  * @title  HaiDelegatee
- * @notice This contract is used to proxy the voting power delegated to it to a delegatee    
+ * @notice This contract is used to proxy the voting power delegated to it to a delegatee
+ * @dev    Compatible with OpenZeppelin's Governor contract
  */
 contract HaiDelegatee is IHaiDelegatee, Ownable {
   /// @inheritdoc IHaiDelegatee
