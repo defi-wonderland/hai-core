@@ -209,9 +209,9 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
       revert AccEng_InsufficientSurplus();
     }
 
+    // Auction surplus
     uint256 _amountToSell = _params.surplusAmount.wmul(WAD - _params.surplusTransferPercentage);
 
-    // Auction surplus
     if (_amountToSell > 0) {
       _id = surplusAuctionHouse.startAuction({_amountToSell: _amountToSell, _initialBid: 0});
 
@@ -219,10 +219,11 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
     }
 
     // Transfer remaining surplus percentage
-    if (_params.surplusTransferPercentage > 0) {
+    uint256 _amountToTransfer = _params.surplusAmount - _amountToSell;
+
+    if (_amountToTransfer > 0) {
       if (extraSurplusReceiver == address(0)) revert AccEng_NullSurplusReceiver();
 
-      uint256 _amountToTransfer = _params.surplusAmount - _amountToSell;
       safeEngine.transferInternalCoins({
         _source: address(this),
         _destination: extraSurplusReceiver,
