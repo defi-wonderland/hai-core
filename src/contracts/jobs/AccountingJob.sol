@@ -28,8 +28,6 @@ contract AccountingJob is Authorizable, Modifiable, Job, IAccountingJob {
   bool public shouldWorkAuctionDebt;
   /// @inheritdoc IAccountingJob
   bool public shouldWorkAuctionSurplus;
-  /// @inheritdoc IAccountingJob
-  bool public shouldWorkTransferExtraSurplus;
 
   // --- Registry ---
 
@@ -53,7 +51,6 @@ contract AccountingJob is Authorizable, Modifiable, Job, IAccountingJob {
     shouldWorkPopDebtFromQueue = true;
     shouldWorkAuctionDebt = true;
     shouldWorkAuctionSurplus = true;
-    shouldWorkTransferExtraSurplus = true;
   }
 
   // --- Job ---
@@ -76,12 +73,6 @@ contract AccountingJob is Authorizable, Modifiable, Job, IAccountingJob {
     accountingEngine.auctionSurplus();
   }
 
-  /// @inheritdoc IAccountingJob
-  function workTransferExtraSurplus() external reward {
-    if (!shouldWorkTransferExtraSurplus) revert NotWorkable();
-    accountingEngine.transferExtraSurplus();
-  }
-
   // --- Administration ---
 
   /// @inheritdoc Modifiable
@@ -92,7 +83,6 @@ contract AccountingJob is Authorizable, Modifiable, Job, IAccountingJob {
     else if (_param == 'shouldWorkPopDebtFromQueue') shouldWorkPopDebtFromQueue = _bool;
     else if (_param == 'shouldWorkAuctionDebt') shouldWorkAuctionDebt = _bool;
     else if (_param == 'shouldWorkAuctionSurplus') shouldWorkAuctionSurplus = _bool;
-    else if (_param == 'shouldWorkTransferExtraSurplus') shouldWorkTransferExtraSurplus = _bool;
     else Job._modifyParameters(_param, _data);
   }
 

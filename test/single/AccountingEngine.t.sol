@@ -100,19 +100,8 @@ contract SingleAccountingEngineTest is DSTest {
     }
   }
 
-  function can_auctionSurplus() public returns (bool) {
+  function can_auction_surplus() public returns (bool) {
     string memory sig = 'auctionSurplus()';
-    bytes memory data = abi.encodeWithSignature(sig);
-
-    bytes memory can_call = abi.encodeWithSignature('try_call(address,bytes)', accountingEngine, data);
-    (bool ok, bytes memory success) = address(this).call(can_call);
-
-    ok = abi.decode(success, (bool));
-    if (ok) return true;
-  }
-
-  function can_TransferSurplus() public returns (bool) {
-    string memory sig = 'transferExtraSurplus()';
     bytes memory data = abi.encodeWithSignature(sig);
 
     bytes memory can_call = abi.encodeWithSignature('try_call(address,bytes)', accountingEngine, data);
@@ -234,75 +223,54 @@ contract SingleAccountingEngineTest is DSTest {
   }
 
   function test_surplus_auction_when_transfer_permitted() public {
+    accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
     accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(uint256(1)));
-    safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(100 ether));
-    assertTrue(!can_auctionSurplus());
+    safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(1 ether));
+    assertTrue(!can_auction_surplus());
   }
 
   function test_auction_surplus_when_amount_null() public {
     accountingEngine.modifyParameters('surplusAmount', abi.encode(uint256(0)));
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(100 ether));
-    assertTrue(!can_auctionSurplus());
+    assertTrue(!can_auction_surplus());
   }
 
   function test_surplus_auction() public {
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(100 ether));
-    assertTrue(can_auctionSurplus());
-  }
-
-  function test_transfer_surplus_when_not_permitted() public {
-    accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
-    accountingEngine.modifyParameters('surplusAmount', abi.encode(uint256(100 ether)));
-    safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(100 ether));
-    assertTrue(!can_TransferSurplus());
-  }
-
-  function test_transfer_surplus_when_receiver_not_defined() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(uint256(1)));
-    accountingEngine.modifyParameters('surplusAmount', abi.encode(uint256(100 ether)));
-    safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(100 ether));
-    assertTrue(!can_TransferSurplus());
-  }
-
-  function test_transfer_surplus_when_amount_not_defined() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1));
-    accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
-    safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(100 ether));
-    assertTrue(!can_auctionSurplus());
+    assertTrue(can_auction_surplus());
   }
 
   function test_surplus_transfer() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1));
     accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
+    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1 ether));
     accountingEngine.modifyParameters('surplusAmount', abi.encode(100 ether));
-    safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(100 ether));
-    assertTrue(!can_auctionSurplus());
-    assertTrue(can_TransferSurplus());
+    safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(200 ether));
+    assertTrue(can_auction_surplus());
   }
 
   function test_surplus_transfer_twice_in_a_row() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1));
     accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
+    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1 ether));
     accountingEngine.modifyParameters('surplusAmount', abi.encode(100 ether));
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(200 ether));
-    accountingEngine.transferExtraSurplus();
+    accountingEngine.auctionSurplus();
     assertEq(safeEngine.coinBalance(address(1)), 100 ether);
-    assertTrue(can_TransferSurplus());
-    accountingEngine.transferExtraSurplus();
+    assertTrue(can_auction_surplus());
+    accountingEngine.auctionSurplus();
     assertEq(safeEngine.coinBalance(address(1)), 200 ether);
   }
 
   function test_surplus_transfer_after_waiting() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1));
     accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
+    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1 ether));
     accountingEngine.modifyParameters('surplusAmount', abi.encode(100 ether));
     accountingEngine.modifyParameters('surplusDelay', abi.encode(1));
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(200 ether));
-    assertTrue(!can_TransferSurplus());
+    assertTrue(!can_auction_surplus());
     hevm.warp(block.timestamp + 1);
-    accountingEngine.transferExtraSurplus();
+    accountingEngine.auctionSurplus();
     assertEq(safeEngine.coinBalance(address(1)), 100 ether);
-    assertTrue(!can_TransferSurplus());
+    assertTrue(!can_auction_surplus());
   }
 
   function test_settlement_auction_surplus() public {
@@ -356,34 +324,34 @@ contract SingleAccountingEngineTest is DSTest {
     _popDebtFromQueue(100 ether);
 
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(50 ether));
-    assertTrue(!can_auctionSurplus());
+    assertTrue(!can_auction_surplus());
   }
 
   function test_no_transfer_surplus_pending_debt() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1));
     accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
+    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1 ether));
     accountingEngine.modifyParameters('surplusAmount', abi.encode(0 ether));
 
     _popDebtFromQueue(100 ether);
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(50 ether));
-    assertTrue(!can_TransferSurplus());
+    assertTrue(!can_auction_surplus());
   }
 
   function test_no_surplus_auction_nonzero_bad_debt() public {
     accountingEngine.modifyParameters('surplusAmount', abi.encode(uint256(0 ether)));
     _popDebtFromQueue(100 ether);
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(50 ether));
-    assertTrue(!can_auctionSurplus());
+    assertTrue(!can_auction_surplus());
   }
 
   function test_no_transfer_surplus_nonzero_bad_debt() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1));
     accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
+    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1 ether));
     accountingEngine.modifyParameters('surplusAmount', abi.encode(0));
 
     _popDebtFromQueue(100 ether);
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(50 ether));
-    assertTrue(!can_TransferSurplus());
+    assertTrue(!can_auction_debt());
   }
 
   function test_no_surplus_auction_pending_debt_auction() public {
@@ -392,19 +360,19 @@ contract SingleAccountingEngineTest is DSTest {
 
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(100 ether));
 
-    assertTrue(!can_auctionSurplus());
+    assertTrue(!can_auction_surplus());
   }
 
   function test_no_transfer_surplus_pending_debt_auction() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1));
     accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
+    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1 ether));
 
     _popDebtFromQueue(100 ether);
     accountingEngine.debtAuctionHouse();
 
     safeEngine.createUnbackedDebt(address(0), address(accountingEngine), rad(100 ether));
 
-    assertTrue(!can_TransferSurplus());
+    assertTrue(!can_auction_debt());
   }
 
   function test_no_surplus_auction_pending_settleDebt() public {
@@ -414,12 +382,12 @@ contract SingleAccountingEngineTest is DSTest {
     safeEngine.createUnbackedDebt(address(0), address(this), rad(100 ether));
     debtAuctionHouse.decreaseSoldAmount(id, 0 ether);
 
-    assertTrue(!can_auctionSurplus());
+    assertTrue(!can_auction_surplus());
   }
 
   function test_no_transfer_surplus_pending_settleDebt() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1));
     accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
+    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1 ether));
 
     _popDebtFromQueue(100 ether);
     uint256 id = accountingEngine.auctionDebt();
@@ -427,7 +395,7 @@ contract SingleAccountingEngineTest is DSTest {
     safeEngine.createUnbackedDebt(address(0), address(this), rad(100 ether));
     debtAuctionHouse.decreaseSoldAmount(id, 0 ether);
 
-    assertTrue(!can_TransferSurplus());
+    assertTrue(!can_auction_surplus());
   }
 
   function test_no_surplus_after_good_debt_auction() public {
@@ -437,12 +405,12 @@ contract SingleAccountingEngineTest is DSTest {
 
     debtAuctionHouse.decreaseSoldAmount(id, 0 ether); // debt auction succeeds..
 
-    assertTrue(!can_auctionSurplus());
+    assertTrue(!can_auction_surplus());
   }
 
   function test_no_transfer_surplus_after_good_debt_auction() public {
-    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1));
     accountingEngine.modifyParameters('extraSurplusReceiver', abi.encode(1));
+    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(1 ether));
 
     _popDebtFromQueue(100 ether);
     uint256 id = accountingEngine.auctionDebt();
@@ -450,7 +418,7 @@ contract SingleAccountingEngineTest is DSTest {
 
     debtAuctionHouse.decreaseSoldAmount(id, 0 ether); // debt auction succeeds..
 
-    assertTrue(!can_TransferSurplus());
+    assertTrue(!can_auction_debt());
   }
 
   function test_multiple_increaseBidSize() public {

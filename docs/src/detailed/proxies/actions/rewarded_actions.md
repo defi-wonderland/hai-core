@@ -13,7 +13,6 @@ Maintaining the protocol's overall health often involves executing key maintenan
 - `startDebtAuction`: Starts a debt auction.
 - `startSurplusAction`: Starts a surplus auction.
 - `popDebtFromQueue`: Pops a debt block from the Accounting Engine's queue.
-- `transferExtraSurplus`: Transfers surplus (instead of auctioning it).
 - `liquidateSAFE`: Liquidates a SAFE.
 - `updateCollateralPrice`: Fether the latest price for a collateral type to update the system.
 - `updateRedemptionRate`: Triggers the redemption rate to be updated.

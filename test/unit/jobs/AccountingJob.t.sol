@@ -63,11 +63,6 @@ abstract contract Base is HaiTest {
     // BUG: Accessing packed slots is not supported by Std Storage
     accountingJob.setShouldWorkAuctionSurplus(_shouldWorkAuctionSurplus);
   }
-
-  function _mockShouldWorkTransferExtraSurplus(bool _shouldWorkTransferExtraSurplus) internal {
-    // BUG: Accessing packed slots is not supported by Std Storage
-    accountingJob.setShouldWorkTransferExtraSurplus(_shouldWorkTransferExtraSurplus);
-  }
 }
 
 contract Unit_AccountingJob_Constructor is Base {
@@ -109,10 +104,6 @@ contract Unit_AccountingJob_Constructor is Base {
 
   function test_Set_ShouldWorkAuctionSurplus() public happyPath {
     assertEq(accountingJob.shouldWorkAuctionSurplus(), true);
-  }
-
-  function test_Set_ShouldWorkTransferExtraSurplus() public happyPath {
-    assertEq(accountingJob.shouldWorkTransferExtraSurplus(), true);
   }
 
   function test_Revert_Null_AccountingEngine() public {
@@ -246,42 +237,6 @@ contract Unit_AccountingJob_WorkAuctionSurplus is Base {
   }
 }
 
-contract Unit_AccountingJob_WorkTransferExtraSurplus is Base {
-  event Rewarded(address _rewardedAccount, uint256 _rewardAmount);
-
-  modifier happyPath() {
-    vm.startPrank(user);
-
-    _mockValues(true);
-    _;
-  }
-
-  function _mockValues(bool _shouldWorkTransferExtraSurplus) internal {
-    _mockShouldWorkTransferExtraSurplus(_shouldWorkTransferExtraSurplus);
-  }
-
-  function test_Revert_NotWorkable() public {
-    _mockValues(false);
-
-    vm.expectRevert(IJob.NotWorkable.selector);
-
-    accountingJob.workTransferExtraSurplus();
-  }
-
-  function test_Call_AccountingEngine_TransferExtraSurplus() public happyPath {
-    vm.expectCall(address(mockAccountingEngine), abi.encodeCall(mockAccountingEngine.transferExtraSurplus, ()), 1);
-
-    accountingJob.workTransferExtraSurplus();
-  }
-
-  function test_Emit_Rewarded() public happyPath {
-    vm.expectEmit();
-    emit Rewarded(user, REWARD_AMOUNT);
-
-    accountingJob.workTransferExtraSurplus();
-  }
-}
-
 contract Unit_AccountingJob_ModifyParameters is Base {
   modifier happyPath() {
     vm.startPrank(authorizedAccount);
@@ -320,12 +275,6 @@ contract Unit_AccountingJob_ModifyParameters is Base {
     accountingJob.modifyParameters('shouldWorkAuctionSurplus', abi.encode(_shouldWorkAuctionSurplus));
 
     assertEq(accountingJob.shouldWorkAuctionSurplus(), _shouldWorkAuctionSurplus);
-  }
-
-  function test_Set_ShouldWorkTransferExtraSurplus(bool _shouldWorkTransferExtraSurplus) public happyPath {
-    accountingJob.modifyParameters('shouldWorkTransferExtraSurplus', abi.encode(_shouldWorkTransferExtraSurplus));
-
-    assertEq(accountingJob.shouldWorkTransferExtraSurplus(), _shouldWorkTransferExtraSurplus);
   }
 
   function test_Set_RewardAmount(uint256 _rewardAmount) public happyPath {

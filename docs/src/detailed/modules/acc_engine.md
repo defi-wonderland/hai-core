@@ -22,7 +22,6 @@ The Accounting Engine serves as the system's financial management hub, overseein
 - `cancelAuctionedDebtWithSurplus`: Utilizes coins to settle debt that's in the queue.
 - `auctionDebt`: Triggers an auction to liquidate portions of unsettled debt.
 - `auctionSurplus`: Triggers an auction to liquidate surplus once all debt has been settled.
-- `transferExtraSurplus`: Allocates (instead of auctioning it) excess surplus following debt settlement.
 - `transferPostSettlementSurplus`: Allocates all remaining surplus when a Global Settlement event occurs.
 
 **Authorized**

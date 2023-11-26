@@ -21,8 +21,4 @@ contract AccountingJobForTest is AccountingJob {
   function setShouldWorkAuctionSurplus(bool _shouldWorkAuctionSurplus) external {
     shouldWorkAuctionSurplus = _shouldWorkAuctionSurplus;
   }
-
-  function setShouldWorkTransferExtraSurplus(bool _shouldWorkTransferExtraSurplus) external {
-    shouldWorkTransferExtraSurplus = _shouldWorkTransferExtraSurplus;
-  }
 }

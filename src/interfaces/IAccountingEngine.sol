@@ -258,14 +258,6 @@ interface IAccountingEngine is IAuthorizable, IDisableable, IModifiable {
   function auctionSurplus() external returns (uint256 _id);
 
   /**
-   * @notice Transfer surplus to an address as an alternative to surplus auctions
-   * @dev    It can only transfer surplus if `surplusTransferPercentage` is set to true
-   * @dev    It can only transfer surplus if `surplusDelay` seconds have elapsed since the last surplus auction/transfer was triggered
-   * @dev    It can only transfer surplus if enough surplus remains in the buffer and if there is no more debt left to settle
-   */
-  function transferExtraSurplus() external;
-
-  /**
    * @notice Transfer any remaining surplus after the disable cooldown has passed. Meant to be a backup in case GlobalSettlement.processSAFE
    *         has a bug, governance doesn't have power over the system and there's still surplus left in the AccountingEngine
    *         which then blocks GlobalSettlement.setOutstandingCoinSupply.

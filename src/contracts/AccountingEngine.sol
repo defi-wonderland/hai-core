@@ -11,7 +11,7 @@ import {Disableable} from '@contracts/utils/Disableable.sol';
 import {Modifiable} from '@contracts/utils/Modifiable.sol';
 
 import {Encoding} from '@libraries/Encoding.sol';
-import {Math} from '@libraries/Math.sol';
+import {Math, WAD} from '@libraries/Math.sol';
 import {Assertions} from '@libraries/Assertions.sol';
 
 /**
@@ -23,6 +23,8 @@ import {Assertions} from '@libraries/Assertions.sol';
 contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingEngine {
   using Encoding for bytes;
   using Assertions for address;
+  using Assertions for uint256;
+  using Math for uint256;
 
   // --- Auth ---
 
@@ -192,7 +194,6 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
 
   /// @inheritdoc IAccountingEngine
   function auctionSurplus() external returns (uint256 _id) {
-    if (_params.surplusTransferPercentage == 100) revert AccEng_SurplusAuctionDisabled();
     if (_params.surplusAmount == 0) revert AccEng_NullAmount();
     if (block.timestamp < lastSurplusTime + _params.surplusDelay) revert AccEng_SurplusCooldown();
 
@@ -204,59 +205,30 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
       revert AccEng_InsufficientSurplus();
     }
 
-    _id = surplusAuctionHouse.startAuction({_amountToSell: _params.surplusAmount * (100 - _params.surplusTransferPercentage) / 100, _initialBid: 0});
+    uint256 _amountToSell = _params.surplusAmount.wmul(WAD - _params.surplusTransferPercentage);
 
-    lastSurplusTime = block.timestamp;
-    emit AuctionSurplus(_id, 0, _params.surplusAmount * (100 - _params.surplusTransferPercentage) / 100);
+    // Auction surplus
+    if (_amountToSell > 0) {
+      _id = surplusAuctionHouse.startAuction({_amountToSell: _amountToSell, _initialBid: 0});
 
-    //Transfer remaining surplus percentage
-    if(_params.surplusTransferPercentage > 0){
+      emit AuctionSurplus(_id, 0, _amountToSell);
+    }
+
+    // Transfer remaining surplus percentage
+    if (_params.surplusTransferPercentage > 0) {
       if (extraSurplusReceiver == address(0)) revert AccEng_NullSurplusReceiver();
 
+      uint256 _amountToTransfer = _params.surplusAmount - _amountToSell;
       safeEngine.transferInternalCoins({
         _source: address(this),
         _destination: extraSurplusReceiver,
-        _rad: _params.surplusAmount * _params.surplusTransferPercentage / 100
+        _rad: _amountToTransfer
       });
 
-      lastSurplusTime = block.timestamp;
-      emit TransferSurplus(extraSurplusReceiver, _params.surplusAmount * _params.surplusTransferPercentage / 100);
+      emit TransferSurplus(extraSurplusReceiver, _amountToTransfer);
     }
-  }
-
-  // Extra surplus transfers/surplus auction alternative
-
-  /// @inheritdoc IAccountingEngine
-  function transferExtraSurplus() external {
-    if (_params.surplusTransferPercentage <= 0) revert AccEng_SurplusTransferDisabled();
-    if (extraSurplusReceiver == address(0)) revert AccEng_NullSurplusReceiver();
-    if (_params.surplusAmount == 0) revert AccEng_NullAmount();
-    if (block.timestamp < lastSurplusTime + _params.surplusDelay) revert AccEng_SurplusCooldown();
-
-    uint256 _coinBalance = safeEngine.coinBalance(address(this));
-    uint256 _debtBalance = safeEngine.debtBalance(address(this));
-    (_coinBalance, _debtBalance) = _settleDebt(_coinBalance, _debtBalance, _unqueuedUnauctionedDebt(_debtBalance));
-
-    if (_coinBalance < _debtBalance + _params.surplusAmount + _params.surplusBuffer) {
-      revert AccEng_InsufficientSurplus();
-    }
-
-    safeEngine.transferInternalCoins({
-      _source: address(this),
-      _destination: extraSurplusReceiver,
-      _rad: _params.surplusAmount * _params.surplusTransferPercentage / 100
-    });
 
     lastSurplusTime = block.timestamp;
-    emit TransferSurplus(extraSurplusReceiver, _params.surplusAmount * _params.surplusTransferPercentage / 100);
-
-    //auction remaining surplus percentage
-    if(_params.surplusTransferPercentage < 100){
-      uint _id = surplusAuctionHouse.startAuction({_amountToSell: _params.surplusAmount * (100 - _params.surplusTransferPercentage) / 100, _initialBid: 0});
-
-      lastSurplusTime = block.timestamp;
-      emit AuctionSurplus(_id, 0, _params.surplusAmount * (100 - _params.surplusTransferPercentage) / 100);
-    }
   }
 
   // --- Shutdown ---
@@ -338,5 +310,11 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
   function _validateParameters() internal view override {
     address(surplusAuctionHouse).assertHasCode();
     address(debtAuctionHouse).assertHasCode();
+
+    _params.surplusTransferPercentage.assertLtEq(WAD);
+    
+    if(extraSurplusReceiver == address(0)) {
+      _params.surplusTransferPercentage.assertLtEq(0);
+    }
   }
 }

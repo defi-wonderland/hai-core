@@ -42,12 +42,6 @@ contract RewardedActions is CommonActions, IRewardedActions {
     _exitReward(_accountingJob, _coinJoin);
   }
 
-  /// @inheritdoc IRewardedActions
-  function transferExtraSurplus(address _accountingJob, address _coinJoin) external onlyDelegateCall {
-    IAccountingJob(_accountingJob).workTransferExtraSurplus();
-    _exitReward(_accountingJob, _coinJoin);
-  }
-
   // --- LiquidationJob ---
 
   /// @inheritdoc IRewardedActions

@@ -20,9 +20,6 @@ interface IAccountingJob is IAuthorizable, IModifiable, IJob {
   /// @notice Whether the auction surplus job should be worked
   function shouldWorkAuctionSurplus() external view returns (bool _shouldWorkAuctionSurplus);
 
-  /// @notice Whether the transfer extra surplus job should be worked
-  function shouldWorkTransferExtraSurplus() external view returns (bool _shouldWorkTransferExtraSurplus);
-
   // --- Registry ---
 
   /// @notice Address of the AccountingEngine contract
@@ -41,7 +38,4 @@ interface IAccountingJob is IAuthorizable, IModifiable, IJob {
 
   /// @notice Rewarded method to auction surplus from the AccountingEngine
   function workAuctionSurplus() external;
-
-  /// @notice Rewarded method to transfer surplus from the AccountingEngine
-  function workTransferExtraSurplus() external;
 }
