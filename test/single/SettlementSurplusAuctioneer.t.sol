@@ -55,7 +55,7 @@ contract SingleSettlementSurplusAuctioneerTest is DSTest {
     });
 
     accountingEngine =
-      new AccountingEngine(address(safeEngine), address(disableable1), address(disableable2), _accountingEngineParams);
+    new AccountingEngine(address(safeEngine), address(disableable1), address(disableable2), address(0), _accountingEngineParams);
     protocolToken = new CoinForTest('', '');
 
     disableable1.addAuthorization(address(accountingEngine));

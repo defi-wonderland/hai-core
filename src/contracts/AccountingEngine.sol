@@ -81,16 +81,20 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
    * @param  _surplusAuctionHouse Address of the SurplusAuctionHouse
    * @param  _debtAuctionHouse Address of the DebtAuctionHouse
    * @param  _accEngineParams Initial valid AccountingEngine parameters struct
+   * @param _extraSurplusReceiver Address of the not-auctioned surplus receiver
+   * @dev _extraSurplusReceiver is required if surplusTransferPercentage > 0
    */
   constructor(
     address _safeEngine,
     address _surplusAuctionHouse,
     address _debtAuctionHouse,
+    address _extraSurplusReceiver,
     AccountingEngineParams memory _accEngineParams
   ) Authorizable(msg.sender) validParams {
     safeEngine = ISAFEEngine(_safeEngine.assertNonNull());
     _setSurplusAuctionHouse(_surplusAuctionHouse);
     debtAuctionHouse = IDebtAuctionHouse(_debtAuctionHouse);
+    extraSurplusReceiver = _extraSurplusReceiver;
 
     lastSurplusTime = block.timestamp;
 
@@ -312,8 +316,8 @@ contract AccountingEngine is Authorizable, Modifiable, Disableable, IAccountingE
     address(debtAuctionHouse).assertHasCode();
 
     _params.surplusTransferPercentage.assertLtEq(WAD);
-    
-    if(extraSurplusReceiver == address(0)) {
+
+    if (extraSurplusReceiver == address(0)) {
       _params.surplusTransferPercentage.assertLtEq(0);
     }
   }

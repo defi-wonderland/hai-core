@@ -8,8 +8,9 @@ contract AccountingEngineForTest is AccountingEngine {
     address _safeEngine,
     address _surplusAuctionHouse,
     address _debtAuctionHouse,
+    address _extraSurplusReceiver,
     AccountingEngineParams memory _accEngineParams
-  ) AccountingEngine(_safeEngine, _surplusAuctionHouse, _debtAuctionHouse, _accEngineParams) {}
+  ) AccountingEngine(_safeEngine, _surplusAuctionHouse, _debtAuctionHouse, _extraSurplusReceiver, _accEngineParams) {}
 
   function setContractEnabled(bool _contractEnabled) external {
     contractEnabled = _contractEnabled;

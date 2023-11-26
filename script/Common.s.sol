@@ -190,6 +190,7 @@ abstract contract Common is Contracts, Params {
             address(safeEngine),
             address(surplusAuctionHouse),
             address(debtAuctionHouse),
+            governor,
             _accountingEngineParams
         );
 

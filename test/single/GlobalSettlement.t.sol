@@ -239,7 +239,7 @@ contract SingleGlobalSettlementTest is DSTest {
     });
 
     accountingEngine =
-    new AccountingEngine(address(safeEngine), address(surplusAuctionHouseOne), address(debtAuctionHouse), _accountingEngineParams);
+    new AccountingEngine(address(safeEngine), address(surplusAuctionHouseOne), address(debtAuctionHouse), address(0), _accountingEngineParams);
     postSettlementSurplusDrain = new SettlementSurplusAuctioneer(address(accountingEngine), address(0x45));
     surplusAuctionHouseOne.addAuthorization(address(postSettlementSurplusDrain));
 

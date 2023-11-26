@@ -779,7 +779,7 @@ contract SingleLiquidationTest is DSTest {
     });
 
     accountingEngine = new AccountingEngine(
-          address(safeEngine), address(surplusAuctionHouse), address(debtAuctionHouse), _accountingEngineParams
+          address(safeEngine), address(surplusAuctionHouse), address(debtAuctionHouse), address(0), _accountingEngineParams
         );
     surplusAuctionHouse.addAuthorization(address(accountingEngine));
     debtAuctionHouse.addAuthorization(address(accountingEngine));

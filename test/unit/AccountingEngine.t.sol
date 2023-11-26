@@ -30,7 +30,7 @@ abstract contract Base is HaiTest {
     vm.startPrank(deployer);
 
     accountingEngine =
-    new AccountingEngineForTest(address(mockSafeEngine), address(mockSurplusAuctionHouse), address(mockDebtAuctionHouse), _emptyParams);
+    new AccountingEngineForTest(address(mockSafeEngine), address(mockSurplusAuctionHouse), address(mockDebtAuctionHouse), address(0), _emptyParams);
     vm.stopPrank();
   }
 
@@ -193,48 +193,66 @@ contract Unit_AccountingEngine_Constructor is Base {
     assertEq(address(accountingEngine.debtAuctionHouse()), address(mockDebtAuctionHouse));
   }
 
-  function test_Set_AccountingEngineParams(IAccountingEngine.AccountingEngineParams memory _accountingEngineParams)
-    public
-  {
+  function test_Set_AccountingEngineParams(
+    IAccountingEngine.AccountingEngineParams memory _accountingEngineParams,
+    address _extraSurplusReceiver
+  ) public {
     vm.assume(_accountingEngineParams.surplusTransferPercentage <= WAD);
-    // vm.assume(_accountingEngineParams.surplusTransferPercentage == 0 || _accountingEngineParams.extraSurplusReceiver != address(0));
+    vm.assume(_accountingEngineParams.surplusTransferPercentage == 0 || _extraSurplusReceiver != address(0));
 
     accountingEngine =
-    new AccountingEngineForTest(address(mockSafeEngine), address(mockSurplusAuctionHouse), address(mockDebtAuctionHouse), _accountingEngineParams);
+    new AccountingEngineForTest(address(mockSafeEngine), address(mockSurplusAuctionHouse), address(mockDebtAuctionHouse), _extraSurplusReceiver, _accountingEngineParams);
     assertEq(abi.encode(accountingEngine.params()), abi.encode(_accountingEngineParams));
   }
 
   function test_Revert_NullSafeEngine() public {
     vm.expectRevert(Assertions.NullAddress.selector);
-    new AccountingEngineForTest(address(0), address(mockSurplusAuctionHouse), address(mockDebtAuctionHouse), _emptyParams);
+    new AccountingEngineForTest(address(0), address(mockSurplusAuctionHouse), address(mockDebtAuctionHouse), address(0), _emptyParams);
   }
 
   function test_Revert_NullSurplusAuctionHouse() public {
     vm.expectRevert(abi.encodeWithSelector(Assertions.NoCode.selector, address(0)));
-    new AccountingEngineForTest(address(mockSafeEngine), address(0), address(mockDebtAuctionHouse), _emptyParams);
+    new AccountingEngineForTest(address(mockSafeEngine), address(0), address(mockDebtAuctionHouse), address(0), _emptyParams);
   }
 
   function test_Revert_NullDebtAuctionHouse() public {
     vm.expectRevert(abi.encodeWithSelector(Assertions.NoCode.selector, address(0)));
-    new AccountingEngineForTest(address(mockSafeEngine), address(mockSurplusAuctionHouse), address(0), _emptyParams);
+    new AccountingEngineForTest(address(mockSafeEngine), address(mockSurplusAuctionHouse), address(0), address(0), _emptyParams);
   }
 
   function test_Revert_InvalidSurplusTransferPercentage(
     IAccountingEngine.AccountingEngineParams memory _accountingEngineParams
   ) public {
+    address _extraSurplusReceiver = newAddress();
     vm.assume(_accountingEngineParams.surplusTransferPercentage > WAD);
     vm.expectRevert(
       abi.encodeWithSelector(
         Assertions.NotLesserOrEqualThan.selector, _accountingEngineParams.surplusTransferPercentage, WAD
       )
     );
-    new AccountingEngineForTest(address(mockSafeEngine), address(mockSurplusAuctionHouse), address(mockDebtAuctionHouse), _accountingEngineParams);
+    new AccountingEngineForTest(address(mockSafeEngine), address(mockSurplusAuctionHouse), address(mockDebtAuctionHouse), _extraSurplusReceiver, _accountingEngineParams);
+  }
+
+  function test_Revert_NullSurplusReceiver(IAccountingEngine.AccountingEngineParams memory _accountingEngineParams)
+    public
+  {
+    address _extraSurplusReceiver = address(0);
+    vm.assume(_accountingEngineParams.surplusTransferPercentage <= WAD);
+    vm.assume(_accountingEngineParams.surplusTransferPercentage > 0);
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        Assertions.NotLesserOrEqualThan.selector, _accountingEngineParams.surplusTransferPercentage, 0
+      )
+    );
+    new AccountingEngineForTest(address(mockSafeEngine), address(mockSurplusAuctionHouse), address(mockDebtAuctionHouse), _extraSurplusReceiver, _accountingEngineParams);
   }
 }
 
 contract Unit_AccountingEngine_ModifyParameters is Base {
   function test_ModifyParameters(IAccountingEngine.AccountingEngineParams memory _fuzz) public authorized {
     vm.assume(_fuzz.surplusTransferPercentage <= WAD);
+    address _extraSurplusReceiver = newAddress();
+    _mockExtraSurplusReceiver(_extraSurplusReceiver);
 
     accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(_fuzz.surplusTransferPercentage));
     accountingEngine.modifyParameters('surplusDelay', abi.encode(_fuzz.surplusDelay));
@@ -294,16 +312,24 @@ contract Unit_AccountingEngine_ModifyParameters is Base {
     assertEq(_extraSurplusReceiver, address(accountingEngine.extraSurplusReceiver()));
   }
 
-  function test_Revert_ModifyParameters_InvalidSurplusTransferPercentage(uint256 _surplusTransferPercentage) public authorized {
+  function test_ModifyParameters_RevertNullExtraSurplusReceiver(uint256 _surplusTransferPercentage) public authorized {
+    vm.assume(_surplusTransferPercentage <= WAD);
+    vm.assume(_surplusTransferPercentage > 0);
+
+    _mockExtraSurplusReceiver(address(0));
+
+    vm.expectRevert(abi.encodeWithSelector(Assertions.NotLesserOrEqualThan.selector, _surplusTransferPercentage, 0));
+    accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(_surplusTransferPercentage));
+  }
+
+  function test_Revert_ModifyParameters_InvalidSurplusTransferPercentage(uint256 _surplusTransferPercentage)
+    public
+    authorized
+  {
     vm.assume(_surplusTransferPercentage > WAD);
 
+    vm.expectRevert(abi.encodeWithSelector(Assertions.NotLesserOrEqualThan.selector, _surplusTransferPercentage, WAD));
 
-    vm.expectRevert(
-      abi.encodeWithSelector(
-        Assertions.NotLesserOrEqualThan.selector, _surplusTransferPercentage, WAD
-      )
-    );
-    
     accountingEngine.modifyParameters('surplusTransferPercentage', abi.encode(_surplusTransferPercentage));
   }
 
@@ -819,9 +845,7 @@ contract Unit_AccountingEngine_AuctionSurplus is Base {
     vm.assume(_scenario.surplusAmount > 0);
   }
 
-  function _mockValues(
-    AuctionSurplusScenario memory _scenario
-  ) internal {
+  function _mockValues(AuctionSurplusScenario memory _scenario) internal {
     _mockSurplusAmount(_scenario.surplusAmount);
     _mockSurplusBuffer(_scenario.surplusBuffer);
     _mockCoinAndDebtBalance(_scenario.coinBalance, _scenario.debtBalance);
@@ -895,7 +919,11 @@ contract Unit_AccountingEngine_AuctionSurplus is Base {
     accountingEngine.auctionSurplus();
   }
 
-  function test_Revert_SurplusAuctionDelayNotPassed(uint128 _surplusDelay, uint256 _timeElapsed, AuctionSurplusScenario memory _scenario) public {
+  function test_Revert_SurplusAuctionDelayNotPassed(
+    uint128 _surplusDelay,
+    uint256 _timeElapsed,
+    AuctionSurplusScenario memory _scenario
+  ) public {
     _assumeHappyPath(_scenario);
     _mockValues(_scenario);
 

@@ -70,7 +70,7 @@ contract SingleAccountingEngineTest is DSTest {
     });
 
     accountingEngine = new AccountingEngine(
-          address(safeEngine), address(surplusAuctionHouseOne), address(debtAuctionHouse), _accountingEngineParams
+          address(safeEngine), address(surplusAuctionHouseOne), address(debtAuctionHouse), address(0), _accountingEngineParams
         );
     surplusAuctionHouseOne.addAuthorization(address(accountingEngine));
 
