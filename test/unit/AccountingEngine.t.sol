@@ -189,7 +189,7 @@ abstract contract Base is HaiTest {
   function _calculateSurplusAmounts(
     uint256 _surplusAmount,
     uint256 _transferSurplusPercentage
-  ) internal view returns (uint256 _auctionedSurplus, uint256 _transferredSurplus) {
+  ) internal pure returns (uint256 _auctionedSurplus, uint256 _transferredSurplus) {
     _auctionedSurplus = _surplusAmount * (WAD - _transferSurplusPercentage) / WAD;
     _transferredSurplus = _surplusAmount - _auctionedSurplus;
   }
