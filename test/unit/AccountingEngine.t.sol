@@ -629,10 +629,16 @@ contract Unit_AccountingEngine_CancelAuctionedDebtWithSurplus is Base {
     _mockCoinAndDebtBalance(_scenario.coinBalance, _scenario.debtBalance);
   }
 
-  function test_Call_SAFEEngine_CoinBalance(CancelAuctionedDebtWithSurplusScenario memory _scenario) public {
+  modifier happyPath(CancelAuctionedDebtWithSurplusScenario memory _scenario) {
     _assumeHappyPath(_scenario);
     _mockValues(_scenario);
+    _;
+  }
 
+  function test_Call_SAFEEngine_CoinBalance(CancelAuctionedDebtWithSurplusScenario memory _scenario)
+    public
+    happyPath(_scenario)
+  {
     vm.expectCall(
       address(mockSafeEngine), abi.encodeWithSelector(ISAFEEngine.coinBalance.selector, address(accountingEngine)), 1
     );
@@ -640,28 +646,28 @@ contract Unit_AccountingEngine_CancelAuctionedDebtWithSurplus is Base {
     accountingEngine.cancelAuctionedDebtWithSurplus(_scenario.rad);
   }
 
-  function test_Call_SAFEEngine_SettleDebt(CancelAuctionedDebtWithSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    _mockValues(_scenario);
-
+  function test_Call_SAFEEngine_SettleDebt(CancelAuctionedDebtWithSurplusScenario memory _scenario)
+    public
+    happyPath(_scenario)
+  {
     vm.expectCall(address(mockSafeEngine), abi.encodeWithSelector(ISAFEEngine.settleDebt.selector, _scenario.rad));
 
     accountingEngine.cancelAuctionedDebtWithSurplus(_scenario.rad);
   }
 
-  function test_Set_TotalOnAuctionDebt(CancelAuctionedDebtWithSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    _mockValues(_scenario);
-
+  function test_Set_TotalOnAuctionDebt(CancelAuctionedDebtWithSurplusScenario memory _scenario)
+    public
+    happyPath(_scenario)
+  {
     accountingEngine.cancelAuctionedDebtWithSurplus(_scenario.rad);
 
     assertEq(accountingEngine.totalOnAuctionDebt(), _scenario.totalOnAuctionDebt - _scenario.rad);
   }
 
-  function test_Emit_CancelAuctionedDebtWithSurplus(CancelAuctionedDebtWithSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    _mockValues(_scenario);
-
+  function test_Emit_CancelAuctionedDebtWithSurplus(CancelAuctionedDebtWithSurplusScenario memory _scenario)
+    public
+    happyPath(_scenario)
+  {
     vm.expectEmit();
     emit CancelDebt({
       _rad: _scenario.rad,
@@ -867,10 +873,13 @@ contract Unit_AccountingEngine_AuctionSurplus is Base {
     _mockSurplusStartAuction(1, _scenario.surplusAmount * (WAD - _scenario.transferSurplusPercentage) / WAD);
   }
 
-  function test_Call_SAFEEngine_DebtBalance(AuctionSurplusScenario memory _scenario) public {
+  modifier happyPath(AuctionSurplusScenario memory _scenario) {
     _assumeHappyPath(_scenario);
     _mockValues(_scenario);
+    _;
+  }
 
+  function test_Call_SAFEEngine_DebtBalance(AuctionSurplusScenario memory _scenario) public happyPath(_scenario) {
     vm.expectCall(
       address(mockSafeEngine), abi.encodeWithSelector(ISAFEEngine.debtBalance.selector, address(accountingEngine)), 1
     );
@@ -878,10 +887,7 @@ contract Unit_AccountingEngine_AuctionSurplus is Base {
     accountingEngine.auctionSurplus();
   }
 
-  function test_Call_SAFEEngine_CoinBalance(AuctionSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    _mockValues(_scenario);
-
+  function test_Call_SAFEEngine_CoinBalance(AuctionSurplusScenario memory _scenario) public happyPath(_scenario) {
     vm.expectCall(
       address(mockSafeEngine), abi.encodeWithSelector(ISAFEEngine.coinBalance.selector, address(accountingEngine)), 1
     );
@@ -898,10 +904,10 @@ contract Unit_AccountingEngine_AuctionSurplus is Base {
     accountingEngine.auctionSurplus();
   }
 
-  function test_Call_SurplusAuctionHouse_StartAuction(AuctionSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    _mockValues(_scenario);
-
+  function test_Call_SurplusAuctionHouse_StartAuction(AuctionSurplusScenario memory _scenario)
+    public
+    happyPath(_scenario)
+  {
     (uint256 _auctionedSurplus,) =
       _calculateSurplusAmounts(_scenario.surplusAmount, _scenario.transferSurplusPercentage);
     vm.assume(_auctionedSurplus > 0);
@@ -918,10 +924,7 @@ contract Unit_AccountingEngine_AuctionSurplus is Base {
     assertEq(accountingEngine.lastSurplusTime(), block.timestamp);
   }
 
-  function test_Emit_AuctionSurplus(AuctionSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    _mockValues(_scenario);
-
+  function test_Emit_AuctionSurplus(AuctionSurplusScenario memory _scenario) public happyPath(_scenario) {
     (uint256 _auctionedSurplus,) =
       _calculateSurplusAmounts(_scenario.surplusAmount, _scenario.transferSurplusPercentage);
     vm.assume(_auctionedSurplus > 0);
@@ -944,10 +947,7 @@ contract Unit_AccountingEngine_AuctionSurplus is Base {
     uint128 _surplusDelay,
     uint256 _timeElapsed,
     AuctionSurplusScenario memory _scenario
-  ) public {
-    _assumeHappyPath(_scenario);
-    _mockValues(_scenario);
-
+  ) public happyPath(_scenario) {
     vm.assume(_timeElapsed < _surplusDelay);
     _mockSurplusDelay(_surplusDelay);
     _mockLastSurplusTime(block.timestamp);
@@ -972,12 +972,13 @@ contract Unit_AccountingEngine_AuctionSurplus is Base {
     accountingEngine.auctionSurplus();
   }
 
-  function test_Call_SAFEEngine_TransferInternalCoins(AuctionSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    vm.assume(_scenario.transferSurplusPercentage > 0);
+  function test_Call_SAFEEngine_TransferInternalCoins(AuctionSurplusScenario memory _scenario)
+    public
+    happyPath(_scenario)
+  {
     (, uint256 _transferredSurplus) =
       _calculateSurplusAmounts(_scenario.surplusAmount, _scenario.transferSurplusPercentage);
-    _mockValues(_scenario);
+    vm.assume(_transferredSurplus > 0);
 
     vm.expectCall(
       address(mockSafeEngine),
@@ -989,21 +990,16 @@ contract Unit_AccountingEngine_AuctionSurplus is Base {
     accountingEngine.auctionSurplus();
   }
 
-  function test_Set_LastSurplusTime(AuctionSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    _mockValues(_scenario);
-
+  function test_Set_LastSurplusTime(AuctionSurplusScenario memory _scenario) public happyPath(_scenario) {
     accountingEngine.auctionSurplus();
 
     assertEq(accountingEngine.lastSurplusTime(), block.timestamp);
   }
 
-  function test_Emit_TransferSurplus(AuctionSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    vm.assume(_scenario.transferSurplusPercentage > 0);
+  function test_Emit_TransferSurplus(AuctionSurplusScenario memory _scenario) public happyPath(_scenario) {
     (, uint256 _transferredSurplus) =
       _calculateSurplusAmounts(_scenario.surplusAmount, _scenario.transferSurplusPercentage);
-    _mockValues(_scenario);
+    vm.assume(_transferredSurplus > 0);
 
     vm.expectEmit();
     emit TransferSurplus(extraSurplusReceiver, _transferredSurplus);
@@ -1070,19 +1066,25 @@ contract Unit_AccountingEngine_TransferPostSettlementSurplus is Base {
     vm.warp(_scenario.timestamp);
   }
 
-  function test_Call_SAFEEngine_CoinBalance(TransferPostSettlementSurplusScenario memory _scenario) public {
+  modifier happyPath(TransferPostSettlementSurplusScenario memory _scenario) {
     _assumeHappyPath(_scenario);
     _mockValues(_scenario);
+    _;
+  }
 
+  function test_Call_SAFEEngine_CoinBalance(TransferPostSettlementSurplusScenario memory _scenario)
+    public
+    happyPath(_scenario)
+  {
     vm.expectCall(address(mockSafeEngine), abi.encodeWithSelector(ISAFEEngine.coinBalance.selector, accountingEngine));
 
     accountingEngine.transferPostSettlementSurplus();
   }
 
-  function test_Call_SAFEEngine_DebtBalance(TransferPostSettlementSurplusScenario memory _scenario) public {
-    _assumeHappyPath(_scenario);
-    _mockValues(_scenario);
-
+  function test_Call_SAFEEngine_DebtBalance(TransferPostSettlementSurplusScenario memory _scenario)
+    public
+    happyPath(_scenario)
+  {
     vm.expectCall(address(mockSafeEngine), abi.encodeWithSelector(ISAFEEngine.debtBalance.selector, accountingEngine));
 
     accountingEngine.transferPostSettlementSurplus();
