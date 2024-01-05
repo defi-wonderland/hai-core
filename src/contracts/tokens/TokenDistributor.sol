@@ -2,13 +2,14 @@
 pragma solidity 0.8.20;
 
 import {ITokenDistributor} from '@interfaces/tokens/ITokenDistributor.sol';
-import {Authorizable} from '@contracts/utils/Authorizable.sol';
-import {Assertions} from '@libraries/Assertions.sol';
 
 import {ERC20Votes} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol';
+import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {MerkleProof} from '@openzeppelin/contracts/utils/cryptography/MerkleProof.sol';
 
-import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {Authorizable} from '@contracts/utils/Authorizable.sol';
+
+import {Assertions} from '@libraries/Assertions.sol';
 
 /**
  * @title  TokenDistributor
