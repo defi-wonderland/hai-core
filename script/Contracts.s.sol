@@ -2,8 +2,8 @@
 pragma solidity 0.8.19;
 
 // --- Base Contracts ---
-import {OpenDollar, SystemCoin, ISystemCoin} from '@contracts/tokens/SystemCoin.sol';
-import {OpenDollarGovernance, ProtocolToken, IProtocolToken} from '@contracts/tokens/ProtocolToken.sol';
+import {SystemCoin, ISystemCoin} from '@contracts/tokens/SystemCoin.sol';
+import {ProtocolToken, IProtocolToken} from '@contracts/tokens/ProtocolToken.sol';
 import {SAFEEngine, ISAFEEngine} from '@contracts/SAFEEngine.sol';
 import {TaxCollector, ITaxCollector} from '@contracts/TaxCollector.sol';
 import {AccountingEngine, IAccountingEngine} from '@contracts/AccountingEngine.sol';
@@ -41,7 +41,6 @@ import {HardcodedOracle} from '@contracts/for-test/HardcodedOracle.sol';
 
 // --- Token adapters ---
 import {CoinJoin, ICoinJoin} from '@contracts/utils/CoinJoin.sol';
-import {ETHJoin, IETHJoin} from '@contracts/utils/ETHJoin.sol';
 import {CollateralJoin, ICollateralJoin} from '@contracts/utils/CollateralJoin.sol';
 
 // --- Factories ---
@@ -86,6 +85,7 @@ import {ODGovernor} from '@contracts/gov/ODGovernor.sol';
 // --- ForTestnet ---
 import {OracleForTest} from '@contracts/for-test/OracleForTest.sol';
 import {OracleForTestnet} from '@contracts/for-test/OracleForTestnet.sol';
+import {ChainlinkUptimeFeedForTest} from '@contracts/for-test/ChainlinkUptimeFeedForTest.sol';
 
 /**
  * @title  Contracts
@@ -118,7 +118,6 @@ abstract contract Contracts {
   mapping(bytes32 => MintableERC20) public erc20;
   mapping(bytes32 => IERC20Metadata) public collateral;
   ICoinJoin public coinJoin;
-  IETHJoin public ethJoin;
   mapping(bytes32 => ICollateralJoin) public collateralJoin;
 
   // --- Oracle contracts ---

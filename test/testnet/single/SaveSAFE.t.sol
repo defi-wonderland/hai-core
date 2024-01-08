@@ -9,7 +9,6 @@ import {ILiquidationEngine, LiquidationEngine} from '@contracts/LiquidationEngin
 import {IAccountingEngine, AccountingEngine} from '@contracts/AccountingEngine.sol';
 import {ITaxCollector, TaxCollector} from '@contracts/TaxCollector.sol';
 import {CoinJoin} from '@contracts/utils/CoinJoin.sol';
-import {ETHJoin} from '@contracts/utils/ETHJoin.sol';
 import {
   ICollateralJoinFactory,
   ICollateralJoin,
@@ -226,11 +225,11 @@ contract SingleSaveSAFETest is DSTest {
     taxCollector = new TaxCollector(address(safeEngine), _taxCollectorParams);
     ITaxCollector.TaxCollectorCollateralParams memory _taxCollectorCollateralParams =
       ITaxCollector.TaxCollectorCollateralParams({stabilityFee: RAY});
-    taxCollector.initializeCollateralType('gold', _taxCollectorCollateralParams);
+    taxCollector.initializeCollateralType('gold', abi.encode(_taxCollectorCollateralParams));
     safeEngine.addAuthorization(address(taxCollector));
 
-    ILiquidationEngine.LiquidationEngineParams memory _liquidationEngineParams =
-      ILiquidationEngine.LiquidationEngineParams({onAuctionSystemCoinLimit: type(uint256).max});
+    ILiquidationEngine.LiquidationEngineParams memory _liquidationEngineParams = ILiquidationEngine
+      .LiquidationEngineParams({onAuctionSystemCoinLimit: type(uint256).max, saviourGasLimit: 10_000_000});
     liquidationEngine = new LiquidationEngine(address(safeEngine), address(accountingEngine), _liquidationEngineParams);
     safeEngine.addAuthorization(address(liquidationEngine));
     accountingEngine.addAuthorization(address(liquidationEngine));
@@ -240,7 +239,7 @@ contract SingleSaveSAFETest is DSTest {
 
     ISAFEEngine.SAFEEngineCollateralParams memory _safeEngineCollateralParams =
       ISAFEEngine.SAFEEngineCollateralParams({debtCeiling: rad(1000 ether), debtFloor: 0});
-    safeEngine.initializeCollateralType('gold', _safeEngineCollateralParams);
+    safeEngine.initializeCollateralType('gold', abi.encode(_safeEngineCollateralParams));
     collateralJoinFactory = new CollateralJoinFactory(address(safeEngine));
     safeEngine.addAuthorization(address(collateralJoinFactory));
     collateralA = collateralJoinFactory.deployCollateralJoin('gold', address(gold));
@@ -266,7 +265,7 @@ contract SingleSaveSAFETest is DSTest {
       liquidationPenalty: 1 ether,
       liquidationQuantity: 0
     });
-    liquidationEngine.initializeCollateralType('gold', _liquidationEngineCollateralParams);
+    liquidationEngine.initializeCollateralType('gold', abi.encode(_liquidationEngineCollateralParams));
 
     safeEngine.addAuthorization(address(collateralAuctionHouse));
     safeEngine.addAuthorization(address(surplusAuctionHouse));

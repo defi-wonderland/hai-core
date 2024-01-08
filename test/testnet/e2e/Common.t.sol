@@ -60,8 +60,6 @@ contract DeployForTest is TestParams, Deploy {
     collateralTypes.push('TKN-B');
     collateralTypes.push('TKN-C');
     collateralTypes.push('TKN-8D');
-
-    _getEnvironmentParams();
   }
 }
 
