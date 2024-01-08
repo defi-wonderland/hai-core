@@ -108,7 +108,6 @@ contract DeployMainnet is MainnetParams, Deploy {
 
   // Setup oracle feeds
   function setupEnvironment() public virtual override updateParams {
-
     // Deploy oracle factories used to setup the environment
     deployOracleFactories(CHAINLINK_UPTIME_FEED);
 
@@ -186,7 +185,6 @@ contract DeploySepolia is SepoliaParams, Deploy {
 
   // Setup oracle feeds
   function setupEnvironment() public virtual override updateParams {
-
     // Deploy oracle factories used to setup the environment
     deployOracleFactories(address(new ChainlinkUptimeFeedForTest()));
 
@@ -246,7 +244,6 @@ contract DeployAnvil is SepoliaParams, Deploy {
 
   // Setup oracle feeds
   function setupEnvironment() public virtual override updateParams {
-
     // Deploy oracle factories used to setup the environment
     deployOracleFactories(address(new ChainlinkUptimeFeedForTest()));
 
