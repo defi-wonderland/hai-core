@@ -5,8 +5,9 @@ import {ICollateralAuctionHouse} from '@interfaces/ICollateralAuctionHouse.sol';
 
 import {IAuthorizable} from '@interfaces/utils/IAuthorizable.sol';
 import {IModifiable} from '@interfaces/utils/IModifiable.sol';
+import {IModifiablePerCollateral} from '@interfaces/utils/IModifiablePerCollateral.sol';
 
-interface ICollateralAuctionHouseFactory is IAuthorizable, IModifiable {
+interface ICollateralAuctionHouseFactory is IAuthorizable, IModifiable, IModifiablePerCollateral {
   // --- Events ---
 
   /**
@@ -62,12 +63,6 @@ interface ICollateralAuctionHouseFactory is IAuthorizable, IModifiable {
    * @return _collateralAuctionHouse Address of the CollateralAuctionHouse contract
    */
   function collateralAuctionHouses(bytes32 _cType) external view returns (address _collateralAuctionHouse);
-
-  /**
-   * @notice Getter for the list of collateral types
-   * @return __collateralList List of collateral types
-   */
-  function collateralList() external view returns (bytes32[] memory __collateralList);
 
   /**
    * @notice Getter for the list of CollateralAuctionHouse contracts

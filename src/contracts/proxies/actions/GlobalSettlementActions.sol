@@ -24,7 +24,7 @@ contract GlobalSettlementActions is CommonActions, IGlobalSettlementActions {
     address _globalSettlement,
     address _collateralJoin,
     uint256 _safeId
-  ) external delegateCall returns (uint256 _collateralAmount) {
+  ) external onlyDelegateCall returns (uint256 _collateralAmount) {
     IGlobalSettlement __globalSettlement = IGlobalSettlement(_globalSettlement);
     ODSafeManager __manager = ODSafeManager(_manager);
     ODSafeManager.SAFEData memory _safeData = __manager.safeData(_safeId);
@@ -34,7 +34,6 @@ contract GlobalSettlementActions is CommonActions, IGlobalSettlementActions {
     // check for debt and process safe if needed
     if (_safe.generatedDebt > 0) {
       __globalSettlement.processSAFE(_safeData.collateralType, _safeData.safeHandler);
-      _safe = _safeEngine.safes(_safeData.collateralType, _safeData.safeHandler);
     }
 
     // quit system to proxy address
@@ -57,7 +56,7 @@ contract GlobalSettlementActions is CommonActions, IGlobalSettlementActions {
     address _globalSettlement,
     address _coinJoin,
     uint256 _coinAmount
-  ) external delegateCall {
+  ) external onlyDelegateCall {
     IGlobalSettlement __globalSettlement = IGlobalSettlement(_globalSettlement);
     ISAFEEngine __safeEngine = __globalSettlement.safeEngine();
 
@@ -76,7 +75,7 @@ contract GlobalSettlementActions is CommonActions, IGlobalSettlementActions {
   function redeemCollateral(
     address _globalSettlement,
     address _collateralJoin
-  ) external delegateCall returns (uint256 _collateralAmount) {
+  ) external onlyDelegateCall returns (uint256 _collateralAmount) {
     IGlobalSettlement __globalSettlement = IGlobalSettlement(_globalSettlement);
     ISAFEEngine __safeEngine = __globalSettlement.safeEngine();
 

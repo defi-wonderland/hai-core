@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 import {ODSafeManager} from '@contracts/proxies/ODSafeManager.sol';
 
 import {ISAFEEngine} from '@interfaces/ISAFEEngine.sol';
+import {ITaxCollector} from '@interfaces/ITaxCollector.sol';
 import {SafeCast} from '@openzeppelin/utils/math/SafeCast.sol';
 import {IBasicActions} from '@interfaces/proxies/actions/IBasicActions.sol';
 
@@ -151,6 +152,7 @@ contract BasicActions is CommonActions, IBasicActions {
    */
   function _lockTokenCollateralAndGenerateDebt(
     address _manager,
+    address _taxCollector,
     address _collateralJoin,
     address _coinJoin,
     uint256 _safeId,
@@ -159,6 +161,7 @@ contract BasicActions is CommonActions, IBasicActions {
   ) internal {
     address _safeEngine = ODSafeManager(_manager).safeEngine();
     ODSafeManager.SAFEData memory _safeInfo = ODSafeManager(_manager).safeData(_safeId);
+    ITaxCollector(_taxCollector).taxSingle(_safeInfo.collateralType);
 
     // Takes token amount from user's wallet and joins into the safeEngine
     _joinCollateral(_collateralJoin, _safeInfo.safeHandler, _collateralAmount);
@@ -201,22 +204,27 @@ contract BasicActions is CommonActions, IBasicActions {
   // --- Methods ---
 
   /// @inheritdoc IBasicActions
-  function openSAFE(address _manager, bytes32 _cType, address _usr) external delegateCall returns (uint256 _safeId) {
+  function openSAFE(address _manager, bytes32 _cType, address _usr) external onlyDelegateCall returns (uint256 _safeId) {
     return _openSAFE(_manager, _cType, _usr);
   }
 
   /// @inheritdoc IBasicActions
-  function generateDebt(address _manager, address _coinJoin, uint256 _safeId, uint256 _deltaWad) external delegateCall {
+  function generateDebt(
+    address _manager,
+    address _coinJoin,
+    uint256 _safeId,
+    uint256 _deltaWad
+  ) external onlyDelegateCall {
     _generateDebt(_manager, _coinJoin, _safeId, _deltaWad);
   }
 
   /// @inheritdoc IBasicActions
-  function allowSAFE(address _manager, uint256 _safeId, address _usr, bool _ok) external delegateCall {
+  function allowSAFE(address _manager, uint256 _safeId, address _usr, bool _ok) external onlyDelegateCall {
     ODSafeManager(_manager).allowSAFE(_safeId, _usr, _ok);
   }
 
   /// @inheritdoc IBasicActions
-  function allowHandler(address _manager, address _usr, bool _ok) external delegateCall {
+  function allowHandler(address _manager, address _usr, bool _ok) external onlyDelegateCall {
     ODSafeManager(_manager).allowHandler(_usr, _ok);
   }
 
@@ -226,42 +234,52 @@ contract BasicActions is CommonActions, IBasicActions {
     uint256 _safeId,
     int256 _deltaCollateral,
     int256 _deltaDebt
-  ) external delegateCall {
+  ) external onlyDelegateCall {
     _modifySAFECollateralization(_manager, _safeId, _deltaCollateral, _deltaDebt, false);
   }
 
   /// @inheritdoc IBasicActions
-  function transferCollateral(address _manager, uint256 _safeId, address _dst, uint256 _deltaWad) external delegateCall {
+  function transferCollateral(
+    address _manager,
+    uint256 _safeId,
+    address _dst,
+    uint256 _deltaWad
+  ) external onlyDelegateCall {
     _transferCollateral(_manager, _safeId, _dst, _deltaWad);
   }
 
   /// @inheritdoc IBasicActions
-  function transferInternalCoins(address _manager, uint256 _safeId, address _dst, uint256 _rad) external delegateCall {
+  function transferInternalCoins(
+    address _manager,
+    uint256 _safeId,
+    address _dst,
+    uint256 _rad
+  ) external onlyDelegateCall {
     _transferInternalCoins(_manager, _safeId, _dst, _rad);
   }
 
   /// @inheritdoc IBasicActions
-  function quitSystem(address _manager, uint256 _safeId, address _dst) external delegateCall {
+  function quitSystem(address _manager, uint256 _safeId, address _dst) external onlyDelegateCall {
     ODSafeManager(_manager).quitSystem(_safeId, _dst);
   }
 
   /// @inheritdoc IBasicActions
-  function enterSystem(address _manager, address _src, uint256 _safeId) external delegateCall {
+  function enterSystem(address _manager, address _src, uint256 _safeId) external onlyDelegateCall {
     ODSafeManager(_manager).enterSystem(_src, _safeId);
   }
 
   /// @inheritdoc IBasicActions
-  function moveSAFE(address _manager, uint256 _src, uint256 _dst) external delegateCall {
+  function moveSAFE(address _manager, uint256 _src, uint256 _dst) external onlyDelegateCall {
     ODSafeManager(_manager).moveSAFE(_src, _dst);
   }
 
   /// @inheritdoc IBasicActions
-  function addSAFE(address _manager, uint256 _safe) external delegateCall {
+  function addSAFE(address _manager, uint256 _safe) external onlyDelegateCall {
     ODSafeManager(_manager).addSAFE(_safe);
   }
 
   /// @inheritdoc IBasicActions
-  function removeSAFE(address _manager, uint256 _safe) external delegateCall {
+  function removeSAFE(address _manager, uint256 _safe) external onlyDelegateCall {
     ODSafeManager(_manager).removeSAFE(_safe);
   }
 
@@ -271,12 +289,12 @@ contract BasicActions is CommonActions, IBasicActions {
     uint256 _safe,
     address _liquidationEngine,
     address _saviour
-  ) external delegateCall {
+  ) external onlyDelegateCall {
     ODSafeManager(_manager).protectSAFE(_safe, _liquidationEngine, _saviour);
   }
 
   /// @inheritdoc IBasicActions
-  function repayDebt(address _manager, address _coinJoin, uint256 _safeId, uint256 _deltaWad) external delegateCall {
+  function repayDebt(address _manager, address _coinJoin, uint256 _safeId, uint256 _deltaWad) external onlyDelegateCall {
     _repayDebt(_manager, _coinJoin, _safeId, _deltaWad);
   }
 
@@ -286,7 +304,7 @@ contract BasicActions is CommonActions, IBasicActions {
     address _collateralJoin,
     uint256 _safeId,
     uint256 _deltaWad
-  ) external delegateCall {
+  ) external onlyDelegateCall {
     ODSafeManager.SAFEData memory _safeInfo = ODSafeManager(_manager).safeData(_safeId);
 
     // Takes token amount from user's wallet and joins into the safeEngine
@@ -302,7 +320,7 @@ contract BasicActions is CommonActions, IBasicActions {
     address _collateralJoin,
     uint256 _safeId,
     uint256 _deltaWad
-  ) external delegateCall {
+  ) external onlyDelegateCall {
     // Unlocks token amount from the SAFE
     ODSafeManager.SAFEData memory _safeInfo = ODSafeManager(_manager).safeData(_safeId);
 
@@ -312,9 +330,15 @@ contract BasicActions is CommonActions, IBasicActions {
   }
 
   /// @inheritdoc IBasicActions
-  function repayAllDebt(address _manager, address _coinJoin, uint256 _safeId) external delegateCall {
+  function repayAllDebt(
+    address _manager,
+    address _taxCollector,
+    address _coinJoin,
+    uint256 _safeId
+  ) external onlyDelegateCall {
     address _safeEngine = ODSafeManager(_manager).safeEngine();
     ODSafeManager.SAFEData memory _safeInfo = ODSafeManager(_manager).safeData(_safeId);
+    ITaxCollector(_taxCollector).taxSingle(_safeInfo.collateralType);
 
     ISAFEEngine.SAFE memory _safeData = ISAFEEngine(_safeEngine).safes(_safeInfo.collateralType, _safeInfo.safeHandler);
 
@@ -326,46 +350,61 @@ contract BasicActions is CommonActions, IBasicActions {
     );
 
     // Paybacks debt to the SAFE (allowed because reducing debt of the SAFE)
-    _modifySAFECollateralization(_manager, _safeId, 0, -_safeData.generatedDebt.toInt(), true);
+    ISAFEEngine(_safeEngine).modifySAFECollateralization({
+      _cType: _safeInfo.collateralType,
+      _safe: _safeInfo.safeHandler,
+      _collateralSource: address(this),
+      _debtDestination: address(this),
+      _deltaCollateral: 0,
+      _deltaDebt: -_safeData.generatedDebt.toInt()
+    });
   }
 
   /// @inheritdoc IBasicActions
   function lockTokenCollateralAndGenerateDebt(
     address _manager,
+    address _taxCollector,
     address _collateralJoin,
     address _coinJoin,
     uint256 _safe,
     uint256 _collateralAmount,
     uint256 _deltaWad
-  ) external delegateCall {
-    _lockTokenCollateralAndGenerateDebt(_manager, _collateralJoin, _coinJoin, _safe, _collateralAmount, _deltaWad);
+  ) external onlyDelegateCall {
+    _lockTokenCollateralAndGenerateDebt(
+      _manager, _taxCollector, _collateralJoin, _coinJoin, _safe, _collateralAmount, _deltaWad
+    );
   }
 
   /// @inheritdoc IBasicActions
   function openLockTokenCollateralAndGenerateDebt(
     address _manager,
+    address _taxCollector,
     address _collateralJoin,
     address _coinJoin,
     bytes32 _cType,
     uint256 _collateralAmount,
     uint256 _deltaWad
-  ) external delegateCall returns (uint256 _safe) {
+  ) external onlyDelegateCall returns (uint256 _safe) {
     _safe = _openSAFE(_manager, _cType, address(this));
 
-    _lockTokenCollateralAndGenerateDebt(_manager, _collateralJoin, _coinJoin, _safe, _collateralAmount, _deltaWad);
+    _lockTokenCollateralAndGenerateDebt(
+      _manager, _taxCollector, _collateralJoin, _coinJoin, _safe, _collateralAmount, _deltaWad
+    );
   }
 
   /// @inheritdoc IBasicActions
   function repayDebtAndFreeTokenCollateral(
     address _manager,
+    address _taxCollector,
     address _collateralJoin,
     address _coinJoin,
     uint256 _safeId,
     uint256 _collateralWad,
     uint256 _debtWad
-  ) external delegateCall {
+  ) external onlyDelegateCall {
     address _safeEngine = ODSafeManager(_manager).safeEngine();
     ODSafeManager.SAFEData memory _safeInfo = ODSafeManager(_manager).safeData(_safeId);
+    ITaxCollector(_taxCollector).taxSingle(_safeInfo.collateralType);
 
     // Joins COIN amount into the safeEngine
     _joinSystemCoins(_coinJoin, _safeInfo.safeHandler, _debtWad);
@@ -386,13 +425,15 @@ contract BasicActions is CommonActions, IBasicActions {
   /// @inheritdoc IBasicActions
   function repayAllDebtAndFreeTokenCollateral(
     address _manager,
+    address _taxCollector,
     address _collateralJoin,
     address _coinJoin,
     uint256 _safeId,
     uint256 _collateralWad
-  ) external delegateCall {
+  ) external onlyDelegateCall {
     address _safeEngine = ODSafeManager(_manager).safeEngine();
     ODSafeManager.SAFEData memory _safeInfo = ODSafeManager(_manager).safeData(_safeId);
+    ITaxCollector(_taxCollector).taxSingle(_safeInfo.collateralType);
 
     ISAFEEngine.SAFE memory _safeData = ISAFEEngine(_safeEngine).safes(_safeInfo.collateralType, _safeInfo.safeHandler);
 

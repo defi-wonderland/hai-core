@@ -161,7 +161,7 @@ contract NFTRenderer {
       (cType, collateral, debt) = getVaultCTypeAndCollateralAndDebt(_safeId);
 
       IOracleRelayer.OracleRelayerCollateralParams memory oracleParams = _oracleRelayer.cParams(cType);
-      IDelayedOracle oracle = oracleParams.oracle;
+      IDelayedOracle oracle = IDelayedOracle(address(oracleParams.oracle));
       uint256 safetyCRatio = oracleParams.safetyCRatio / 10e24;
       uint256 liquidationCRatio = oracleParams.liquidationCRatio / 10e24;
 

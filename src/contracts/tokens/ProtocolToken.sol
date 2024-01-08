@@ -38,4 +38,16 @@ contract ProtocolToken is ERC20VotesUpgradeable, AuthorizableUpgradeable, IProto
   function burn(uint256 _wad) external {
     _burn(msg.sender, _wad);
   }
+
+  // --- Overrides ---
+
+  // Uncomment when upgrading to OZ 5.x
+  // function _update(address _from, address _to, uint256 _value) internal override(ERC20, ERC20Votes) {
+  //   super._update(_from, _to, _value);
+  // }
+
+  // Uncomment when upgrading to OZ 5.x
+  // function nonces(address _owner) public view override(ERC20Permit, IERC20Permit, Nonces) returns (uint256 _nonce) {
+  //   return super.nonces(_owner);
+  // }
 }
