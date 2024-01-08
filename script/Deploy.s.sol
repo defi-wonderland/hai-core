@@ -4,8 +4,8 @@ pragma solidity 0.8.19;
 import 'forge-std/console2.sol';
 
 import '@script/Contracts.s.sol';
-import '@script/Registry.s.sol';
 import '@script/Params.s.sol';
+import '@script/Registry.s.sol';
 
 import {FixedPointMathLib} from '@isolmate/utils/FixedPointMathLib.sol';
 import {IERC20Metadata} from '@openzeppelin/token/ERC20/extensions/IERC20Metadata.sol';
@@ -36,9 +36,6 @@ abstract contract Deploy is Common, Script {
 
     _chainId = getChainId();
 
-    // Deploy oracle factories used to setup the environment
-    deployOracleFactories();
-
     // Environment may be different for each network
     setupEnvironment();
 
@@ -63,8 +60,7 @@ abstract contract Deploy is Common, Script {
     for (uint256 _i; _i < collateralTypes.length; _i++) {
       bytes32 _cType = collateralTypes[_i];
 
-      if (_cType == ETH_A) deployEthCollateralContracts();
-      else deployCollateralContracts(_cType);
+      deployCollateralContracts(_cType);
       _setupCollateral(_cType);
     }
 
@@ -112,6 +108,10 @@ contract DeployMainnet is MainnetParams, Deploy {
 
   // Setup oracle feeds
   function setupEnvironment() public virtual override updateParams {
+
+    // Deploy oracle factories used to setup the environment
+    deployOracleFactories(CHAINLINK_UPTIME_FEED);
+
     // to USD
     IBaseOracle _ethUSDPriceFeed =
       chainlinkRelayerFactory.deployChainlinkRelayer(CHAINLINK_ETH_USD_FEED, ORACLE_INTERVAL_PROD);
@@ -186,6 +186,10 @@ contract DeploySepolia is SepoliaParams, Deploy {
 
   // Setup oracle feeds
   function setupEnvironment() public virtual override updateParams {
+
+    // Deploy oracle factories used to setup the environment
+    deployOracleFactories(address(new ChainlinkUptimeFeedForTest()));
+
     // OD
     systemCoinOracle = new OracleForTestnet(OD_INITIAL_PRICE); // 1 OD = 1 USD 'OD / USD'
 
@@ -242,6 +246,10 @@ contract DeployAnvil is SepoliaParams, Deploy {
 
   // Setup oracle feeds
   function setupEnvironment() public virtual override updateParams {
+
+    // Deploy oracle factories used to setup the environment
+    deployOracleFactories(address(new ChainlinkUptimeFeedForTest()));
+
     // OD
     systemCoinOracle = new OracleForTestnet(OD_INITIAL_PRICE); // 1 OD = 1 USD 'OD / USD'
 

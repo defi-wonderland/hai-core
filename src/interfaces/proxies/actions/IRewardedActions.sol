@@ -28,13 +28,6 @@ interface IRewardedActions is ICommonActions {
    */
   function popDebtFromQueue(address _accountingJob, address _coinJoin, uint256 _debtTimestamp) external;
 
-  /**
-   * @notice Transfers surplus from accounting engine and transfers the reward to the user
-   * @param  _accountingJob Address of the AccountingJob contract
-   * @param  _coinJoin Address of the CoinJoin contract
-   */
-  function auctionSurplus(address _accountingJob, address _coinJoin) external;
-
   // --- LiquidationJob ---
 
   /**

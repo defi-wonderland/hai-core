@@ -150,15 +150,13 @@ contract Unit_DebtAuctionHouse_Constructor is Base {
     assertEq(debtAuctionHouse.contractEnabled(), true);
   }
 
-  function test_Set_SafeEngine(address _safeEngine) public happyPath {
-    vm.assume(_safeEngine != address(0));
+  function test_Set_SafeEngine(address _safeEngine) public happyPath mockAsContract(_safeEngine) {
     debtAuctionHouse = new DebtAuctionHouseForTest(_safeEngine, address(mockProtocolToken), dahParams);
 
     assertEq(address(debtAuctionHouse.safeEngine()), _safeEngine);
   }
 
-  function test_Set_ProtocolToken(address _protocolToken) public happyPath {
-    vm.assume(_protocolToken != address(0));
+  function test_Set_ProtocolToken(address _protocolToken) public happyPath mockAsContract(_protocolToken) {
     debtAuctionHouse = new DebtAuctionHouseForTest(address(mockSafeEngine), _protocolToken, dahParams);
 
     assertEq(address(debtAuctionHouse.protocolToken()), _protocolToken);
@@ -177,7 +175,7 @@ contract Unit_DebtAuctionHouse_Constructor is Base {
   }
 
   function test_Revert_Null_ProtocolToken() public {
-    vm.expectRevert(Assertions.NullAddress.selector);
+    vm.expectRevert(abi.encodeWithSelector(Assertions.NoCode.selector, address(0)));
 
     new DebtAuctionHouseForTest(address(mockSafeEngine), address(0), dahParams);
   }
@@ -533,25 +531,25 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
     _mockTotalOnAuctionDebt(_totalOnAuctionDebt);
   }
 
-  function test_Revert_ContractIsDisabled(DebtAuction memory _auction, uint256 _amountToBuy, uint256 _bid) public {
+  function test_Revert_ContractIsDisabled(DebtAuction memory _auction, uint256 _amountToBuy) public {
     _mockContractEnabled(false);
 
     vm.expectRevert(IDisableable.ContractIsDisabled.selector);
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _bid);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 
-  function test_Revert_HighBidderNotSet(DebtAuction memory _auction, uint256 _amountToBuy, uint256 _bid) public {
+  function test_Revert_HighBidderNotSet(DebtAuction memory _auction, uint256 _amountToBuy) public {
     _auction.highBidder = address(0);
 
     _mockValues(_auction, 0, 0, 0);
 
     vm.expectRevert(IDebtAuctionHouse.DAH_HighBidderNotSet.selector);
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _bid);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 
-  function test_Revert_BidAlreadyExpired(DebtAuction memory _auction, uint256 _amountToBuy, uint256 _bid) public {
+  function test_Revert_BidAlreadyExpired(DebtAuction memory _auction, uint256 _amountToBuy) public {
     vm.assume(_auction.highBidder != address(0));
     vm.assume(_auction.bidExpiry != 0 && _auction.bidExpiry <= block.timestamp);
 
@@ -559,10 +557,10 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
 
     vm.expectRevert(IDebtAuctionHouse.DAH_BidAlreadyExpired.selector);
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _bid);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 
-  function test_Revert_AuctionAlreadyExpired(DebtAuction memory _auction, uint256 _amountToBuy, uint256 _bid) public {
+  function test_Revert_AuctionAlreadyExpired(DebtAuction memory _auction, uint256 _amountToBuy) public {
     vm.assume(_auction.highBidder != address(0));
     vm.assume(_auction.bidExpiry == 0 || _auction.bidExpiry > block.timestamp);
     vm.assume(_auction.auctionDeadline <= block.timestamp);
@@ -571,20 +569,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
 
     vm.expectRevert(IDebtAuctionHouse.DAH_AuctionAlreadyExpired.selector);
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _bid);
-  }
-
-  function test_Revert_NotMatchingBid(DebtAuction memory _auction, uint256 _amountToBuy, uint256 _bid) public {
-    vm.assume(_auction.highBidder != address(0));
-    vm.assume(_auction.bidExpiry == 0 || _auction.bidExpiry > block.timestamp);
-    vm.assume(_auction.auctionDeadline > block.timestamp);
-    vm.assume(_bid != _auction.bidAmount);
-
-    _mockValues(_auction, 0, 0, 0);
-
-    vm.expectRevert(IDebtAuctionHouse.DAH_NotMatchingBid.selector);
-
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _bid);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 
   function test_Revert_AmountBoughtNotLower(DebtAuction memory _auction, uint256 _amountToBuy) public {
@@ -597,7 +582,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
 
     vm.expectRevert(IDebtAuctionHouse.DAH_AmountBoughtNotLower.selector);
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _auction.bidAmount);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 
   function test_Revert_InsufficientDecrease(
@@ -617,7 +602,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
 
     vm.expectRevert(IDebtAuctionHouse.DAH_InsufficientDecrease.selector);
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _auction.bidAmount);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 
   function test_Call_SafeEngine_TransferInternalCoins(
@@ -632,7 +617,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
       1
     );
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _auction.bidAmount);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 
   function test_NotCall_HighBidder_CancelAuctionedDebtWithSurplus(
@@ -655,7 +640,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
       0
     );
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _auction.bidAmount);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 
   function test_Call_HighBidder_CancelAuctionedDebtWithSurplus(
@@ -678,7 +663,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
       1
     );
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _auction.bidAmount);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 
   function test_Set_Auctions_HighBidder(
@@ -688,7 +673,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
     uint256 _bidDuration,
     uint256 _totalOnAuctionDebt
   ) public happyPath(_auction, _amountToBuy, _bidDecrease, _bidDuration, _totalOnAuctionDebt) {
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _auction.bidAmount);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
 
     assertEq(debtAuctionHouse.auctions(_auction.id).highBidder, user);
   }
@@ -700,7 +685,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
     uint256 _bidDuration,
     uint256 _totalOnAuctionDebt
   ) public happyPath(_auction, _amountToBuy, _bidDecrease, _bidDuration, _totalOnAuctionDebt) {
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _auction.bidAmount);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
 
     assertEq(debtAuctionHouse.auctions(_auction.id).amountToSell, _amountToBuy);
   }
@@ -712,7 +697,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
     uint256 _bidDuration,
     uint256 _totalOnAuctionDebt
   ) public happyPath(_auction, _amountToBuy, _bidDecrease, _bidDuration, _totalOnAuctionDebt) {
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _auction.bidAmount);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
 
     assertEq(debtAuctionHouse.auctions(_auction.id).bidExpiry, block.timestamp + _bidDuration);
   }
@@ -729,7 +714,7 @@ contract Unit_DebtAuctionHouse_DecreaseSoldAmount is Base {
       _auction.id, user, block.timestamp, _auction.bidAmount, _amountToBuy, block.timestamp + _bidDuration
     );
 
-    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy, _auction.bidAmount);
+    debtAuctionHouse.decreaseSoldAmount(_auction.id, _amountToBuy);
   }
 }
 
@@ -929,8 +914,7 @@ contract Unit_DebtAuctionHouse_ModifyParameters is Base {
     assertEq(abi.encode(_params), abi.encode(_fuzz));
   }
 
-  function test_Set_ProtocolToken(address _protocolToken) public happyPath {
-    vm.assume(_protocolToken != address(0));
+  function test_Set_ProtocolToken(address _protocolToken) public happyPath mockAsContract(_protocolToken) {
     debtAuctionHouse.modifyParameters('protocolToken', abi.encode(_protocolToken));
 
     assertEq(address(debtAuctionHouse.protocolToken()), _protocolToken);
@@ -938,7 +922,7 @@ contract Unit_DebtAuctionHouse_ModifyParameters is Base {
 
   function test_Revert_ProtocolToken_NullAddress() public {
     vm.startPrank(authorizedAccount);
-    vm.expectRevert(Assertions.NullAddress.selector);
+    vm.expectRevert(abi.encodeWithSelector(Assertions.NoCode.selector, address(0)));
 
     debtAuctionHouse.modifyParameters('protocolToken', abi.encode(0));
   }

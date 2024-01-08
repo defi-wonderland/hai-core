@@ -15,10 +15,6 @@ import {NFTRenderer} from '@contracts/proxies/NFTRenderer.sol';
 
 // forge t --fork-url http://127.0.0.1:8545 --match-contract GovernanceProposalAnvil -vvvvv
 
-interface IModifyParameters {
-  function modifyParameters(bytes32 _param, bytes memory _data) external;
-}
-
 contract GovernanceProposalAnvil is AnvilFork {
   uint256 constant MINUS_0_5_PERCENT_PER_HOUR = 999_998_607_628_240_588_157_433_861;
   /**
@@ -42,8 +38,7 @@ contract GovernanceProposalAnvil is AnvilFork {
     perSecondDiscountUpdateRate: MINUS_0_5_PERCENT_PER_HOUR
   });
 
-  //// Add Collateral ////
-  function testDeployCollateralJoin() public {
+  function testAddCollateral() public {
     vm.startPrank(address(timelockController));
     bytes32[] memory _collateralTypesList = collateralJoinFactory.collateralTypesList();
     collateralJoinFactory.deployCollateralJoin(newCType, newCAddress);
@@ -56,7 +51,6 @@ contract GovernanceProposalAnvil is AnvilFork {
     vm.stopPrank();
   }
 
-  //// Update NFT Renderer ////
   function testUpdateNFTRenderer() public {
     vm.startPrank(vault721.timelockController());
     address fakeOracleRelayer = address(1);
@@ -68,18 +62,18 @@ contract GovernanceProposalAnvil is AnvilFork {
     vm.stopPrank();
   }
 
-  //// Update PID Controller ////
   function testUpdatePidController() public {
-    address[] memory authorizedAccounts = pidController.authorizedAccounts();
-    vm.startPrank(authorizedAccounts[0]);
+    ODGovernor dao = ODGovernor(payable(ODGovernor_Address));
+    vm.startPrank(address(dao));
     pidController.modifyParameters('seedProposer', abi.encode(address(365_420_690)));
     pidController.modifyParameters('noiseBarrier', abi.encode(1));
     pidController.modifyParameters('integralPeriodSize', abi.encode(1));
     pidController.modifyParameters('feedbackOutputUpperBound', abi.encode(1));
-    pidController.modifyParameters('feedbackOutputLowerBound', abi.encode(-1));
+    pidController.modifyParameters('feedbackOutputLowerBound', abi.encode(1));
     pidController.modifyParameters('perSecondCumulativeLeak', abi.encode(1));
     pidController.modifyParameters('kp', abi.encode(1));
     pidController.modifyParameters('ki', abi.encode(1));
+    pidController.modifyParameters('priceDeviationCumulative', abi.encode(1));
     vm.stopPrank();
 
     {
@@ -88,7 +82,7 @@ contract GovernanceProposalAnvil is AnvilFork {
       assertEq(params.noiseBarrier, 1);
       assertEq(params.integralPeriodSize, 1);
       assertEq(params.feedbackOutputUpperBound, 1);
-      assertEq(params.feedbackOutputLowerBound, -1);
+      assertEq(params.feedbackOutputLowerBound, 1);
       assertEq(params.perSecondCumulativeLeak, 1);
     }
 
@@ -97,24 +91,9 @@ contract GovernanceProposalAnvil is AnvilFork {
       assertEq(controllerGains.kp, 1);
       assertEq(controllerGains.ki, 1);
     }
-  }
 
-  //// Update Block Delay ////
-  function testUpdateBlockDelay() public {
-    vm.startPrank(vault721.timelockController());
-    vault721.updateBlockDelay(1);
-    vm.stopPrank();
-
-    assertEq(vault721.blockDelay(), 1, 'testUpdateBlockDelay: Block Delay not set properly');
-  }
-
-  //// Update Time Delay ////
-  function testUpdateTimeDelay() public {
-    vm.startPrank(vault721.timelockController());
-    vault721.updateTimeDelay(1);
-    vm.stopPrank();
-
-    assertEq(vault721.timeDelay(), 1, 'testUpdateTimeDelay: Time Delay not set properly');
+    IPIDController.DeviationObservation memory deviationObservation = pidController.deviationObservation();
+    assertEq(deviationObservation.integral, 1);
   }
 
   function _helperExecuteProp(
@@ -133,9 +112,7 @@ contract GovernanceProposalAnvil is AnvilFork {
     ODGovernor dao = ODGovernor(payable(ODGovernor_Address));
 
     uint256 propId = dao.propose(targets, values, calldatas, description);
-    assertEq(
-      propId, dao.hashProposal(targets, values, calldatas, descriptionHash), '_helperExecuteProp: Prop Id not equal'
-    );
+    assertEq(propId, dao.hashProposal(targets, values, calldatas, descriptionHash));
 
     propState = dao.state(propId); // returns 0 (Pending)
 
@@ -247,49 +224,17 @@ contract GovernanceProposalAnvil is AnvilFork {
         noiseBarrier: 1,
         integralPeriodSize: 1,
         feedbackOutputUpperBound: 1,
-        feedbackOutputLowerBound: -1,
+        feedbackOutputLowerBound: 1,
         perSecondCumulativeLeak: 1,
         kp: 1,
-        ki: 1
+        ki: 1,
+        priceDeviationCumulative: 1
       })
     );
-
-    address[] memory authorizedAccounts = pidController.authorizedAccounts();
-    ODGovernor dao = ODGovernor(payable(ODGovernor_Address));
-    vm.startPrank(authorizedAccounts[0]);
-    pidController.addAuthorization(address(dao));
-    vm.stopPrank();
-
     _helperExecuteProp(targets, values, calldatas, description, descriptionHash);
   }
 
-  function testUpdateBlockDelayProposal(uint8 blockDelay) public {
-    (
-      address[] memory targets,
-      uint256[] memory values,
-      bytes[] memory calldatas,
-      string memory description,
-      bytes32 descriptionHash
-    ) = generateUpdateBlockDelayProposalParams(blockDelay);
-    _helperExecuteProp(targets, values, calldatas, description, descriptionHash);
-
-    assertEq(vault721.blockDelay(), blockDelay, 'testUpdateBlockDelayProposal: Block Delay not set properly');
-  }
-
-  function testUpdateTimeDelayProposal(uint256 timeDelay) public {
-    (
-      address[] memory targets,
-      uint256[] memory values,
-      bytes[] memory calldatas,
-      string memory description,
-      bytes32 descriptionHash
-    ) = generateUpdateTimeDelayProposalParams(timeDelay);
-    _helperExecuteProp(targets, values, calldatas, description, descriptionHash);
-
-    assertEq(vault721.timeDelay(), timeDelay, 'testUpdateTimeDelayProposal: Time Delay not set properly');
-  }
-
-  //// Proposal Paarams ////
+  // Proposal Paarams
   function generateAddCollateralProposalParams()
     public
     returns (
@@ -361,10 +306,11 @@ contract GovernanceProposalAnvil is AnvilFork {
     uint256 noiseBarrier;
     uint256 integralPeriodSize;
     uint256 feedbackOutputUpperBound;
-    int256 feedbackOutputLowerBound;
+    uint256 feedbackOutputLowerBound;
     uint256 perSecondCumulativeLeak;
     uint256 kp;
     uint256 ki;
+    uint256 priceDeviationCumulative;
   }
 
   function generateUpdatePidControllerProposalParams(UpdatePidControllerParams memory params)
@@ -377,91 +323,21 @@ contract GovernanceProposalAnvil is AnvilFork {
       bytes32 descriptionHash
     )
   {
-    targets = new address[](8);
+    targets = new address[](1);
     targets[0] = address(pidController);
-    targets[1] = address(pidController);
-    targets[2] = address(pidController);
-    targets[3] = address(pidController);
-    targets[4] = address(pidController);
-    targets[5] = address(pidController);
-    targets[6] = address(pidController);
-    targets[7] = address(pidController);
-
-    values = new uint256[](8);
-    values[0] = 0;
-    values[1] = 0;
-    values[2] = 0;
-    values[3] = 0;
-    values[4] = 0;
-    values[5] = 0;
-    values[6] = 0;
-    values[7] = 0;
-
-    bytes4 selector = IModifyParameters.modifyParameters.selector;
-    calldatas = new bytes[](8);
-    calldatas[0] = abi.encodeWithSelector(selector, 'seedProposer', abi.encode(params.seedProposer));
-    calldatas[1] = abi.encodeWithSelector(selector, 'noiseBarrier', abi.encode(params.noiseBarrier));
-    calldatas[2] = abi.encodeWithSelector(selector, 'integralPeriodSize', abi.encode(params.integralPeriodSize));
-    calldatas[3] = abi.encodeWithSelector(selector, 'feedbackOutputUpperBound', abi.encode(params.feedbackOutputUpperBound));
-    calldatas[4] = abi.encodeWithSelector(selector, 'feedbackOutputLowerBound', abi.encode(params.feedbackOutputLowerBound));
-    calldatas[5] = abi.encodeWithSelector(selector, 'perSecondCumulativeLeak', abi.encode(params.perSecondCumulativeLeak));
-    calldatas[6] = abi.encodeWithSelector(selector, 'kp', abi.encode(params.kp));
-    calldatas[7] = abi.encodeWithSelector(selector, 'ki', abi.encode(params.ki));
-
-    description = 'Update PID Controller';
-
-    descriptionHash = keccak256(bytes(description));
-  }
-
-  function generateUpdateBlockDelayProposalParams(uint8 blockDelay)
-    public
-    returns (
-      address[] memory targets,
-      uint256[] memory values,
-      bytes[] memory calldatas,
-      string memory description,
-      bytes32 descriptionHash
-    )
-  {
-    targets = new address[](1);
-    targets[0] = address(vault721);
 
     values = new uint256[](1);
     values[0] = 0;
 
-    bytes memory calldata0 = abi.encodeWithSelector(IVault721.updateBlockDelay.selector, blockDelay);
-
-    calldatas = new bytes[](1);
-    calldatas[0] = calldata0;
-
-    description = 'Update Block Delay';
-
-    descriptionHash = keccak256(bytes(description));
-  }
-
-  function generateUpdateTimeDelayProposalParams(uint256 timeDelay)
-    public
-    returns (
-      address[] memory targets,
-      uint256[] memory values,
-      bytes[] memory calldatas,
-      string memory description,
-      bytes32 descriptionHash
-    )
-  {
-    targets = new address[](1);
-    targets[0] = address(vault721);
-
-    values = new uint256[](1);
-    values[0] = 0;
-
-    bytes memory calldata0 = abi.encodeWithSelector(IVault721.updateTimeDelay.selector, timeDelay);
-
-    calldatas = new bytes[](1);
-    calldatas[0] = calldata0;
-
-    description = 'Update Time Delay';
-
-    descriptionHash = keccak256(bytes(description));
+    string memory sig = 'modifyParameters(bytes32,bytes)';
+    calldatas[0] = abi.encodeWithSignature(sig, 'seedProposer', abi.encode(params.seedProposer));
+    calldatas[1] = abi.encodeWithSignature(sig, 'noiseBarrier', abi.encode(params.noiseBarrier));
+    calldatas[2] = abi.encodeWithSignature(sig, 'integralPeriodSize', abi.encode(params.integralPeriodSize));
+    calldatas[3] = abi.encodeWithSignature(sig, 'feedbackOutputUpperBound', abi.encode(params.feedbackOutputUpperBound));
+    calldatas[4] = abi.encodeWithSignature(sig, 'feedbackOutputLowerBound', abi.encode(params.feedbackOutputLowerBound));
+    calldatas[5] = abi.encodeWithSignature(sig, 'perSecondCumulativeLeak', abi.encode(params.perSecondCumulativeLeak));
+    calldatas[6] = abi.encodeWithSignature(sig, 'kp', abi.encode(params.kp));
+    calldatas[7] = abi.encodeWithSignature(sig, 'ki', abi.encode(params.ki));
+    calldatas[8] = abi.encodeWithSignature(sig, 'priceDeviationCumulative', abi.encode(params.priceDeviationCumulative));
   }
 }
