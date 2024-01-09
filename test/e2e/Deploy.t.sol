@@ -634,7 +634,8 @@ contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
   }
 }
 
-contract GoerliDeploymentTest is GoerliDeployment, CommonDeploymentTest {
+// rm "abstract" to reactivate after Deployment
+abstract contract GoerliDeploymentTest is GoerliDeployment, CommonDeploymentTest {
   function setUp() public {
     vm.createSelectFork(vm.rpcUrl('goerli'), GOERLI_DEPLOYMENT_BLOCK);
     _getEnvironmentParams();
