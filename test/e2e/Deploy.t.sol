@@ -24,6 +24,8 @@ import {GoerliDeployment} from '@script/GoerliDeployment.s.sol';
 import {MainnetDeployment} from '@script/MainnetDeployment.s.sol';
 
 abstract contract CommonDeploymentTest is HaiTest, Deploy {
+  event Transfer(address indexed _from, address indexed _to, uint256 _value);
+
   uint256 _governorAccounts;
 
   // SAFEEngine
@@ -124,9 +126,41 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
   function test_ProtocolToken_Auth() public {
     assertEq(protocolToken.authorizedAccounts(address(debtAuctionHouse)), true);
+    assertEq(protocolToken.authorizedAccounts(address(tokenDistributor)), true);
 
-    // 1 contract + governor accounts
-    assertEq(protocolToken.authorizedAccounts().length, 1 + _governorAccounts);
+    // 2 contracts + governor accounts
+    assertEq(protocolToken.authorizedAccounts().length, 2 + _governorAccounts);
+  }
+
+  function test_ProtocolToken_Pausable(uint256 _wad) public {
+    vm.assume(_wad <= type(uint208).max);
+
+    vm.startPrank(deployer);
+    protocolToken.approve(governor, _wad);
+    changePrank(governor);
+
+    vm.expectRevert(Pausable.EnforcedPause.selector);
+    protocolToken.mint(governor, _wad);
+    vm.expectRevert(Pausable.EnforcedPause.selector);
+    protocolToken.transfer(deployer, _wad);
+    vm.expectRevert(Pausable.EnforcedPause.selector);
+    protocolToken.transferFrom(deployer, governor, _wad);
+    vm.expectRevert(Pausable.EnforcedPause.selector);
+    protocolToken.burn(_wad);
+
+    protocolToken.unpause();
+
+    protocolToken.mint(governor, _wad);
+    assertEq(protocolToken.balanceOf(governor), _wad);
+    protocolToken.transfer(deployer, _wad);
+    assertEq(protocolToken.balanceOf(deployer), _wad);
+    protocolToken.transferFrom(deployer, governor, _wad);
+    assertEq(protocolToken.balanceOf(governor), _wad);
+    protocolToken.burn(_wad);
+    assertEq(protocolToken.balanceOf(governor), 0);
+
+    vm.expectRevert(IProtocolToken.ProtocolToken_NotPausable.selector);
+    protocolToken.pause();
   }
 
   // SurplusAuctionHouse
@@ -397,15 +431,12 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(address(haiGovernor.timelock()), address(timelock));
   }
 
+  // TokenDistributor
   function test_TokenDistributor_Bytecode() public {
     assertEq(address(tokenDistributor).code, type(TokenDistributor).runtimeCode);
   }
 
-  // TokenDistributor
   function test_TokenDistributor_Params() public {
-    assertEq(protocolToken.balanceOf(address(tokenDistributor)), _tokenDistributorParams.totalClaimable);
-    assertEq(protocolToken.totalSupply(), _tokenDistributorParams.totalClaimable);
-
     assertEq(tokenDistributor.root(), _tokenDistributorParams.root);
     assertEq(tokenDistributor.totalClaimable(), _tokenDistributorParams.totalClaimable);
     assertEq(tokenDistributor.claimPeriodStart(), _tokenDistributorParams.claimPeriodStart);
@@ -581,6 +612,10 @@ contract E2EDeploymentGoerliTest is DeployGoerli, CommonDeploymentTest {
 
   function setupPostEnvironment() public override(DeployGoerli, Deploy) {
     super.setupPostEnvironment();
+  }
+
+  function test_Delegated_OP() public {
+    assertEq(ERC20Votes(OP_OPTIMISM).delegates(address(collateralJoin[OP])), governor);
   }
 
   function test_stones_wbtc_oracle() public {
