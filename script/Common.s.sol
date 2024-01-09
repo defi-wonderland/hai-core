@@ -211,7 +211,7 @@ abstract contract Common is Contracts, Params {
     // if token distributor params are not empty, deploy token distributor
     if (keccak256(abi.encode(_tokenDistributorParams)) != keccak256(abi.encode(_emptyTokenDistributorParams))) {
       // Deploy aidrop distributor contract
-      tokenDistributor = new TokenDistributor(ERC20Votes(address(protocolToken)), _tokenDistributorParams);
+      tokenDistributor = new TokenDistributor(address(protocolToken), _tokenDistributorParams);
 
       // auth
       protocolToken.addAuthorization(address(tokenDistributor)); // mint
