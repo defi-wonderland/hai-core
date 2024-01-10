@@ -28,10 +28,6 @@ abstract contract Base is HaiTest {
     vm.stopPrank();
   }
 
-  function _mockNotPausable(bool _notPausable) internal {
-    stdstore.target(address(protocolToken)).sig(IProtocolToken.notPausable.selector).checked_write(_notPausable);
-  }
-
   function _mockPaused(bool _paused) internal {
     stdstore.target(address(protocolToken)).sig(Pausable.paused.selector).checked_write(_paused);
   }
@@ -58,7 +54,7 @@ contract Unit_ProtocolToken_Constructor is Base {
   }
 
   function test_Set_Paused() public happyPath {
-    assertEq(protocolToken.paused(), false);
+    assertEq(protocolToken.paused(), true);
   }
 
   function test_Emit_AddAuthorization() public happyPath {
@@ -76,6 +72,7 @@ contract Unit_ProtocolToken_Mint is Base {
     vm.startPrank(authorizedAccount);
 
     _assumeHappyPath(_dst, _wad);
+    _mockPaused(false);
     _;
   }
 
@@ -103,6 +100,7 @@ contract Unit_ProtocolToken_Burn is Base {
 
   modifier happyPath(uint256 _wad) {
     _assumeHappyPath(_wad);
+    _mockPaused(false);
 
     vm.prank(authorizedAccount);
     protocolToken.mint(user, _wad);
@@ -123,51 +121,11 @@ contract Unit_ProtocolToken_Burn is Base {
   }
 }
 
-contract Unit_ProtocolToken_Pause is Base {
-  event Paused(address _account);
-
-  modifier happyPath() {
-    vm.startPrank(authorizedAccount);
-    _;
-  }
-
-  function test_Revert_Unauthorized() public {
-    vm.expectRevert(IAuthorizable.Unauthorized.selector);
-
-    protocolToken.pause();
-  }
-
-  function test_Revert_NotPausable() public {
-    vm.startPrank(authorizedAccount);
-
-    _mockNotPausable(true);
-
-    vm.expectRevert(IProtocolToken.ProtocolToken_NotPausable.selector);
-
-    protocolToken.pause();
-  }
-
-  function test_Set_NotPausable() public happyPath {
-    protocolToken.pause();
-
-    assertEq(protocolToken.notPausable(), true);
-  }
-
-  function test_Emit_Paused() public happyPath {
-    vm.expectEmit();
-    emit Paused(authorizedAccount);
-
-    protocolToken.pause();
-  }
-}
-
 contract Unit_ProtocolToken_Unpause is Base {
   event Unpaused(address _account);
 
   modifier happyPath() {
     vm.startPrank(authorizedAccount);
-
-    _mockPaused(true);
     _;
   }
 

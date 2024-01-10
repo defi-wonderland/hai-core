@@ -17,11 +17,6 @@ import {Authorizable} from '@contracts/utils/Authorizable.sol';
  * @notice This contract represents the protocol ERC20Votes token to be used for governance purposes
  */
 contract ProtocolToken is ERC20, ERC20Permit, ERC20Votes, ERC20Pausable, Authorizable, IProtocolToken {
-  // --- Data ---
-
-  /// @inheritdoc IProtocolToken
-  bool public notPausable;
-
   // --- Init ---
 
   /**
@@ -31,7 +26,9 @@ contract ProtocolToken is ERC20, ERC20Permit, ERC20Votes, ERC20Pausable, Authori
   constructor(
     string memory _name,
     string memory _symbol
-  ) ERC20(_name, _symbol) ERC20Permit(_name) Authorizable(msg.sender) {}
+  ) ERC20(_name, _symbol) ERC20Permit(_name) Authorizable(msg.sender) {
+    _pause();
+  }
 
   // --- Methods ---
 
@@ -43,13 +40,6 @@ contract ProtocolToken is ERC20, ERC20Permit, ERC20Votes, ERC20Pausable, Authori
   /// @inheritdoc IProtocolToken
   function burn(uint256 _wad) external {
     _burn(msg.sender, _wad);
-  }
-
-  /// @inheritdoc IProtocolToken
-  function pause() external isAuthorized {
-    if (notPausable) revert ProtocolToken_NotPausable();
-    notPausable = true;
-    _pause();
   }
 
   /// @inheritdoc IProtocolToken

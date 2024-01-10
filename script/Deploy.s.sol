@@ -20,7 +20,6 @@ abstract contract Deploy is Common, Script {
 
     // Deploy tokens used to setup the environment
     deployTokens();
-    _setupTokens();
 
     // Deploy governance contracts
     deployGovernance();

@@ -158,9 +158,6 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     assertEq(protocolToken.balanceOf(governor), _wad);
     protocolToken.burn(_wad);
     assertEq(protocolToken.balanceOf(governor), 0);
-
-    vm.expectRevert(IProtocolToken.ProtocolToken_NotPausable.selector);
-    protocolToken.pause();
   }
 
   // SurplusAuctionHouse

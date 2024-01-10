@@ -16,10 +16,6 @@ abstract contract Common is Contracts, Params {
     protocolToken = new ProtocolToken('Protocol Token', 'KITE');
   }
 
-  function _setupTokens() internal {
-    protocolToken.pause();
-  }
-
   function deployGovernance() public updateParams {
     IHaiGovernor.HaiGovernorParams memory _emptyGovernorParams;
     // if governor params are not empty, deploy governor
