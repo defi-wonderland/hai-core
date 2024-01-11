@@ -139,8 +139,8 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
     protocolToken.approve(governor, _wad);
     changePrank(governor);
 
-    vm.expectRevert(Pausable.EnforcedPause.selector);
     protocolToken.mint(governor, _wad);
+
     vm.expectRevert(Pausable.EnforcedPause.selector);
     protocolToken.transfer(deployer, _wad);
     vm.expectRevert(Pausable.EnforcedPause.selector);
@@ -150,8 +150,6 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
 
     protocolToken.unpause();
 
-    protocolToken.mint(governor, _wad);
-    assertEq(protocolToken.balanceOf(governor), _wad);
     protocolToken.transfer(deployer, _wad);
     assertEq(protocolToken.balanceOf(deployer), _wad);
     protocolToken.transferFrom(deployer, governor, _wad);

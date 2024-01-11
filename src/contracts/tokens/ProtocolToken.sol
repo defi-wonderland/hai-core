@@ -50,7 +50,9 @@ contract ProtocolToken is ERC20, ERC20Permit, ERC20Votes, ERC20Pausable, Authori
   // --- Overrides ---
 
   function _update(address _from, address _to, uint256 _value) internal override(ERC20, ERC20Votes, ERC20Pausable) {
-    super._update(_from, _to, _value);
+    // Override ERC20Pausable when minting new tokens
+    if (_from == address(0)) ERC20Votes._update(_from, _to, _value);
+    else ERC20Pausable._update(_from, _to, _value);
   }
 
   function nonces(address _owner) public view override(ERC20Permit, IERC20Permit, Nonces) returns (uint256 _nonce) {

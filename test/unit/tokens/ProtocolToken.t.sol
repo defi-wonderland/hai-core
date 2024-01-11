@@ -72,7 +72,6 @@ contract Unit_ProtocolToken_Mint is Base {
     vm.startPrank(authorizedAccount);
 
     _assumeHappyPath(_dst, _wad);
-    _mockPaused(false);
     _;
   }
 
