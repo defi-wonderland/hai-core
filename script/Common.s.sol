@@ -237,59 +237,14 @@ abstract contract Common is Contracts, Params {
     }
   }
 
-  function _revokeAllTo(address _governor) internal {
+  function _revokeDeployerToAll(address _governor) internal {
     if (!_shouldRevoke()) return;
 
-    // base contracts
-    _revoke(safeEngine, _governor);
-    _revoke(liquidationEngine, _governor);
-    _revoke(accountingEngine, _governor);
-    _revoke(oracleRelayer, _governor);
-
-    // auction houses
-    _revoke(surplusAuctionHouse, _governor);
-    _revoke(debtAuctionHouse, _governor);
-
-    // tax
-    _revoke(taxCollector, _governor);
-    _revoke(stabilityFeeTreasury, _governor);
-
-    // tokens
-    _revoke(systemCoin, _governor);
-    _revoke(protocolToken, _governor);
-
-    // pid controller
-    _revoke(pidController, _governor);
-    _revoke(pidRateSetter, _governor);
-
-    // token adapters
-    _revoke(coinJoin, _governor);
-
-    // factories or children
-    _revoke(chainlinkRelayerFactory, _governor);
-    _revoke(uniV3RelayerFactory, _governor);
-    _revoke(denominatedOracleFactory, _governor);
-    _revoke(delayedOracleFactory, _governor);
-
-    _revoke(collateralJoinFactory, _governor);
-    _revoke(collateralAuctionHouseFactory, _governor);
-
-    // global settlement
-    _revoke(globalSettlement, _governor);
-    _revoke(postSettlementSurplusAuctionHouse, _governor);
-    _revoke(settlementSurplusAuctioneer, _governor);
-
-    // jobs
-    _revoke(accountingJob, _governor);
-    _revoke(liquidationJob, _governor);
-    _revoke(oracleJob, _governor);
-
-    // token distributor
-    if (address(tokenDistributor) != address(0)) _revoke(tokenDistributor, _governor);
+    _toAllAuthorizableContracts(_revokeDeployerTo, _governor);
   }
 
-  function _revoke(IAuthorizable _contract, address _target) internal {
-    _contract.addAuthorization(_target);
+  function _revokeDeployerTo(IAuthorizable _contract, address _governor) internal {
+    _contract.addAuthorization(_governor);
     _contract.removeAuthorization(deployer);
   }
 
@@ -297,56 +252,61 @@ abstract contract Common is Contracts, Params {
     return governor != deployer && governor != address(0);
   }
 
-  function _delegateAllTo(address __delegate) internal {
-    // base contracts
-    _delegate(safeEngine, __delegate);
-    _delegate(liquidationEngine, __delegate);
-    _delegate(accountingEngine, __delegate);
-    _delegate(oracleRelayer, __delegate);
-
-    // auction houses
-    _delegate(surplusAuctionHouse, __delegate);
-    _delegate(debtAuctionHouse, __delegate);
-
-    // tax
-    _delegate(taxCollector, __delegate);
-    _delegate(stabilityFeeTreasury, __delegate);
-
-    // tokens
-    _delegate(systemCoin, __delegate);
-    _delegate(protocolToken, __delegate);
-
-    // pid controller
-    _delegate(pidController, __delegate);
-    _delegate(pidRateSetter, __delegate);
-
-    // token adapters
-    _delegate(coinJoin, __delegate);
-
-    _delegate(chainlinkRelayerFactory, __delegate);
-    _delegate(uniV3RelayerFactory, __delegate);
-    _delegate(denominatedOracleFactory, __delegate);
-    _delegate(delayedOracleFactory, __delegate);
-
-    _delegate(collateralJoinFactory, __delegate);
-    _delegate(collateralAuctionHouseFactory, __delegate);
-
-    // global settlement
-    _delegate(globalSettlement, __delegate);
-    _delegate(postSettlementSurplusAuctionHouse, __delegate);
-    _delegate(settlementSurplusAuctioneer, __delegate);
-
-    // jobs
-    _delegate(accountingJob, __delegate);
-    _delegate(liquidationJob, __delegate);
-    _delegate(oracleJob, __delegate);
-
-    // token distributor
-    if (address(tokenDistributor) != address(0)) _delegate(tokenDistributor, __delegate);
+  function _delegateToAll(address _delegate) internal {
+    _toAllAuthorizableContracts(_delegateTo, _delegate);
   }
 
-  function _delegate(IAuthorizable _contract, address _target) internal {
-    _contract.addAuthorization(_target);
+  function _delegateTo(IAuthorizable _contract, address _delegate) internal {
+    _contract.addAuthorization(_delegate);
+  }
+
+  function _toAllAuthorizableContracts(function (IAuthorizable, address) internal _function, address _target) internal {
+    // base contracts
+    _function(safeEngine, _target);
+    _function(liquidationEngine, _target);
+    _function(accountingEngine, _target);
+    _function(oracleRelayer, _target);
+
+    // auction houses
+    _function(surplusAuctionHouse, _target);
+    _function(debtAuctionHouse, _target);
+
+    // tax
+    _function(taxCollector, _target);
+    _function(stabilityFeeTreasury, _target);
+
+    // tokens
+    _function(systemCoin, _target);
+    _function(protocolToken, _target);
+
+    // pid controller
+    _function(pidController, _target);
+    _function(pidRateSetter, _target);
+
+    // token adapters
+    _function(coinJoin, _target);
+
+    // factories or children
+    _function(chainlinkRelayerFactory, _target);
+    _function(uniV3RelayerFactory, _target);
+    _function(denominatedOracleFactory, _target);
+    _function(delayedOracleFactory, _target);
+
+    _function(collateralJoinFactory, _target);
+    _function(collateralAuctionHouseFactory, _target);
+
+    // global settlement
+    _function(globalSettlement, _target);
+    _function(postSettlementSurplusAuctionHouse, _target);
+    _function(settlementSurplusAuctioneer, _target);
+
+    // jobs
+    _function(accountingJob, _target);
+    _function(liquidationJob, _target);
+    _function(oracleJob, _target);
+
+    // token distributor
+    if (address(tokenDistributor) != address(0)) _function(tokenDistributor, _target);
   }
 
   modifier updateParams() {
