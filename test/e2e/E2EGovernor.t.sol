@@ -3,9 +3,12 @@ pragma solidity 0.8.20;
 
 import {HaiTest} from '@test/utils/HaiTest.t.sol';
 import {Deploy, DeployMainnet, DeployMainnet} from '@script/Deploy.s.sol';
+import {Governor, IGovernor} from '@openzeppelin/contracts/governance/Governor.sol';
+import {TimelockController} from '@openzeppelin/contracts/governance/TimelockController.sol';
 
 abstract contract E2EGovernorTest is HaiTest, Deploy {
   address whale = address(0x420);
+  address random = address(0x42069);
 
   function test_proposal_lifecycle() public {
     address[] memory targets = new address[](1);
@@ -24,19 +27,29 @@ abstract contract E2EGovernorTest is HaiTest, Deploy {
     vm.expectRevert();
     protocolToken.transfer(address(0x69), 1);
 
-    vm.expectRevert(); // TODO: add revert message
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernor.GovernorUnexpectedProposalState.selector, _proposalId, IGovernor.ProposalState.Pending, 0x2
+      )
+    );
     haiGovernor.castVote(_proposalId, 1);
 
     vm.warp(block.timestamp + _governorParams.votingDelay + 1);
     haiGovernor.castVote(_proposalId, 1);
 
-    vm.expectRevert(); // TODO: add revert message
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IGovernor.GovernorUnexpectedProposalState.selector, _proposalId, IGovernor.ProposalState.Active, 0x10
+      )
+    );
     haiGovernor.queue(targets, values, callDatas, keccak256(bytes(description)));
 
     vm.warp(block.timestamp + _governorParams.votingPeriod + 1);
     haiGovernor.queue(targets, values, callDatas, keccak256(bytes(description)));
 
-    vm.expectRevert(); // TODO: add revert message
+    vm.expectRevert(
+      // abi.encodeWithSelector(TimelockController.TimelockUnexpectedOperationState.selector, PROPOSAL_HASH, 0x2)
+    );
     haiGovernor.execute(targets, values, callDatas, keccak256(bytes(description)));
 
     vm.warp(block.timestamp + _governorParams.timelockMinDelay + 1);
@@ -59,7 +72,8 @@ abstract contract E2EGovernorTest is HaiTest, Deploy {
     vm.prank(whale);
     haiGovernor.propose(targets, values, callDatas, description);
 
-    vm.expectRevert();
+    vm.expectRevert(abi.encodeWithSelector(IGovernor.GovernorOnlyProposer.selector, random));
+    vm.prank(random);
     haiGovernor.cancel(targets, values, callDatas, keccak256(bytes(description)));
 
     vm.prank(whale);
