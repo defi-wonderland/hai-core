@@ -2,7 +2,7 @@
 pragma solidity 0.8.20;
 
 import {HaiTest} from '@test/utils/HaiTest.t.sol';
-import {Deploy, DeployMainnet, DeployMainnet} from '@script/Deploy.s.sol';
+import {Deploy, DeployMainnet} from '@script/Deploy.s.sol';
 import {Governor, IGovernor} from '@openzeppelin/contracts/governance/Governor.sol';
 import {TimelockController} from '@openzeppelin/contracts/governance/TimelockController.sol';
 
@@ -55,7 +55,7 @@ abstract contract E2EGovernorTest is HaiTest, Deploy {
     vm.warp(block.timestamp + _governorParams.timelockMinDelay + 1);
     haiGovernor.execute(targets, values, callDatas, keccak256(bytes(description)));
 
-    protocolToken.transfer(address(0x69), 1);
+    protocolToken.transfer(random, 1);
   }
 
   function test_proposal_cancel() public {
