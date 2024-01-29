@@ -539,7 +539,7 @@ contract E2EDeploymentMainnetTest is DeployMainnet, CommonDeploymentTest {
 }
 
 // rm "abstract" to reactivate after Deployment
-abstract contract MainnetDeploymentTest is MainnetDeployment, CommonDeploymentTest {
+abstract contract MainnetOnchainConfigTest is MainnetDeployment, CommonDeploymentTest {
   function setUp() public {
     vm.createSelectFork(vm.rpcUrl('mainnet'), MAINNET_DEPLOYMENT_BLOCK);
     _getEnvironmentParams();
@@ -570,7 +570,7 @@ contract E2EDeploymentTestnetTest is DeployTestnet, CommonDeploymentTest {
   }
 }
 
-contract TestnetDeploymentTest is TestnetDeployment, CommonDeploymentTest {
+contract TestnetOnchainConfigTest is TestnetDeployment, CommonDeploymentTest {
   function setUp() public {
     vm.createSelectFork(vm.rpcUrl('testnet'), SEPOLIA_DEPLOYMENT_BLOCK);
     _getEnvironmentParams();
