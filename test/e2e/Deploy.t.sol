@@ -403,7 +403,7 @@ abstract contract CommonDeploymentTest is HaiTest, Deploy {
   function test_Timelock_Auth() public {
     assertEq(timelock.hasRole(keccak256('PROPOSER_ROLE'), address(haiGovernor)), true);
     assertEq(timelock.hasRole(keccak256('CANCELLER_ROLE'), address(haiGovernor)), true);
-    assertEq(timelock.hasRole(keccak256('EXECUTOR_ROLE'), address(0)), true);
+    assertEq(timelock.hasRole(keccak256('EXECUTOR_ROLE'), address(haiGovernor)), true);
   }
 
   function test_Timelock_Params() public {
