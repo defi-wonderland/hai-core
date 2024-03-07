@@ -67,4 +67,4 @@ jobs:
 
       - name: Run tests
         shell: bash
-        run: yarn test --nmc OnchainConfig
+        run: yarn script:mainnet -vvvvv

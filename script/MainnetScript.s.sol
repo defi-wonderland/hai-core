@@ -22,10 +22,22 @@ contract MainnetScript is MainnetDeployment, Common, Script {
    */
   function run() public {
     _getEnvironmentParams();
-    vm.startBroadcast();
+    
+    // timelock with permissions
+    vm.startPrank(0xd68e7D20008a223dD48A6076AAf5EDd4fe80a899);
+
+    IBaseOracle _wstethETHPriceFeed =
+      chainlinkRelayerFactory.deployChainlinkRelayer(OP_CHAINLINK_WSTETH_ETH_FEED, 24 hours);
+
+    IBaseOracle _wstethUSDPriceFeed = denominatedOracleFactory.deployDenominatedOracle({
+      _priceSource: _wstethETHPriceFeed,
+      _denominationPriceSource: IBaseOracle(0xF808Bb8264459F5e04a9870D4473b36229126943),
+      _inverted: false
+    });
+
+    delayedOracle[WSTETH] = delayedOracleFactory.deployDelayedOracle(_wstethUSDPriceFeed, 1 hours);
 
     // Script goes here
-
-    vm.stopBroadcast();
+    vm.stopPrank();
   }
 }
