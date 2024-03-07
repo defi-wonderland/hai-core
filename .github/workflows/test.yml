@@ -67,4 +67,4 @@ jobs:
 
       - name: Run tests
         shell: bash
-        run: yarn script:mainnet -vvvvv
+        run: yarn script:mainnet
