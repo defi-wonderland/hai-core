@@ -286,7 +286,7 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
 
     assertEq(protocolToken.totalSupply(), INITIAL_BID);
     surplusAuctionHouse.settleAuction(_auctionId);
-    _collectSystemCoins(address(this));
+    _exitAllCoins(address(this));
     assertEq(protocolToken.totalSupply(), INITIAL_BID / 2); // 50% of the bid is burned
     assertEq(protocolToken.balanceOf(SURPLUS_AUCTION_BID_RECEIVER), INITIAL_BID / 2); // 50% is sent to the receiver
     assertEq(protocolToken.balanceOf(address(this)), 0);
@@ -322,7 +322,7 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
 
     assertEq(protocolToken.totalSupply(), INITIAL_BID + _secondBid);
     surplusAuctionHouse.settleAuction(_auctionId);
-    _collectSystemCoins(address(this));
+    _exitAllCoins(address(this));
     // 50% of the winning bid is burned
     assertEq(protocolToken.totalSupply(), INITIAL_BID + (_secondBid / 2));
     // 50% of the winning bid is sent to the receiver
@@ -357,7 +357,7 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
 
     assertEq(protocolToken.totalSupply(), _secondBid);
     surplusAuctionHouse.settleAuction(_auctionId);
-    _collectSystemCoins(address(this));
+    _exitAllCoins(address(this));
     // 50% of the winning bid is burned
     assertEq(protocolToken.totalSupply(), _secondBid / 2);
     // 50% of the winning bid is sent to the receiver

@@ -400,17 +400,6 @@ contract BasicActions is CommonActions, IBasicActions {
   }
 
   /// @inheritdoc IBasicActions
-  function collectSystemCoins(
-    address _manager,
-    address _coinJoin,
-    uint256 _safeId,
-    uint256 _deltaWad
-  ) external onlyDelegateCall {
-    // Transfers COIN amount to the user's address
-    _collectAndExitCoins(_manager, _coinJoin, _safeId, _deltaWad);
-  }
-
-  /// @inheritdoc IBasicActions
   function collectTokenCollateral(
     address _manager,
     address _collateralJoin,
