@@ -161,8 +161,9 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
     (uint256 _expectedCollateral,) = collateralAuctionHouse[_cType()].getCollateralBought(1, _amountToBid);
     assertLt(_expectedCollateral, COLLATERAL_AMOUNT);
 
-    _generateDebt(address(this), address(collateralJoin[_cType()]), int256(COLLATERAL_AMOUNT), int256(DEBT_AMOUNT));
-    _generateDebt(address(this), address(collateralJoin[_cType()]), int256(COLLATERAL_AMOUNT), int256(DEBT_AMOUNT));
+    _generateDebt(
+      address(this), address(collateralJoin[_cType()]), int256(COLLATERAL_AMOUNT), int256(_amountToBid - DEBT_AMOUNT)
+    );
 
     _buyCollateral(address(this), address(collateralAuctionHouse[_cType()]), 1, _expectedCollateral, _amountToBid);
 

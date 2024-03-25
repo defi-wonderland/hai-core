@@ -229,7 +229,6 @@ abstract contract ProxyUser is BaseUser, Contracts, ScriptBase {
     uint256 _amountToBid
   ) internal override {
     HaiProxy _proxy = _getProxy(_user);
-    _joinCoins(_user, _amountToBid);
 
     vm.startPrank(_user);
     systemCoin.approve(address(_proxy), _amountToBid);
