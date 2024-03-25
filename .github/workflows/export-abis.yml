@@ -1,4 +1,4 @@
-name: Interface Exporter Action
+name: ABI Exporter Action
 
 on:
   push:
@@ -9,7 +9,6 @@ on:
 
 jobs:
   generate_interfaces:
-    if: github.repository == 'hai-on-op/hai'
     runs-on: ubuntu-latest
 
     steps:
