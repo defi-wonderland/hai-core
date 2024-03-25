@@ -53,14 +53,14 @@ abstract contract DirectUser is BaseUser, Contracts, ScriptBase {
   function _exitCoins(address _user, uint256 _amount) internal override {
     vm.startPrank(_user);
     safeEngine.approveSAFEModification(address(coinJoin));
-    coinJoin.exit(_user, _amount);
+    coinJoin.exit(_user, _amount / RAY);
     vm.stopPrank();
   }
 
   function _exitAllCoins(address _user) internal override {
     uint256 _systemCoinInternalBalance = safeEngine.coinBalance(_user);
 
-    _exitCoins(_user, _systemCoinInternalBalance / RAY);
+    _exitCoins(_user, _systemCoinInternalBalance);
   }
 
   function _joinTKN(address _user, address _collateralJoin, uint256 _amount) internal override {
@@ -117,7 +117,7 @@ abstract contract DirectUser is BaseUser, Contracts, ScriptBase {
     vm.stopPrank();
 
     // already pranked call
-    _exitCoins(_user, uint256(_deltaDebt));
+    _exitCoins(_user, uint256(_deltaDebt) * RAY);
   }
 
   function _repayDebtAndExit(
@@ -179,8 +179,8 @@ abstract contract DirectUser is BaseUser, Contracts, ScriptBase {
     uint256 _amountToBid
   ) internal override {
     vm.startPrank(_user);
-    systemCoin.approve(address(coinJoin), _amountToBid / RAY);
-    coinJoin.join(_user, _amountToBid / RAY);
+    systemCoin.approve(address(coinJoin), _amountToBid);
+    coinJoin.join(_user, _amountToBid);
     safeEngine.approveSAFEModification(address(debtAuctionHouse));
     debtAuctionHouse.decreaseSoldAmount(_auctionId, _amountToBuy);
     vm.stopPrank();

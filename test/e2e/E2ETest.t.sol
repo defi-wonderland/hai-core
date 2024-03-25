@@ -161,7 +161,6 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
     (uint256 _expectedCollateral,) = collateralAuctionHouse[_cType()].getCollateralBought(1, _amountToBid);
     assertLt(_expectedCollateral, COLLATERAL_AMOUNT);
 
-    // REVIEW: Should _generateDebt be called twice?
     _generateDebt(address(this), address(collateralJoin[_cType()]), int256(COLLATERAL_AMOUNT), int256(DEBT_AMOUNT));
     _generateDebt(address(this), address(collateralJoin[_cType()]), int256(COLLATERAL_AMOUNT), int256(DEBT_AMOUNT));
 
@@ -223,7 +222,7 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
     uint256 _bidDecrease = debtAuctionHouse.params().bidDecrease;
     uint256 _tokenAmount = Math.wdiv(INITIAL_DEBT_AUCTION_MINTED_TOKENS, _bidDecrease);
 
-    _buyProtocolToken(address(this), 1, _tokenAmount, _auction.bidAmount);
+    _buyProtocolToken(address(this), 1, _tokenAmount, _auction.bidAmount / RAY);
 
     _auction = debtAuctionHouse.auctions(1);
     assertEq(_auction.bidAmount, ONE_HUNDRED_COINS);
