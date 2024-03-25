@@ -3,7 +3,9 @@ pragma solidity 0.8.20;
 
 import {Common, RAD_DELTA} from './Common.t.sol';
 
-import {ILiquidationEngine, IDebtAuctionHouse, ISurplusAuctionHouse} from '@script/Contracts.s.sol';
+import {
+  ILiquidationEngine, ICollateralAuctionHouse, IDebtAuctionHouse, ISurplusAuctionHouse
+} from '@script/Contracts.s.sol';
 import {
   INITIAL_DEBT_AUCTION_MINTED_TOKENS,
   ONE_HUNDRED_COINS,
@@ -123,7 +125,7 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
     _liquidateSAFE(_cType(), address(this));
   }
 
-  function test_collateral_auction() public {
+  function test_collateral_auction_full_sell() public {
     _generateDebt(address(this), address(collateralJoin[_cType()]), int256(COLLATERAL_AMOUNT), int256(DEBT_AMOUNT));
     uint256 _initialBalance = collateral[_cType()].balanceOf(address(this));
     _setCollateralPrice(_cType(), PRICE_DROP);
@@ -135,7 +137,33 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
     (uint256 _expectedCollateral,) = collateralAuctionHouse[_cType()].getCollateralBought(1, _amountToBid);
     assertEq(_expectedCollateral, COLLATERAL_AMOUNT);
 
-    _joinCoins(address(this), _amountToBid);
+    _buyCollateral(address(this), address(collateralAuctionHouse[_cType()]), 1, _expectedCollateral, _amountToBid);
+
+    uint256 _decimals = collateral[_cType()].decimals();
+    uint256 _collateralWei = _expectedCollateral / 10 ** (18 - _decimals);
+    assertEq(collateral[_cType()].balanceOf(address(this)) - _initialBalance, _collateralWei);
+
+    // NOTE: auctions(1) is deleted
+    ICollateralAuctionHouse.Auction memory _auction = collateralAuctionHouse[_cType()].auctions(1);
+    assertEq(_auction.amountToSell, 0);
+    assertEq(_auction.amountToRaise, 0);
+  }
+
+  function test_collateral_auction_full_raise() public {
+    _generateDebt(address(this), address(collateralJoin[_cType()]), int256(COLLATERAL_AMOUNT), int256(DEBT_AMOUNT));
+    uint256 _initialBalance = collateral[_cType()].balanceOf(address(this));
+    _setCollateralPrice(_cType(), PRICE_DROP);
+    _liquidateSAFE(_cType(), address(this));
+    _setCollateralPrice(_cType(), INITIAL_PRICE);
+
+    uint256 _amountToBid = Math.wmul(DEBT_AMOUNT, LIQUIDATION_PENALTY);
+    // NOTE: getExpectedCollateralBought doesn't have a previous reference (lastReadRedemptionPrice)
+    (uint256 _expectedCollateral,) = collateralAuctionHouse[_cType()].getCollateralBought(1, _amountToBid);
+    assertLt(_expectedCollateral, COLLATERAL_AMOUNT);
+
+    // REVIEW: Should _generateDebt be called twice?
+    _generateDebt(address(this), address(collateralJoin[_cType()]), int256(COLLATERAL_AMOUNT), int256(DEBT_AMOUNT));
+    _generateDebt(address(this), address(collateralJoin[_cType()]), int256(COLLATERAL_AMOUNT), int256(DEBT_AMOUNT));
 
     _buyCollateral(address(this), address(collateralAuctionHouse[_cType()]), 1, _expectedCollateral, _amountToBid);
 
@@ -144,8 +172,14 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
     assertEq(collateral[_cType()].balanceOf(address(this)) - _initialBalance, _collateralWei);
 
     // NOTE: auctions(1) is deleted
-    uint256 _amountToSell = collateralAuctionHouse[_cType()].auctions(1).amountToSell;
-    assertEq(_amountToSell, 0);
+    ICollateralAuctionHouse.Auction memory _auction = collateralAuctionHouse[_cType()].auctions(1);
+    assertEq(_auction.amountToSell, 0);
+    assertEq(_auction.amountToRaise, 0);
+
+    uint256 _remainderCollateral = COLLATERAL_AMOUNT - _expectedCollateral;
+    _collateralWei += _remainderCollateral / 10 ** (18 - _decimals);
+    _collectTokenCollateral(address(this), address(collateralJoin[_cType()]), _remainderCollateral);
+    assertEq(collateral[_cType()].balanceOf(address(this)) - _initialBalance, _collateralWei);
   }
 
   function test_collateral_auction_partial() public {
@@ -160,8 +194,6 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
     (uint256 _expectedCollateral,) = collateralAuctionHouse[_cType()].getCollateralBought(1, _amountToBid);
     assertEq(_expectedCollateral, COLLATERAL_AMOUNT / 2);
 
-    _joinCoins(address(this), _amountToBid);
-
     _buyCollateral(address(this), address(collateralAuctionHouse[_cType()]), 1, _expectedCollateral, _amountToBid);
 
     uint256 _decimals = collateral[_cType()].decimals();
@@ -169,8 +201,9 @@ abstract contract E2ETest is BaseUser, Base_CType, Common {
     assertEq(collateral[_cType()].balanceOf(address(this)) - _initialBalance, _collateralWei);
 
     // NOTE: auctions(1) is NOT deleted
-    uint256 _amountToSell = collateralAuctionHouse[_cType()].auctions(1).amountToSell;
-    assertGt(_amountToSell, 0);
+    ICollateralAuctionHouse.Auction memory _auction = collateralAuctionHouse[_cType()].auctions(1);
+    assertGt(_auction.amountToSell, 0);
+    assertGt(_auction.amountToRaise, 0);
   }
 
   function test_debt_auction() public {

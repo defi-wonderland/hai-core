@@ -59,6 +59,23 @@ abstract contract ProxyUser is BaseUser, Contracts, ScriptBase {
 
   // --- SAFE actions ---
 
+  function _joinCoins(address _user, uint256 _amount) internal override {
+    HaiProxy _proxy = _getProxy(_user);
+
+    vm.startPrank(_user);
+    systemCoin.approve(address(_proxy), _amount);
+
+    bytes memory _callData =
+      abi.encodeWithSelector(CommonActions.joinSystemCoins.selector, address(coinJoin), _user, _amount);
+
+    _proxy.execute(address(basicActions), _callData);
+    vm.stopPrank();
+  }
+
+  function _exitCoin(address _user, uint256 _amount) internal override {
+    // NOTE: proxy implementation already exits coins
+  }
+
   function _joinTKN(address _user, address _collateralJoin, uint256 _amount) internal override {
     // NOTE: proxy implementation only needs approval for operating with the collateral
     HaiProxy _proxy = _getProxy(_user);
@@ -83,23 +100,6 @@ abstract contract ProxyUser is BaseUser, Contracts, ScriptBase {
     // NOTE: proxy implementation already exits collateral
   }
 
-  function _joinCoins(address _user, uint256 _amount) internal override {
-    HaiProxy _proxy = _getProxy(_user);
-
-    vm.startPrank(_user);
-    systemCoin.approve(address(_proxy), _amount);
-
-    bytes memory _callData =
-      abi.encodeWithSelector(CommonActions.joinSystemCoins.selector, address(coinJoin), _user, _amount);
-
-    _proxy.execute(address(basicActions), _callData);
-    vm.stopPrank();
-  }
-
-  function _exitCoin(address _user, uint256 _amount) internal override {
-    // NOTE: proxy implementation already exits coins
-  }
-
   function _liquidateSAFE(bytes32 _cType, address _user) internal override {
     (, address _safeHandler) = _getSafe(_user, _cType);
     liquidationEngine.liquidateSAFE(_cType, _safeHandler);
@@ -121,7 +121,7 @@ abstract contract ProxyUser is BaseUser, Contracts, ScriptBase {
       BasicActions.lockTokenCollateralAndGenerateDebt.selector,
       address(safeManager),
       address(taxCollector),
-      address(collateralJoin[_cType]),
+      _collateralJoin,
       address(coinJoin),
       _safeId,
       _collatAmount,
@@ -274,10 +274,24 @@ abstract contract ProxyUser is BaseUser, Contracts, ScriptBase {
     uint256 _coinsToExit = safeEngine.coinBalance(address(_proxy));
 
     bytes memory _callData =
-      abi.encodeWithSelector(CommonActions.exitSystemCoins.selector, address(coinJoin), _coinsToExit);
+    // REVIEW: collectSystemCoins vs. exitSystemCoins
+     abi.encodeWithSelector(CommonActions.exitSystemCoins.selector, address(coinJoin), _coinsToExit);
 
     vm.prank(_user);
     _proxy.execute(address(surplusBidActions), _callData);
+  }
+
+  function _collectTokenCollateral(address _user, address _collateralJoin, uint256 _deltaWad) internal override {
+    HaiProxy _proxy = _getProxy(_user);
+    bytes32 _cType = ICollateralJoin(_collateralJoin).collateralType();
+    (uint256 _safeId,) = _getSafe(_user, _cType);
+
+    bytes memory _callData = abi.encodeWithSelector(
+      BasicActions.collectTokenCollateral.selector, address(safeManager), _collateralJoin, _safeId, _deltaWad
+    );
+
+    vm.prank(_user);
+    _proxy.execute(address(basicActions), _callData);
   }
 
   // --- Global Settlement actions ---

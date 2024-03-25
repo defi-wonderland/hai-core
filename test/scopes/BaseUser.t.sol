@@ -20,11 +20,15 @@ abstract contract BaseUser {
 
   // --- SAFE actions ---
 
+  function _joinCoins(address _user, uint256 _amount) internal virtual;
+
+  function _exitCoin(address _user, uint256 _amount) internal virtual;
+
   function _joinTKN(address _user, address _collateralJoin, uint256 _amount) internal virtual;
 
   function _exitCollateral(address _user, address _collateralJoin, uint256 _amount) internal virtual;
 
-  function _joinCoins(address _user, uint256 _amount) internal virtual;
+  function _liquidateSAFE(bytes32 _cType, address _user) internal virtual;
 
   function _generateDebt(
     address _user,
@@ -39,10 +43,6 @@ abstract contract BaseUser {
     uint256 _deltaCollat,
     uint256 _deltaDebt
   ) internal virtual;
-
-  function _exitCoin(address _user, uint256 _amount) internal virtual;
-
-  function _liquidateSAFE(bytes32 _cType, address _user) internal virtual;
 
   // --- Bidding actions ---
 
@@ -68,6 +68,8 @@ abstract contract BaseUser {
   function _settleSurplusAuction(address _user, uint256 _auctionId) internal virtual;
 
   function _collectSystemCoins(address _user) internal virtual;
+
+  function _collectTokenCollateral(address _user, address _collateralJoin, uint256 _deltaWad) internal virtual;
 
   // --- Global Settlement actions ---
 

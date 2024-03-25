@@ -42,6 +42,20 @@ abstract contract DirectUser is BaseUser, Contracts, ScriptBase {
 
   // --- SAFE actions ---
 
+  function _joinCoins(address _user, uint256 _amount) internal override {
+    vm.startPrank(_user);
+    systemCoin.approve(address(coinJoin), _amount);
+    coinJoin.join(_user, _amount);
+    vm.stopPrank();
+  }
+
+  function _exitCoin(address _user, uint256 _amount) internal override {
+    vm.startPrank(_user);
+    safeEngine.approveSAFEModification(address(coinJoin));
+    coinJoin.exit(_user, _amount);
+    vm.stopPrank();
+  }
+
   function _joinTKN(address _user, address _collateralJoin, uint256 _amount) internal override {
     IERC20Metadata _collateral = ICollateralJoin(_collateralJoin).collateral();
     uint256 _decimals = _collateral.decimals();
@@ -66,20 +80,6 @@ abstract contract DirectUser is BaseUser, Contracts, ScriptBase {
 
     vm.prank(_user);
     ICollateralJoin(_collateralJoin).exit(_user, _wei);
-  }
-
-  function _joinCoins(address _user, uint256 _amount) internal override {
-    vm.startPrank(_user);
-    systemCoin.approve(address(coinJoin), _amount);
-    coinJoin.join(_user, _amount);
-    vm.stopPrank();
-  }
-
-  function _exitCoin(address _user, uint256 _amount) internal override {
-    vm.startPrank(_user);
-    safeEngine.approveSAFEModification(address(coinJoin));
-    coinJoin.exit(_user, _amount);
-    vm.stopPrank();
   }
 
   function _liquidateSAFE(bytes32 _cType, address _user) internal override {
@@ -148,16 +148,17 @@ abstract contract DirectUser is BaseUser, Contracts, ScriptBase {
     uint256 _soldAmount,
     uint256 _amountToBid
   ) internal override {
+    // join coins
+    _joinCoins(_user, _amountToBid);
+
     vm.startPrank(_user);
     safeEngine.approveSAFEModification(_collateralAuctionHouse);
     ICollateralAuctionHouse(_collateralAuctionHouse).buyCollateral(_auctionId, _amountToBid);
+    vm.stopPrank();
 
     // exit collateral
     bytes32 _cType = ICollateralAuctionHouse(_collateralAuctionHouse).collateralType();
-    uint256 _decimals = ICollateralJoin(collateralJoin[_cType]).decimals();
-    uint256 _collateralWei = _soldAmount / 10 ** (18 - _decimals);
-    ICollateralJoin(collateralJoin[_cType]).exit(_user, _collateralWei);
-    vm.stopPrank();
+    _exitCollateral(_user, address(collateralJoin[_cType]), _soldAmount);
   }
 
   function _buyProtocolToken(
@@ -195,6 +196,10 @@ abstract contract DirectUser is BaseUser, Contracts, ScriptBase {
     uint256 _systemCoinInternalBalance = safeEngine.coinBalance(_user);
 
     _exitCoin(_user, _systemCoinInternalBalance / 1e27);
+  }
+
+  function _collectTokenCollateral(address _user, address _collateralJoin, uint256 _deltaWad) internal override {
+    _exitCollateral(_user, _collateralJoin, _deltaWad);
   }
 
   // --- Global Settlement actions ---
