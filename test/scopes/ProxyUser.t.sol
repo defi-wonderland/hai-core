@@ -75,8 +75,7 @@ abstract contract ProxyUser is BaseUser, Contracts, ScriptBase {
   function _exitCoins(address _user, uint256 _amount) internal override {
     HaiProxy _proxy = _getProxy(_user);
 
-    bytes memory _callData =
-     abi.encodeWithSelector(CommonActions.exitSystemCoins.selector, address(coinJoin), _amount);
+    bytes memory _callData = abi.encodeWithSelector(CommonActions.exitSystemCoins.selector, address(coinJoin), _amount);
 
     vm.prank(_user);
     _proxy.execute(address(basicActions), _callData);
@@ -85,8 +84,7 @@ abstract contract ProxyUser is BaseUser, Contracts, ScriptBase {
   function _exitAllCoins(address _user) internal override {
     HaiProxy _proxy = _getProxy(_user);
 
-    bytes memory _callData =
-     abi.encodeWithSelector(CommonActions.exitAllSystemCoins.selector, address(coinJoin));
+    bytes memory _callData = abi.encodeWithSelector(CommonActions.exitAllSystemCoins.selector, address(coinJoin));
 
     vm.prank(_user);
     _proxy.execute(address(basicActions), _callData);
@@ -115,8 +113,7 @@ abstract contract ProxyUser is BaseUser, Contracts, ScriptBase {
   function _exitCollateral(address _user, address _collateralJoin, uint256 _amount) internal override {
     HaiProxy _proxy = _getProxy(_user);
 
-    bytes memory _callData =
-     abi.encodeWithSelector(CommonActions.exitCollateral.selector, _collateralJoin, _amount);
+    bytes memory _callData = abi.encodeWithSelector(CommonActions.exitCollateral.selector, _collateralJoin, _amount);
 
     vm.prank(_user);
     _proxy.execute(address(basicActions), _callData);
